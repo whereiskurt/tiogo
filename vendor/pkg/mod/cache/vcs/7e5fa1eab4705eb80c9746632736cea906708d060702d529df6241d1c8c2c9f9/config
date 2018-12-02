@@ -1,0 +1,7 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = true
+[remote "origin"]
+	url = https://gopkg.in/check.v1
+	fetch = +refs/heads/*:refs/remotes/origin/*

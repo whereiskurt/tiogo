@@ -1,0 +1,18 @@
+AccessKey: NoValueSet
+SecretKey: NoValueSet
+BaseURL: https://cloud.tenable.com
+UseCryptoCacheMode: false
+DefaultTZ: -0600 CST
+VerboseLevel: 4
+Quiet: false
+CachePretty: true
+WorkerCount: 4
+CacheFolder: ./.cache
+LogFolder: ./log
+PerfProfile: true
+Depth: 5
+ListView: true
+ClobberCacheMode: true
+OutputCSVMode: true
+OutputJSONMode: false
+LogFileAppendMode: true

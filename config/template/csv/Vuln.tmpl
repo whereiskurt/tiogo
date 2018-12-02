@@ -1,0 +1,6 @@
+{{define "VulnExportDefault" -}}
+AssetUUID, PluginID
+{{- range $k, $v := .Assets -}}
+{{ $v.Asset.UUID }},{{ $v.Scan.CompletedAt }},{{ $v.Plugin.ID }},{{ $v.Network.Port }},{{ $v.Network.Protocol }},{{ $v.Network.Service }}, {{ Base64 $v.Output}}
+{{end}}
+{{- end}}

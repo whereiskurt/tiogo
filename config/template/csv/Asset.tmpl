@@ -1,0 +1,27 @@
+{{define "DefatulAsset" -}}
+"{{.UUID}}","{{.LastSeenAt}}","{{.FirstSeenAt}}",{{template "AssetIP" . }},{{template "AssetOS" .}},{{template "AssetName" .}}
+{{end}}
+
+{{define "AssetOSIP2" -}}
+{{- $ip:=StringsJoin .IPV4 ","}}
+{{- $ip1:=index (StringsSplit $ip ".") 0}}
+{{- $ip2:=index (StringsSplit $ip ".") 1}}
+"{{$ip1}}","{{$ip2}}",{{template "AssetOS" .}}
+{{- end}}
+
+{{define "AssetIP" -}}
+{{- $ip:=StringsJoin .IPV4 ","}}
+{{- $ip1:=index (StringsSplit $ip ".") 0}}
+{{- $ip2:=index (StringsSplit $ip ".") 1}}
+{{- $ip3:=index (StringsSplit $ip ".") 2}}
+{{- $ip4:=index (StringsSplit $ip ".") 3 -}}
+"{{$ip1}}","{{$ip2}}","{{$ip3}}","{{$ip4}}","{{$ip}}","{{ len .IPV4}}"
+{{- end}}
+
+{{define "AssetOS" -}}
+"{{StringsJoin .OperatingSystem "|"  }}","{{ len .OperatingSystem }}"
+{{- end}}
+
+{{define "AssetName" -}}
+"{{StringsJoin .FQDN "|"  }}","{{StringsJoin .NetBIOS ","  }}","{{StringsJoin .HostName ","  }}"
+{{- end}}
