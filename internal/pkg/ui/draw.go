@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"github.com/whereiskurt/tiogo/internal/pkg/dao"
 	"os"
 	"os/exec"
@@ -70,7 +71,24 @@ func (d *Draw) Banner() {
 }
 
 func (d *Draw) Gopher() {
-	d.Infof(`
+	fmt.Printf(`
+         ,_---~~~~~----._         
+  _,,_,*^____      _____''*g*\"*, 
+ / __/ /'     ^.  /      \ ^@q   f 
+[  @f | @))    |  | @))   l  0 _/  
+ \'/   \~____ / __ \_____/    \   
+  |           _l__l_           I   
+  }          [______]           I  
+  ]            | | |            |  
+  ]             ~ ~             |  
+  |                            |   
+@https://gist.github.com/belbomemo`)
+	return
+}
+
+func (d *Draw) Version() {
+
+	fmt.Printf(`
          ,_---~~~~~----._         
   _,,_,*^____      _____''*g*\"*, 
  / __/ /'     ^.  /      \ ^@q   f 

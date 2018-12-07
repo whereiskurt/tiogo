@@ -6,9 +6,9 @@ DefaultTZ: -0600 CST
 VerboseLevel: 4
 Quiet: false
 CachePretty: true
-WorkerCount: 4
+WorkerCount: 2
 CacheFolder: ./.cache
-LogFolder: ./log
+LogFolder: ./
 PerfProfile: true
 Depth: 5
 ListView: true

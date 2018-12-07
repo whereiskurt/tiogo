@@ -19,19 +19,37 @@ type App struct {
 func NewApp() (a *App) {
 	a = new(App)
 
+	// The RootCmd is the Top Level cobra command each command is attached to (e.g. 'vm','version', 'server')
+	// Once a command is made ('vm') the subcommands are attached (e.g. 'scan','agent' ..)
 	a.RootCmd = &cobra.Command{PreRun: a.ReflectViper}
+	// Make the Config to hold the values parsed by Viper
 	a.Config = app.NewConfig(a.RootCmd)
 
-	vm := cmd.NewVM(a.Config)
-	vmcmd := a.BuildVMCommand(vm)
+	// Make the "version" command
+	ver := cmd.NewVersion(a.Config)
+	// The 'version' command has no subcommands and attaches to the RootCmd
+	_ = MakeCommand("version", ver.Version, a.RootCmd)
 
+	// Make the "vm" command attached RootCmd and and subcommands attached to 'vmcmd'
+	vm := cmd.NewVM(a.Config)
+	vmcmd := MakeCommand("vm", vm.Help, a.RootCmd)
+	// Attach the subcommand to 'vm'
+	_ = MakeCommand("scan", vm.Scan, vmcmd)
+	_ = MakeCommand("host", vm.Host, vmcmd)
+	_ = MakeCommand("plugin", vm.Plugin, vmcmd)
+	_ = MakeCommand("tag", vm.Tag, vmcmd)
+	_ = MakeCommand("asset", vm.Asset, vmcmd)
+	_ = MakeCommand("agent", vm.Agent, vmcmd)
+	_ = MakeCommand("vuln", vm.Vuln, vmcmd)
+
+	// Make the config for the VM command/subcommands Parsed by Viper
 	a.Config.VM = app.NewVMConfig(a.Config, vmcmd)
 
 	return
 }
 
 // Main executes the cobra.RootCmd.Execute() method on the root command .
-// If os.Args are missing, we show help. The default root command is 'vuln'.
+// If os.Args are missing, we show help. The default root command is 'vm'.
 func (a *App) Main() {
 	cli := ui.NewCLI(a.Config)
 
@@ -75,7 +93,7 @@ func (a *App) ReflectViper(cmd *cobra.Command, args []string) {
 }
 
 func (a *App) EnsureRootCmd() {
-	roots := []string{"vm", "webapp", "server"}
+	roots := []string{"vm", "version", "webapp", "server"}
 	// Check if the first arg is a root command
 	m := strings.ToLower(os.Args[1])
 	if !Contains(roots, m) {
@@ -85,38 +103,19 @@ func (a *App) EnsureRootCmd() {
 		os.Args = append(os.Args, rest...)
 	}
 }
-func Contains(a []string, x string) bool {
-	for _, n := range a {
-		if x == n {
-			return true
+func Contains(a []string, x string) (didContain bool) {
+	for i := range a {
+		if x == a[i] {
+			didContain = true
+			break
 		}
 	}
-	return false
-}
-
-// BuildVMCommand creates the root "vuln" combra command and attaches sub-commands like "scan","host",etc.
-func (a *App) BuildVMCommand(v *cmd.VM) (root *cobra.Command) {
-
-	root = a.MakeCommand("vm", v.Help, a.RootCmd)
-
-	a.AttachCommand("scan", v.Scan, root)
-	a.AttachCommand("host", v.Host, root)
-	a.AttachCommand("plugin", v.Plugin, root)
-	a.AttachCommand("tag", v.Tag, root)
-	a.AttachCommand("asset", v.Asset, root)
-	a.AttachCommand("agent", v.Agent, root)
-	a.AttachCommand("vuln", v.Vuln, root)
-
 	return
 }
 
-func (a *App) MakeCommand(s string, run func(*cobra.Command, []string), parent *cobra.Command) (child *cobra.Command) {
+func MakeCommand(s string, run func(*cobra.Command, []string), parent *cobra.Command) (child *cobra.Command) {
 	alias := []string{fmt.Sprintf("%ss", s)} // Add a pluralized alias
 	child = &cobra.Command{Use: s, Run: run, PreRun: parent.PreRun, Aliases: alias}
 	parent.AddCommand(child)
-	return
-}
-func (a *App) AttachCommand(s string, run func(*cobra.Command, []string), parent *cobra.Command) {
-	a.MakeCommand(s, run, parent)
 	return
 }

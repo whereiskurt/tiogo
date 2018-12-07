@@ -1,5 +1,5 @@
 {{define "Scan" -}}
-{{.ScanID}},"{{.Name }}",{{ .Status }},{{ .Owner }},{{ .Enabled }},"{{ .RRules }}","{{ .LastModifiedDate }}"
+{{.ScanID}},"{{.Name }}",{{ .Status }},{{ .Owner }},{{ .Enabled }},"{{ .RRules }}","{{ .StartTime }}","{{ .Timezone }}","{{ .LastModifiedDate }}"
 {{- end}}
 
 {{define "ScanHistoryDetail" -}}

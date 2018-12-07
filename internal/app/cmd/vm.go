@@ -33,8 +33,10 @@ func (v *VM) Scan(cmd *cobra.Command, args []string) {
 	scan.Infof("Success! :-)")
 }
 func (v *VM) Help(cmd *cobra.Command, args []string) {
-	cli := v.CLI
+	cli := ui.NewCLI(v.Config)
+
 	cli.Draw.Banner()
+
 	cli.Config.Logger.Infof("Executing 'internal/app/cmd/vuln/help.go' ...")
 }
 func (v *VM) Asset(cmd *cobra.Command, args []string) {
