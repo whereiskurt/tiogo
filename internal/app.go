@@ -13,27 +13,27 @@ import (
 
 type App struct {
 	Config  *app.Config
-	RootCmd *cobra.Command
+	RootCmd cobra.Command
 }
 
-func NewApp() (a *App) {
-	a = new(App)
-
+func NewApp() (a App) {
 	// The RootCmd is the Top Level cobra command each command is attached to (e.g. 'vm','version', 'server')
-	// Once a command is made ('vm') the subcommands are attached (e.g. 'scan','agent' ..)
-	a.RootCmd = &cobra.Command{PreRun: a.ReflectViper}
-	// Make the Config to hold the values parsed by Viper
-	a.Config = app.NewConfig(a.RootCmd)
+	// Once a command is made the subcommands are attached (e.g. 'scan','agent' ..)
+	a.RootCmd = cobra.Command{PreRun: a.ReflectViper}
 
+	// Make the Config to hold the values parsed by Viper
+	a.Config = app.NewConfig(&a.RootCmd)
+
+	// Build Commands and their Subcommands
 	// Make the "version" command
 	ver := cmd.NewVersion(a.Config)
 	// The 'version' command has no subcommands and attaches to the RootCmd
-	_ = MakeCommand("version", ver.Version, a.RootCmd)
+	_ = MakeCommand("version", ver.Version, &a.RootCmd)
 
 	// Make the "vm" command attached RootCmd and and subcommands attached to 'vmcmd'
 	vm := cmd.NewVM(a.Config)
-	vmcmd := MakeCommand("vm", vm.Help, a.RootCmd)
-	// Attach the subcommand to 'vm'
+	vmcmd := MakeCommand("vm", vm.Help, &a.RootCmd)
+	// Attach the subcommands to 'vm'
 	_ = MakeCommand("scan", vm.Scan, vmcmd)
 	_ = MakeCommand("host", vm.Host, vmcmd)
 	_ = MakeCommand("plugin", vm.Plugin, vmcmd)
@@ -41,7 +41,6 @@ func NewApp() (a *App) {
 	_ = MakeCommand("asset", vm.Asset, vmcmd)
 	_ = MakeCommand("agent", vm.Agent, vmcmd)
 	_ = MakeCommand("vuln", vm.Vuln, vmcmd)
-
 	// Make the config for the VM command/subcommands Parsed by Viper
 	a.Config.VM = app.NewVMConfig(a.Config, vmcmd)
 
@@ -59,7 +58,7 @@ func (a *App) Main() {
 		return
 	}
 
-	a.EnsureRootCmd()
+	EnsureRootCmd()
 
 	err := a.RootCmd.Execute()
 	if err != nil {
@@ -73,8 +72,8 @@ func (a *App) Main() {
 	return
 }
 
-// ReflectFromViper will copy Viper values from config, envs, cli, into our app.Config struct.
-// Acts almost as a 'data transfer' pattern moving from Viper -> app.Config
+// ReflectFromViper will copy Viper values from it's config, envs, cli, into our app.Config struct.
+// Acts as a 'data transfer' pattern moving from Cobra/Viper -> app.Config
 // The cobra.Commmand.PreRun ensures execution before command.Execute is run.
 func (a *App) ReflectViper(cmd *cobra.Command, args []string) {
 
@@ -92,25 +91,28 @@ func (a *App) ReflectViper(cmd *cobra.Command, args []string) {
 	return
 }
 
-func (a *App) EnsureRootCmd() {
+// EnsureRootCmd will assume 'vm' (roots[0]) is the command if none is passed.
+// This allows shorter invocation without specifying 'vm' everytime.
+func EnsureRootCmd() {
+	// TODO: Potentially make the default word (ie. 'vm') configurable?
 	roots := []string{"vm", "version", "webapp", "server"}
+
 	// Check if the first arg is a root command
-	m := strings.ToLower(os.Args[1])
-	if !Contains(roots, m) {
-		// If no root command passed inject default
+	lc := strings.ToLower(os.Args[1])
+	if !Contains(roots, lc) {
+		// If no root command passed inject the root[0] as default
 		rest := os.Args[1:]
 		os.Args = []string{os.Args[0], roots[0]} // Implant the Default ahead of the rest
 		os.Args = append(os.Args, rest...)
 	}
 }
-func Contains(a []string, x string) (didContain bool) {
+func Contains(a []string, x string) bool {
 	for i := range a {
 		if x == a[i] {
-			didContain = true
-			break
+			return true
 		}
 	}
-	return
+	return false
 }
 
 func MakeCommand(s string, run func(*cobra.Command, []string), parent *cobra.Command) (child *cobra.Command) {

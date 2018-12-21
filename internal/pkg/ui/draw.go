@@ -57,21 +57,22 @@ func NewDraw(c *CLI) (d *Draw) {
 	return
 }
 
-func (d *Draw) Banner() {
-	d.Infof(`
-  _   _                            _   ___  
- | |_(_) ___   __ _  ___    __   _/ | / _ \ 
- | __| |/ _ \ / _' |/ _ \   \ \ / / || | | |
- | |_| | (_) | (_| | (_) |   \ V /| || |_| |
-  \__|_|\___(_)__, |\___/     \_/ |_(_)___/ 
-              |___/                         
-                           tio.go version 1.0`)
+func ArtVersion() (version string) {
+	version = `
+  _   _                            ___   ____  
+ | |_(_) ___   __ _  ___   __   __/ _ \ | ___| 
+ | __| |/ _ \ / _' |/ _ \  \ \ / / | | ||___ \
+ | |_| | (_) | (_| | (_) |  \ V /| |_| | ___) |
+  \__|_|\___(_)__, |\___/    \_/  \___(_)____/
+		          |___/  
+                            tio.go Version 0.5
+`
 	// http://patorjk.com/software/taag/#p=author&f=Ivrit&t=tio-cli%20%20v0.5
 	return
 }
 
-func (d *Draw) Gopher() {
-	fmt.Printf(`
+func ArtGopher() (gopher string) {
+	gopher = `
          ,_---~~~~~----._         
   _,,_,*^____      _____''*g*\"*, 
  / __/ /'     ^.  /      \ ^@q   f 
@@ -82,24 +83,24 @@ func (d *Draw) Gopher() {
   ]            | | |            |  
   ]             ~ ~             |  
   |                            |   
-@https://gist.github.com/belbomemo`)
+
+[[@https://gist.github.com/belbomemo]]
+`
+	return
+}
+
+func (d *Draw) Banner() {
+	d.Infof(ArtVersion())
+	return
+}
+
+func (d *Draw) Gopher() {
+	fmt.Printf(ArtGopher())
 	return
 }
 
 func (d *Draw) Version() {
-
-	fmt.Printf(`
-         ,_---~~~~~----._         
-  _,,_,*^____      _____''*g*\"*, 
- / __/ /'     ^.  /      \ ^@q   f 
-[  @f | @))    |  | @))   l  0 _/  
- \'/   \~____ / __ \_____/    \   
-  |           _l__l_           I   
-  }          [______]           I  
-  ]            | | |            |  
-  ]             ~ ~             |  
-  |                            |   
-@https://gist.github.com/belbomemo`)
+	fmt.Printf(ArtVersion())
 	return
 }
 
