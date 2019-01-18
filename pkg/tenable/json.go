@@ -6,6 +6,78 @@ import (
 	"time"
 )
 
+// GET /scanners
+type ScannerList struct {
+	Scanners []Scanner
+}
+type Scanner struct {
+	ID               json.Number `json:"id"`
+	UUID             string      `json:"uuid"`
+	Name             string      `json:"name"`
+	Type             string      `json:"type"`
+	Status           string      `json:"status"`
+	ScanCount        json.Number `json:"scan_count"`
+	EngineVersion    string      `json:"engine_version"`
+	Platform         string      `json:"platform"`
+	LoadedPluginSet  string      `json:"loaded_plugin_set"`
+	RegistrationCode string      `json:"registration_code"`
+	Owner            string      `json:"owner"`
+	Key              string      `json:"key"`
+	License          struct {
+		Type     string      `json:"type"`
+		IPS      json.Number `json:"ips"`
+		Agents   json.Number `json:"agents"`
+		Scanners json.Number `json:"scanners"`
+	}
+}
+
+// GET /scanners/{scanner_id}/agents
+type AgentList struct {
+	Agents     []ScannerAgent
+	Pagination Pagination
+}
+
+type ScannerAgent []struct {
+	ID          json.Number `json:"id"`
+	UUID        string      `json:"uuid"`
+	Name        string      `json:"name"`
+	Distro      string      `json:"distro"`
+	IP          string      `json:"ip"`
+	LastScanned json.Number `json:"last_scanned"`
+	Platform    string      `json:"platform"`
+	LinkedOn    json.Number `json:"linked_on"`
+	LastConnect json.Number `json:"last_connect"`
+	Feed        string      `json:"plugin_feed_id"`
+	CoreBuild   string      `json:"core_build"`
+	CoreVersion string      `json:"core_version"`
+	Status      string      `json:"status"`
+	Groups      []struct {
+		ID   json.Number `json:"id"`
+		Name string      `json:"name"`
+	}
+}
+
+type ScannerAgentGroups struct {
+	Groups []ScannerAgentGroup
+}
+type ScannerAgentGroup struct {
+	ID           json.Number `json:"id"`
+	UUID         string      `json:"uuid"`
+	Name         string      `json:"name"`
+	AgentCount   json.Number `json:"agents_count"`
+	LastModified json.Number `json:"last_modification_date"`
+	Created      json.Number `json:"creation_date"`
+}
+type Pagination struct {
+	Total  json.Number `json:"total"`
+	Offset json.Number `json:"offset"`
+	Limit  json.Number `json:"limit"`
+	Sort   []struct {
+		Name  string `json:"name"`
+		Order string `json:"name"`
+	}
+}
+
 // https://cloud.tenable.com/api#/resources/scans/
 type ScanList struct {
 	Folders []struct {
@@ -373,77 +445,6 @@ type AssetVulnResult struct {
 	Port                json.Number   `json:"port"`
 	Severity            json.Number   `json:"severity"`
 	Assets              []interface{} `json:"assets"`
-}
-
-// GET /scanners
-type ScannerList struct {
-	Scanners []struct {
-		ID               json.Number `json:"id"`
-		UUID             string      `json:"uuid"`
-		Name             string      `json:"name"`
-		Type             string      `json:"type"`
-		Status           string      `json:"status"`
-		ScanCount        json.Number `json:"scan_count"`
-		EngineVersion    string      `json:"engine_version"`
-		Platform         string      `json:"platform"`
-		LoadedPluginSet  string      `json:"loaded_plugin_set"`
-		RegistrationCode string      `json:"registration_code"`
-		Owner            string      `json:"owner"`
-		Key              string      `json:"key"`
-		License          struct {
-			Type     string      `json:"type"`
-			IPS      json.Number `json:"ips"`
-			Agents   json.Number `json:"agents"`
-			Scanners json.Number `json:"scanners"`
-		}
-	}
-}
-
-// GET /scanners/{scanner_id}/agents
-type ScannerAgent struct {
-	Agents []struct {
-		ID          json.Number `json:"id"`
-		UUID        string      `json:"uuid"`
-		Name        string      `json:"name"`
-		Distro      string      `json:"distro"`
-		IP          string      `json:"ip"`
-		LastScanned json.Number `json:"last_scanned"`
-		Platform    string      `json:"platform"`
-		LinkedOn    json.Number `json:"linked_on"`
-		LastConnect json.Number `json:"last_connect"`
-		Feed        string      `json:"plugin_feed_id"`
-		CoreBuild   string      `json:"core_build"`
-		CoreVersion string      `json:"core_version"`
-		Status      string      `json:"status"`
-		Groups      []struct {
-			ID   json.Number `json:"id"`
-			Name string      `json:"name"`
-		}
-	}
-	Pagination Pagination
-}
-
-type ScannerAgentGroups struct {
-	Groups []ScannerAgentGroup
-}
-
-type ScannerAgentGroup struct {
-	ID           json.Number `json:"id"`
-	UUID         string      `json:"uuid"`
-	Name         string      `json:"name"`
-	AgentCount   json.Number `json:"agents_count"`
-	LastModified json.Number `json:"last_modification_date"`
-	Created      json.Number `json:"creation_date"`
-}
-
-type Pagination struct {
-	Total  json.Number `json:"total"`
-	Offset json.Number `json:"offset"`
-	Limit  json.Number `json:"limit"`
-	Sort   []struct {
-		Name  string `json:"name"`
-		Order string `json:"name"`
-	}
 }
 
 type AssetExport struct {

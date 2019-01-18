@@ -1,9 +1,18 @@
 package main
 
-import "github.com/whereiskurt/tiogo/internal"
+import (
+	"github.com/whereiskurt/tiogo/internal/app"
+	"github.com/whereiskurt/tiogo/pkg/config"
+	"github.com/whereiskurt/tiogo/pkg/metrics"
+)
 
 func main() {
-	a := internal.NewApp()
-	a.Main()
+	c := config.NewConfig()
+	m := metrics.NewMetrics()
+
+	a := internal.NewApp(c, m)
+
+	a.InvokeCLI()
+
 	return
 }

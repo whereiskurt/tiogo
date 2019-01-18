@@ -1,0 +1,105 @@
+{{define "Usage" -}}
+'tio.go' is an interface into Tenable.IO API using Go.
+
+Find more information at:
+    https://github.com/whereiskurt/tiogo/
+
+Usage:
+    tio [COMMAND] [SUBCOMMAND] [ACTION ...] [GLOBAL OPTIONS]
+
+Commands:
+    vm       Commands for Tenable.IO Vulnerability Management [default, can be omitted]
+    server   Commands for local proxy and HTTP server instance
+    cs       Commands for Tenable.IO Container Security [future!]
+    webapp   Commands for Tenable.IO Webapp Scanner [future!]
+
+Sub Command:
+    vm:
+      scanners, agents, agentgroups, scans, assets, export, user, usergroups, targetgroups
+
+    server:
+      start, stop
+
+Global Options:
+
+    Identifiers:
+      --id=[unique id]
+      --name=[string]
+      --regex=[regular expression]
+      --jqex=[jq expression]
+
+    Output Modes:
+      --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+      --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+    Verbosity:
+      --silent,  -s     Set logging/output level [level1]
+      --quiet,   -q     Set logging/output level [level2]
+      --info,    -v     Set logging/output level [level3-default]
+      --debug,          Set logging/output level [level4]
+      --trace,          Output to STDOUT and to log file [level5]
+      --level=3         Sets the output verbosity level numerically [default]
+
+Action Examples:
+    ## Scanners conduct network based scanning and report results back to Tenable.IO.
+    ## https://cloud.tenable.com/api/#/resources/scanners
+    $ tio vm scanners
+    $ tio vm scanners list
+
+    ## Agents are installed machines that execute hosts based scans and report back to Tenable.IO.
+    ## https://cloud.tenable.com/api/#/resources/agents
+    $ tio vm agents
+    $ tio vm agents list
+    $ tio vm agents list --without-group
+    $ tio vm agents list --group "New Group Name"
+
+    ## Group and Ungroup Agents into Agent Groups
+    $ tio vm agents group --group "New Group Name" --regex "10\.0\.2\"
+    $ tio vm agents ungroup --group "New Group Name"
+
+    ## Agents Groups - Agents are put into Groups and it is 'Agent Groups' that are Targets of Agent Scans.
+    ## https://cloud.tenable.com/api/#/resources/agent-groups
+    $ tio vm agentgroups list
+
+    $ tio vm agentgroups create --name "Agent Group #Y"
+    $ tio vm agentgroups delete --name "Agent Group #Y"
+
+    ## Output IP addresses of Agents to so we can create Target Groups
+    $ tio vm agentgroups list --as-target-groups --size=16
+    $ tio vm agentgroups sync --as-target-groups --size=16
+
+    $ tio vm scans list
+    $ tio vm scans list --never-run
+
+    $ tio vm scans reschedule --onetime --date "next second Wednesday" --time "1400"
+
+    ## Assets
+    ## https://cloud.tenable.com/api/#/resources/assets
+    $ tio vm assets list
+
+    $ tio vm assets tag --uuid="0123-123-3245-21395" --category "Business Owner" --tag "Finance"
+    $ tio vm assets untag --uuid="0123-123-3245-21395" --category "Business Owner" --tag "Finance"
+
+    # Exports - Assets and Vulns
+    # https://cloud.tenable.com/api/#/resources/exports
+    $ tio vm export assets
+    $ tio vm export vulns
+
+    ## User
+    $ tio vm user list
+    $ tio vm user create --name "Real Name" --email "reaname@domain.tld"
+    $ tio vm user delete --name "User Group #X"
+
+    ## UserGroup. Not implementing, but a reminder why we don't call 'AgentGroups' just 'Groups'
+    $ tio vm usergroups list
+    $ tio vm usergroups create --name "User Group #X"
+    $ tio vm usergroups delete --name "User Group #X"
+
+    ## Target Groups are used in reports and dash boards in Tenable.IO.
+    $ tio vm targetgroups create --name "DEV Network #X" --members="10.1.0.0/16, 10.2.0.0/16"
+    $ tio vm targetgroups members --name "DEV Network #X" --set --members="10.1.0.0/16, 10.2.0.0/16"
+    $ tio vm targetgroups members --name "DEV Network #X" --append --members="10.3.0.0/16, 10.4.0.0/16"
+    $ tio vm targetgroups members --name "DEV Network #X" --remove --members="10.3.0.0/16, 10.4.0.0/16"
+    $ tio vm targetgroups delete --name "DEV Network #X"
+
+{{end}}

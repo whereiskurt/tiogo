@@ -1,574 +1,281 @@
 package tenable
 
 import (
+	"bytes"
 	"encoding/json"
-	"errors"
-	"github.com/whereiskurt/tiogo/internal/app"
+	"fmt"
+	log "github.com/sirupsen/logrus"
+	"github.com/whereiskurt/tiogo/pkg/cache"
+	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"gopkg.in/matryer/try.v1"
-	"sort"
-	"strconv"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 )
 
-var DefaultMaxRety = []int{0, 500, 1000, 2000}
+// DefaultRetryIntervals values in here we control the re-try of the Service
+var DefaultRetryIntervals = []int{0, 500, 500, 500, 500, 1000, 1000, 1000, 1000, 1000, 3000}
 
-type Service struct {
-	BaseUrl   string
-	SecretKey string
-	AccessKey string
-	MaxRetry  []int
-	Worker    *sync.WaitGroup
-	Infof     func(fmt string, args ...interface{})
-	Debugf    func(fmt string, args ...interface{})
-	Warnf     func(fmt string, args ...interface{})
-	Errorf    func(fmt string, args ...interface{})
+var EndPoints = endPointTypes{
+	Scanners:      EndPointType("Scanners"),
+	ScannerAgents: EndPointType("ScannerAgents"),
 }
 
-func NewService(base string, secret string, access string, log *app.Logger) (s *Service) {
-	s = new(Service)
-	s.BaseUrl = strings.TrimSuffix(base, "/")
+// ServiceMap defines all the endpoints provided by the ACME service
+var ServiceMap = map[EndPointType]ServiceTransport{
+	EndPoints.Scanners: {
+		URL:            "/scanners",
+		CacheFilename:  "Scanners.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{},
+	},
+	EndPoints.ScannerAgents: {
+		URL:            "/scanners/{{.ScannerID}}/agents",
+		CacheFilename:  "ScannerAgents.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{},
+	},
+}
+
+// ServiceTransport describes a URL endpoint that can be called ACME. Depending on the HTTP method (GET/POST/DELETE)
+// we will render the appropriate MethodTemplate
+type ServiceTransport struct {
+	URL            string
+	CacheFilename  string
+	MethodTemplate map[httpMethodType]MethodTemplate
+}
+
+// MethodTemplate for each GET/PUT/POST/DELETE that is called this template is rendered
+// For POST it is Put in the BODY, for GET it is added after "?" on the URL, f
+type MethodTemplate struct {
+	Template string
+}
+
+// Service exposes ACME services by converting the JSON results to to Go []structures
+type Service struct {
+	BaseURL        string // Put in front of every transport call
+	SecretKey      string // ACME Secret Keys for API Access (provided by ACME)
+	AccessKey      string //             Access Key for API access (provided by ACME)
+	RetryIntervals []int  // When a call to a transport fails, this will control the retrying.
+	DiskCache      *cache.Disk
+	Worker         *sync.WaitGroup // Used by Go routines to control workers (TODO)
+	Log            *log.Logger
+	Metrics        *metrics.Metrics
+}
+
+type EndPointType string
+type endPointTypes struct {
+	Scanners      EndPointType
+	ScannerAgents EndPointType
+}
+
+func (c EndPointType) String() string {
+	return "pkg.tenable.endpoints." + string(c)
+}
+
+// NewService is configured to call ACME services with the BaseURL and credentials.
+// BaseURL is ofter set to localhost for Unit Testing
+func NewService(base string, secret string, access string) (s Service) {
+	s.BaseURL = strings.TrimSuffix(base, "/")
 	s.SecretKey = secret
 	s.AccessKey = access
-	s.Infof = log.Infof
-	s.Debugf = log.Debugf
-	s.Warnf = log.Warnf
-	s.Errorf = log.Errorf
-	s.MaxRetry = DefaultMaxRety
+	s.RetryIntervals = DefaultRetryIntervals
+	s.Worker = new(sync.WaitGroup)
+	s.Log = new(log.Logger)
 	return
 }
 
-func (s *Service) SleepAndRerun(attempt int, name string) (rerun bool) {
-	if attempt < len(s.MaxRetry) {
-		s.Warnf("will retry %dx  more time(s), sleeping %dms in %s", len(s.MaxRetry)-attempt, s.MaxRetry[attempt], name)
-		time.Sleep(time.Duration(s.MaxRetry[attempt]) * time.Millisecond)
-		rerun = true
+func (s *Service) EnableMetrics(metrics *metrics.Metrics) {
+	s.Metrics = metrics
+}
+
+// EnableCache will create a new Disk Cache for all request.
+func (s *Service) EnableCache(cacheFolder string, cryptoKey string) {
+	var useCrypto = false
+	if cryptoKey != "" {
+		useCrypto = true
 	}
+	s.DiskCache = cache.NewDisk(cacheFolder, cryptoKey, useCrypto)
 	return
 }
 
-func (s *Service) ScanList(url string) (scans ScanList, raw []byte, err error) {
-	tenable := NewPortal(s)
-	raw, err = tenable.GET(url)
-	if err == nil {
-		err = json.Unmarshal(raw, &scans)
-	}
-	return
+func (s *Service) SetLogger(log *log.Logger) {
+	s.Log = log
 }
-func (s *Service) ScanDetail(url string) (sd ScanDetail, raw []byte, err error) {
-	tenable := NewPortal(s)
 
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to GET for ScanDetails: %s", url, err)
-			rerun = s.SleepAndRerun(attempt, "ScanDetails")
-			return
+// GetGophers uses a Transport to make GET HTTP call against ACME "GetGophers"
+// If the Service RetryIntervals list is populated the calls will retry on Transport errors.
+func (s *Service) GetScanners() (scanners []Scanner) {
+
+	tErr := try.Do(func(attempt int) (shouldRetry bool, err error) {
+		body, status, err := s.get(EndPoints.Scanners, nil)
+
+		if s.Metrics != nil {
+			s.Metrics.TransportInc(metrics.EndPoints.Scanners, metrics.Methods.Transport.Get, status)
 		}
 
-		err = json.Unmarshal(raw, &sd)
 		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL ScanDetails: %s:%s [len:%d]", url, err, string(raw), len(raw))
-			rerun = s.SleepAndRerun(attempt, "ScanDetails")
+			s.Log.Warnf("failed getting scanners: error:%s: %d", err, status)
+			shouldRetry = s.sleepBeforeRetry(attempt)
 			return
 		}
-
-		// Sort histories by creation date DESC, to get offset history_id
-		sort.Slice(sd.History, func(i, j int) bool {
-			iv, _ := strconv.ParseInt(string(sd.History[i].CreationDate), 10, 64)
-			jv, _ := strconv.ParseInt(string(sd.History[j].CreationDate), 10, 64)
-			return iv > jv
-		})
+		// Take the Transport results and convert to []struts
+		err = json.Unmarshal(body, &scanners)
+		if err != nil {
+			s.Log.Warnf("failed to unmarshal scanners: %s: ", err)
+			shouldRetry = s.sleepBeforeRetry(attempt)
+			return
+		}
 
 		return
 	})
+	if tErr != nil {
+		s.Log.Warnf("failed to GET scanners: %+v", tErr)
+	}
+
+	return
+}
+
+func ToURL(baseURL string, name EndPointType, p map[string]string) (string, error) {
+	sMap, hasMethod := ServiceMap[name]
+	if !hasMethod {
+		return "", fmt.Errorf("invalid name '%s' for URL lookup", name)
+	}
+
+	if p == nil {
+		p = make(map[string]string)
+	}
+	p["BaseURL"] = baseURL
+
+	// Append the BaseURL to the URL
+	url := fmt.Sprintf("%s%s", baseURL, sMap.URL)
+
+	return ToTemplate(name, p, url)
+}
+
+func ToCacheFilename(name EndPointType, p map[string]string) (string, error) {
+	sMap, ok := ServiceMap[name]
+	if !ok {
+		return "", fmt.Errorf("invalid name '%s' for cache filename lookup", name)
+	}
+	return ToTemplate(name, p, sMap.CacheFilename)
+}
+
+func ToJSON(name EndPointType, method httpMethodType, p map[string]string) (string, error) {
+	sMap, hasMethod := ServiceMap[name]
+	if !hasMethod {
+		return "", fmt.Errorf("invalid method '%s' for name '%s'", method, name)
+	}
+
+	mMap, hasTemplate := sMap.MethodTemplate[method]
+	if !hasTemplate {
+		return "", fmt.Errorf("invalid template for method '%s' for name '%s'", method, name)
+	}
+
+	tmpl := mMap.Template
+	return ToTemplate(name, p, tmpl)
+}
+
+func ToTemplate(name EndPointType, data map[string]string, tmpl string) (string, error) {
+	var rawURL bytes.Buffer
+	t, terr := template.New(fmt.Sprintf("%s", name)).Parse(tmpl)
+	if terr != nil {
+		err := fmt.Errorf("error: failed to parse template for %s: %v", name, terr)
+		return "", err
+	}
+	err := t.Execute(&rawURL, data)
+	if err != nil {
+		return "", err
+	}
+
+	url := rawURL.String()
+
+	return url, nil
+}
+
+func (s *Service) sleepBeforeRetry(attempt int) (shouldReRun bool) {
+	if attempt < len(s.RetryIntervals) {
+		time.Sleep(time.Duration(s.RetryIntervals[attempt]) * time.Millisecond)
+		shouldReRun = true
+	}
+	return
+}
+
+func (s *Service) get(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
+
+	url, err := ToURL(s.BaseURL, endPoint, p)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	t := NewTransport(s)
+	body, status, err := t.Get(url)
 
 	if err != nil {
-		s.Errorf("%s failed ScanDetails: %v", err)
-		return
+		return nil, status, err
 	}
 
-	return
+	// If we have a DiskCache it means we will write out responses to disk.
+	if s.DiskCache != nil {
+		// We have initialized a cache then write to it.
+		filename, err := ToCacheFilename(endPoint, p)
+		if err != nil {
+			return nil, status, err
+		}
+
+		err = s.DiskCache.Store(filename, body)
+		if err != nil {
+			return nil, status, err
+		}
+	}
+
+	return body, status, err
 }
-func (s *Service) HostDetail(url string) (hd HostDetail, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to GET for HostDetails: %s", url, err)
-			rerun = s.SleepAndRerun(attempt, "HostDetails")
-			return
-		}
-
-		err = json.Unmarshal(raw, &hd)
-		// If it failed it might be in the 'old' format.
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL HostDetails: %s: %s [len:%d]", url, err, string(raw), len(raw))
-
-			var legacy HostDetailLegacyV2
-			var start time.Time
-			var end time.Time
-			err = json.Unmarshal([]byte(string(raw)), &legacy)
-			if err != nil {
-				// Potentially third format?! Consider fatals here.
-				s.Warnf("'%s' failed to UNMARSHAL HostDetailsv2: %s :%s [len:%d]", url, err, string(raw), len(raw))
-				rerun = s.SleepAndRerun(attempt, "HostDetails")
-				return
-			}
-			start, err = time.Parse(time.ANSIC, legacy.Info.HostStart)
-			if err != nil {
-				s.Warnf("'%s' failed to UNMARSHAL HostDetailsv2: %s :%s [len:%d]", url, err, string(raw), len(raw))
-				rerun = s.SleepAndRerun(attempt, "HostDetails")
-				return
-			}
-			end, err = time.Parse(time.ANSIC, legacy.Info.HostEnd)
-			if err != nil {
-				s.Warnf("'%s' failed to UNMARSHAL HostDetailsv2: %s :%s [len:%d]", url, err, string(raw), len(raw))
-				rerun = s.SleepAndRerun(attempt, "HostDetails")
-				return
-			}
-			// Copy legacy into hd
-			hd.Info.OperatingSystem = append(hd.Info.OperatingSystem, legacy.Info.OperatingSystem)
-			hd.Info.FQDN = legacy.Info.FQDN
-			hd.Info.NetBIOS = legacy.Info.NetBIOS
-			hd.Vulnerabilities = legacy.Vulnerabilities
-			hd.Info.HostStart = json.Number(start.Format(time.ANSIC))
-			hd.Info.HostEnd = json.Number(end.Format(time.ANSIC))
-			// Rewrite raw with the new JSON
-			raw, err = json.Marshal(hd)
-			if err != nil {
-				s.Warnf("'%s' failed to convert HostDetailsv2 to HostDetails UNMARSHAL: %s: %s [len:%d]", url, err, string(raw), len(raw))
-				rerun = s.SleepAndRerun(attempt, "HostDetails")
-				return
-			}
-		}
-		return
-	})
-
+func (s *Service) delete(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
+	url, err := ToURL(s.BaseURL, endPoint, p)
 	if err != nil {
-		s.Errorf("%s failed HostDetails: %v", err)
-		return
+		return nil, 0, err
 	}
-
-	return
-}
-func (s *Service) AssetHostMap(url string) (ah AssetHost, raw []byte, err error) {
-	tenable := NewPortal(s)
-	raw, err = tenable.GET(url)
-	if err == nil {
-		err = json.Unmarshal(raw, &ah)
-	}
-	return
-}
-func (s *Service) Asset(url string) (ai Asset, raw []byte, err error) {
-	tenable := NewPortal(s)
-	err = try.Do(func(attempt int) (bool, error) {
-		raw, err = tenable.GET(url)
-		if err != nil || strings.Contains(string(raw), `"error": "Asset`) {
-			s.Warnf("'%s' failed to GET for Asset: %s", url, err)
-			rr := s.SleepAndRerun(attempt, "Asset")
-			return rr, err
-		}
-
-		err = json.Unmarshal(raw, &ai)
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL Asset: %s: %s:%d", url, err, string(raw), len(raw))
-			rr := s.SleepAndRerun(attempt, "Asset")
-			return rr, err
-		}
-
-		sort.Slice(ai.Info.Tags, func(i, j int) bool {
-			if ai.Info.Tags[i].CategoryName == ai.Info.Tags[j].CategoryName {
-				return ai.Info.Tags[i].Value < ai.Info.Tags[j].Value
-			}
-			return ai.Info.Tags[i].CategoryName < ai.Info.Tags[j].CategoryName
-		})
-
-		return attempt < len(s.MaxRetry), err
-
-	})
-
+	t := NewTransport(s)
+	body, status, err := t.Delete(url)
 	if err != nil {
-		s.Errorf("%s failed Asset: %v", err)
-		return
+		return nil, status, err
 	}
 
-	return
+	return body, status, err
 }
-func (s *Service) Plugin(url string) (p Plugin, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		// Fetch from Tenable.IO REST API
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to GET for Plugin : %s", url, err)
-			rerun = s.SleepAndRerun(attempt, "Plugin")
-			return
-		}
-		// Convert the response JSON bytes to Golang struct
-		err = json.Unmarshal(raw, &p)
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL for Plugin: %s: %s [len:%d]", url, err, string(raw), len(raw))
-			rerun = s.SleepAndRerun(attempt, "Plugin")
-			return
-		}
-
-		return rerun, err
-	})
-
+func (s *Service) update(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
+	url, err := ToURL(s.BaseURL, endPoint, p)
 	if err != nil {
-		s.Errorf("%s permanently failed Plugin: %v", url, err)
-		return
+		return nil, 0, err
 	}
-
-	return
-}
-func (s *Service) PluginFamiles(url string) (ff PluginFamilies, raw []byte, err error) {
-
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		// Fetch from Tenable.IO REST API
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to GET for PluginFamilies : %s", url, err)
-			rerun = s.SleepAndRerun(attempt, "PluginFamilies")
-			return
-		}
-		// Convert the response JSON bytes to Golang struct
-		err = json.Unmarshal(raw, &ff)
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL for PluginFamilies: %s: %s [len:%d]", url, err, string(raw), len(raw))
-			rerun = s.SleepAndRerun(attempt, "PluginFamilies")
-			return
-		}
-
-		return rerun, err
-	})
-
-	return
-}
-func (s *Service) PluginFamily(url string) (ff FamilyPlugins, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		// Fetch from Tenable.IO REST API
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to GET for PluginFamily : %s", url, err)
-			rerun = s.SleepAndRerun(attempt, "PluginFamily")
-			return
-		}
-		// Convert the response JSON bytes to Golang struct
-		err = json.Unmarshal(raw, &ff)
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL for PluginFamily: %s: %s [len:%d]", url, err, string(raw), len(raw))
-			rerun = s.SleepAndRerun(attempt, "PluginFamily")
-			return
-		}
-
-		return rerun, err
-	})
-
-	return
-}
-func (s *Service) Scanners(url string) (sl ScannerList, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		// Fetch from Tenable.IO REST API
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to GET for Scanners : %s", url, err)
-			rerun = s.SleepAndRerun(attempt, "Scanners")
-			return
-		}
-		// Convert the response JSON bytes to Golang struct
-		err = json.Unmarshal(raw, &sl)
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL for Scanners: %s: %s [len:%d]", url, err, string(raw), len(raw))
-			rerun = s.SleepAndRerun(attempt, "Scanners")
-			return
-		}
-
-		return rerun, err
-	})
-
+	j, err := ToJSON(endPoint, HTTP.Post, p)
 	if err != nil {
-		s.Errorf("%s permanently failed Scanners: %v", url, err)
-		return
+		return nil, 0, err
 	}
 
-	return
-}
-func (s *Service) ScannerAgents(url string) (sa ScannerAgent, raw []byte, err error) {
-
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		// Fetch from Tenable.IO REST API
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to GET for ScannerAgents : %s", url, err)
-			rerun = s.SleepAndRerun(attempt, "ScannerAgents")
-			return
-		}
-		// Convert the response JSON bytes to Golang struct
-		err = json.Unmarshal(raw, &sa)
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL for ScannerAgents: %s: %s [len:%d]", url, err, string(raw), len(raw))
-			rerun = s.SleepAndRerun(attempt, "ScannerAgents")
-			return
-		}
-
-		return rerun, err
-	})
-
-	return
-}
-
-func (s *Service) AssetVuln(url string) (as AssetVuln, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		// Fetch from Tenable.IO REST API
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to GET for AssetVuln : %s", url, err)
-			rerun = s.SleepAndRerun(attempt, "AssetVuln")
-			return
-		}
-		// Convert the response JSON bytes to Golang struct
-		err = json.Unmarshal(raw, &as)
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL for AssetVuln: %s: %s [len:%d]", url, err, string(raw), len(raw))
-			rerun = s.SleepAndRerun(attempt, "AssetVuln")
-			return
-		}
-
-		return rerun, err
-	})
-
-	return
-}
-func (s *Service) AssetVulnInfo(url string) (asvi AssetVulnInfo, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		// Fetch from Tenable.IO REST API
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to GET for AssetVulnerabiltyInfo : %s", url, err)
-			rerun = s.SleepAndRerun(attempt, "AssetVulnerabiltyInfo")
-			return
-		}
-		// Convert the response JSON bytes to Golang struct
-		err = json.Unmarshal(raw, &asvi)
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL for AssetVulnerabiltyInfo: %s: %s [len:%d]", url, err, string(raw), len(raw))
-			rerun = s.SleepAndRerun(attempt, "AssetVulnerabiltyInfo")
-			return
-		}
-
-		return rerun, err
-	})
-
-	return
-}
-func (s *Service) AssetVulnOutput(url string) (asvi AssetVulnOutput, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		// Fetch from Tenable.IO REST API
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to GET for AssetVulnOutput : %s", url, err)
-			rerun = s.SleepAndRerun(attempt, "AssetVulnOutput")
-			return
-		}
-		// Convert the response JSON bytes to Golang struct
-		err = json.Unmarshal(raw, &asvi)
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL for AssetVulnOutput: %s: %s [len:%d]", url, err, string(raw), len(raw))
-			rerun = s.SleepAndRerun(attempt, "AssetVulnOutput")
-			return
-		}
-
-		return rerun, err
-	})
-
-	return
-}
-
-func (s *Service) AgentGroups(url string) (group ScannerAgentGroups, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		// Fetch from Tenable.IO REST API
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to GET for AgentGroups : %s", url, err)
-			rerun = s.SleepAndRerun(attempt, "AgentGroups")
-			return
-		}
-
-		// Convert the response JSON bytes to Golang struct
-		err = json.Unmarshal(raw, &group)
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL for AgentGroups: %s: %s [len:%d]", url, err, string(raw), len(raw))
-			rerun = s.SleepAndRerun(attempt, "AgentGroups")
-			return
-		}
-
-		return rerun, err
-	})
-
-	return
-}
-
-func (s *Service) CreateAgentGroup(url string, j string) (group ScannerAgentGroup, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	raw, err = tenable.POST(url, j, "application/json")
+	t := NewTransport(s)
+	body, status, err := t.Post(url, j, "application/json")
 	if err != nil {
-		s.Errorf("'%s' failed to POST AgentGroup from POST: %s: %s: %s [len:%d]", url, j, err, string(raw), len(raw))
-		return
+		return nil, status, err
 	}
 
-	if strings.Contains(string(raw), `{"error":"Agent Group with name`) {
-		err = errors.New("error: Agent group already exists")
-		return
-	}
-
-	err = json.Unmarshal(raw, &group)
+	return body, status, err
+}
+func (s *Service) add(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
+	url, err := ToURL(s.BaseURL, endPoint, p)
 	if err != nil {
-		s.Errorf("'%s' failed to UNMARSHAL AgentGroup from POST: %s: %s: %s [len:%d]", url, j, err, string(raw), len(raw))
-		return
+		return nil, 0, err
 	}
-
-	return
-}
-func (s *Service) AssignAgentGroup(url string) (raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	raw, err = tenable.PUT(url)
+	j, err := ToJSON(endPoint, HTTP.Put, p)
 	if err != nil {
-		s.Errorf("'%s' failed to AssignAgentGroup from PUT: %s: %s: %s [len:%d]", url, err, string(raw), len(raw))
-		return
+		return nil, 0, err
 	}
 
-	return
-}
-
-func (s *Service) AssetExport(url string, j string) (export AssetExport, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	raw, err = tenable.POST(url, j, "application/json")
+	t := NewTransport(s)
+	body, status, err := t.Put(url, j, "application/json")
 	if err != nil {
-		s.Errorf("'%s' failed to POST AssetExport from POST: %s: %s: %s: %s [len:%d]", url, j, err, string(raw), len(raw))
-		return
+		return nil, status, err
 	}
 
-	err = json.Unmarshal(raw, &export)
-
-	return
-}
-
-func (s *Service) AssetExportStatus(url string) (export AssetExportStatus, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	raw, err = tenable.GET(url)
-	if err != nil {
-		s.Errorf("'%s' failed to POST AssetExportStatus from POST: %s: %s: %s [len:%d]", url, err, string(raw), len(raw))
-		return
-	}
-
-	err = json.Unmarshal(raw, &export)
-
-	return
-}
-
-func (s *Service) AssetExportChunk(url string) (export []AssetExportChunk, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		// Fetch from Tenable.IO REST API
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to POST AssetExportChunk from POST: %s: %s: %s [len:%d]", url, err, string(raw), len(raw))
-			rerun = s.SleepAndRerun(attempt, "AssetExportChunk")
-			return
-		}
-
-		// Convert the response JSON bytes to Golang struct
-		err = json.Unmarshal(raw, &export)
-
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL for AssetExportChunk: %s: [len:%d]", url, err, len(raw))
-			rerun = s.SleepAndRerun(attempt, "AssetExportChunk")
-			return
-		}
-
-		return rerun, err
-	})
-
-	return
-}
-
-func (s *Service) VulnExport(url string, j string) (export VulnExport, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	raw, err = tenable.POST(url, j, "application/json")
-	if err != nil {
-		s.Errorf("'%s' failed to POST VulnExport from POST: %s: %s: %s: %s [len:%d]", url, j, err, string(raw), len(raw))
-		return
-	}
-
-	err = json.Unmarshal(raw, &export)
-
-	return
-}
-
-func (s *Service) VulnExportStatus(url string) (export VulnExportStatus, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	raw, err = tenable.GET(url)
-	if err != nil {
-		s.Errorf("'%s' failed to POST VulnExportStatus from POST: %s: %s: %s [len:%d]", url, err, string(raw), len(raw))
-		return
-	}
-
-	err = json.Unmarshal(raw, &export)
-
-	return
-}
-
-func (s *Service) VulnExportChunk(url string) (export []VulnExportChunk, raw []byte, err error) {
-	tenable := NewPortal(s)
-
-	err = try.Do(func(attempt int) (rerun bool, err error) {
-		// Fetch from Tenable.IO REST API
-		raw, err = tenable.GET(url)
-		if err != nil {
-			s.Warnf("'%s' failed to POST VulnExportChunk from POST: %s: %s: %s [len:%d]", url, err, len(raw))
-			rerun = s.SleepAndRerun(attempt, "VulnExportChunk")
-			return
-		}
-
-		// Convert the response JSON bytes to Golang struct
-		err = json.Unmarshal(raw, &export)
-
-		if err != nil {
-			s.Warnf("'%s' failed to UNMARSHAL for VulnExportChunk: %s: [len:%d]", url, err, len(raw))
-			rerun = s.SleepAndRerun(attempt, "VulnExportChunk")
-			return
-		}
-
-		return rerun, err
-	})
-
-	return
+	return body, status, err
 }

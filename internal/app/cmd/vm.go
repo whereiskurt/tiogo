@@ -1,99 +1,45 @@
 package cmd
 
 import (
+	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
-	"github.com/whereiskurt/tiogo/internal/app"
-	"github.com/whereiskurt/tiogo/internal/app/cmd/vm"
-	"github.com/whereiskurt/tiogo/internal/pkg/ui"
+	"github.com/whereiskurt/tiogo/pkg/config"
+	"github.com/whereiskurt/tiogo/pkg/ui"
 )
 
+var (
+	// ReleaseVersion is set by a --ldflags during a build/release
+	ReleaseVersion = "v1.0.0-development"
+	// GitHash is set by a --ldflags during a build/release
+	GitHash = "0xhashhash"
+)
+
+// Version holds the config and CLI references.
 type VM struct {
-	Config *app.Config
-	CLI    *ui.CLI
+	Config *config.Config
 }
 
-func NewVM(c *app.Config) (v *VM) {
-	v = new(VM)
-	v.Config = c
+// Version just outputs a gopher.
+func (v *VM) Help(cmd *cobra.Command, args []string) {
+	fmt.Printf(spew.Sprintf("%v", args))
+
+	fmt.Printf("tiogo version %s (%s)", ReleaseVersion, GitHash)
+	cli := ui.NewCLI(v.Config)
+	cli.DrawGopher()
 	return
 }
 
-func (v *VM) Scan(cmd *cobra.Command, args []string) {
-	scan := vm.NewScan(v.Config)
+func (v *VM) Scanners(cmd *cobra.Command, args []string) {
+	fmt.Printf("scanners!")
+
 	cli := ui.NewCLI(v.Config)
-
-	cli.Draw.Banner()
-	scan.Infof("Executing 'internal/app/cmd/vuln/scan.go' ...")
-
-	err := scan.Main(cli)
-	if err != nil {
-		scan.Errorf("Failed: %s", err)
-		return
-	}
-	scan.Infof("Success! :-)")
+	cli.DrawGopher()
+	return
 }
-func (v *VM) Help(cmd *cobra.Command, args []string) {
-	cli := ui.NewCLI(v.Config)
 
-	cli.Draw.Banner()
-
-	cli.Config.Logger.Infof("Executing 'internal/app/cmd/vuln/help.go' ...")
+// NewVersion holds a configuration and command line interface reference (for log out, etc.)
+func NewVM(c *config.Config) (v VM) {
+	v.Config = c
+	return
 }
-func (v *VM) Asset(cmd *cobra.Command, args []string) {
-	asset := vm.NewAsset(v.Config)
-	cli := ui.NewCLI(v.Config)
-
-	cli.Draw.Banner()
-	asset.Infof("Executing 'internal/app/cmd/vuln/asset.go' ...")
-
-	err := asset.Main(cli)
-	if err != nil {
-		asset.Errorf("Failed: %p", err)
-		return
-	}
-	asset.Infof("Success! :-)")
-}
-func (v *VM) Agent(cmd *cobra.Command, args []string) {
-	agent := vm.NewAgent(v.Config)
-	cli := ui.NewCLI(v.Config)
-
-	cli.Draw.Banner()
-	agent.Infof("Executing 'internal/app/cmd/vuln/agent.go' ...")
-
-	err := agent.Main(cli)
-	if err != nil {
-		agent.Errorf("Failed: %v", err)
-		return
-	}
-	agent.Infof("Success! :-)")
-}
-func (v *VM) Plugin(cmd *cobra.Command, args []string) {
-	plugin := vm.NewPlugin(v.Config)
-	cli := ui.NewCLI(v.Config)
-
-	cli.Draw.Banner()
-	plugin.Infof("Executing 'internal/app/cmd/vuln/plugin.go' ...")
-
-	err := plugin.Main(cli)
-	if err != nil {
-		plugin.Errorf("Failed: %p", err)
-		return
-	}
-	plugin.Infof("Success! :-)")
-}
-func (v *VM) Vuln(cmd *cobra.Command, args []string) {
-	vuln := vm.NewVuln(v.Config)
-	cli := ui.NewCLI(v.Config)
-
-	cli.Draw.Banner()
-	vuln.Infof("Executing 'internal/app/cmd/vuln/vuln.go' ...")
-
-	err := vuln.Main(cli)
-	if err != nil {
-		vuln.Errorf("Failed: %p", err)
-		return
-	}
-	vuln.Infof("Success! :-)")
-}
-func (v *VM) Tag(cmd *cobra.Command, args []string)  {}
-func (v *VM) Host(cmd *cobra.Command, args []string) {}
