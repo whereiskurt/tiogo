@@ -4,13 +4,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	"os"
 	"path"
-	"strings"
 )
 
 // ValidateOrFatal will validate the string values inside of the Config after copying from Unmarshal or self-setting.
 func (c *Config) ValidateOrFatal() {
 	c.validateVerbosity()
-	c.validateOutputMode()
 
 	var err error
 	err = os.MkdirAll(path.Dir(c.VM.MetricsFolder), 0777)
@@ -29,17 +27,6 @@ func (c *Config) ValidateOrFatal() {
 	return
 }
 
-func (c *Config) validateOutputMode() {
-	switch strings.ToLower(c.VM.OutputMode) {
-	case "csv":
-	case "json":
-	case "xml":
-	case "table":
-
-	default:
-		log.Fatalf("invalid OutputMode: '%s'", c.VM.OutputMode)
-	}
-}
 func (c *Config) validateVerbosity() {
 	if c.hasVerboseLevel() {
 		switch {

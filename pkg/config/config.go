@@ -30,12 +30,6 @@ type Config struct {
 	VerboseLevel3  bool
 	VerboseLevel4  bool
 	VerboseLevel5  bool
-	ID             string
-	Name           string
-	Regex          string
-	JQex           string
-	OutputCSV      string
-	OutputJSON     string
 
 	VM     VMConfig
 	Server ServerConfig
@@ -43,14 +37,33 @@ type Config struct {
 
 // ClientConfig are all of the params for the Client Command
 type VMConfig struct {
-	Config        *Config
-	BaseURL       string
-	AccessKey     string
-	SecretKey     string
-	CacheKey      string
-	CacheFolder   string
-	CacheResponse bool
-	MetricsFolder string
+	Config           *Config
+	BaseURL          string
+	AccessKey        string
+	SecretKey        string
+	CacheKey         string
+	CacheFolder      string
+	CacheResponse    bool
+	MetricsFolder    string
+	OutputCSV        bool
+	OutputJSON       bool
+	ID               string
+	Name             string
+	Regex            string
+	JQex             string
+	UUID             string
+	Category         string
+	Tag              string
+	Members          string
+	GroupName        string
+	WithoutGroupName bool
+	AsTargetGroups   bool
+	Size             string
+	NeverRun         bool
+	Onetime          bool
+	Date             string
+	Time             string
+	EmailAddress     string
 }
 
 // String allows us to mask the Keys we don't want to reveal

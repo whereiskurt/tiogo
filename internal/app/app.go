@@ -51,16 +51,15 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	makeBool("VerboseLevel5", &a.Config.VerboseLevel5, []string{"trace"}, a.RootCmd)
 	makeString("VerboseLevel", &a.Config.VerboseLevel, []string{"level"}, a.RootCmd)
 
-	makeString("id", &a.Config.ID, []string{"id"}, a.RootCmd)
-	makeString("name", &a.Config.Name, []string{"name"}, a.RootCmd)
-	makeString("regex", &a.Config.Regex, []string{"regex"}, a.RootCmd)
-	makeString("jqex", &a.Config.JQex, []string{"jqex"}, a.RootCmd)
-
-	makeBool("csv", &a.Config.OutputCSV, []string{"csv"}, a.RootCmd)
-	makeBool("json", &a.Config.OutputJSON, []string{"json"}, a.RootCmd)
-
 	ver := cmd.NewVM(a.Config)
 	vmCmd := makeCommand("vm", ver.Help, a.RootCmd)
+	makeString("id", &a.Config.VM.ID, []string{"i"}, vmCmd)
+	makeString("name", &a.Config.VM.Name, []string{"n"}, vmCmd)
+	makeString("regex", &a.Config.VM.Regex, []string{}, vmCmd)
+	makeString("jqex", &a.Config.VM.JQex, []string{}, vmCmd)
+	makeBool("csv", &a.Config.VM.OutputCSV, []string{}, vmCmd)
+	makeBool("json", &a.Config.VM.OutputJSON, []string{}, vmCmd)
+
 	_ = makeCommand("help", ver.Help, vmCmd)
 
 	sListCmd := makeCommand("scanners", ver.Scanners, vmCmd)
