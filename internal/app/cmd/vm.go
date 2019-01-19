@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/ui"
@@ -10,7 +11,7 @@ import (
 
 var (
 	// ReleaseVersion is set by a --ldflags during a build/release
-	ReleaseVersion = "v1.0.0-development"
+	ReleaseVersion = "v0.0.1-development"
 	// GitHash is set by a --ldflags during a build/release
 	GitHash = "0xhashhash"
 )
@@ -21,19 +22,20 @@ type VM struct {
 }
 
 // Version just outputs a gopher.
-func (v *VM) Help(cmd *cobra.Command, args []string) {
+func (vm *VM) Help(cmd *cobra.Command, args []string) {
 	fmt.Printf(spew.Sprintf("%v", args))
 
 	fmt.Printf("tiogo version %s (%s)", ReleaseVersion, GitHash)
-	cli := ui.NewCLI(v.Config)
+	cli := ui.NewCLI(vm.Config)
 	cli.DrawGopher()
 	return
 }
 
 func (vm *VM) Scanners(cmd *cobra.Command, args []string) {
-	fmt.Printf("scanners!")
+	vm.Config.Log.SetFormatter(&log.TextFormatter{})
+	vm.Config.VM.EnableLogging()
 
-	fmt.Printf("%s", spew.Sprint(vm))
+	vm.Config.Log.Infof("tiogo scanners list command:")
 
 	cli := ui.NewCLI(vm.Config)
 	cli.DrawGopher()

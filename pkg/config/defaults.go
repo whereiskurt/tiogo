@@ -14,29 +14,29 @@ import (
 const DefaultHomeFilename = ".tiogo"
 const DefaultConfigFilename = "default.tiogo"
 const DefaultConfigType = "yaml"
-const defaultConfigFolder = "./config/"
-const defaultTemplateFolder = "./config/template/"
+const DefaultConfigFolder = "./config/"
+const DefaultTemplateFolder = "./config/template/"
 
 // Sensible defaults even with out a configuration file present
-const defaultVerboseLevel = "3"
-const defaultServerListenPort = "10101"
-const defaultMetricsListenPort = "22222"
+const DefaultVerboseLevel = "3"
+const DefaultServerListenPort = "10101"
+const DefaultMetricsListenPort = "22222"
 
-const defaultClientBaseURL = "http://localhost:" + defaultServerListenPort
-const defaultServerBaseURL = "https://cloud.tenable.com"
+const DefaultClientBaseURL = "http://localhost:" + DefaultServerListenPort
+const DefaultServerBaseURL = "https://cloud.tenable.com"
 
 // Used by the *_test to the set defaults
 // DefaultClientCacheFolder stores default client cache file location
 const DefaultClientCacheFolder = ".tiogo/cache/client/"
-const defaultClientCacheResponse = true
+const DefaultClientCacheResponse = true
 
-const defaultLogFolder = "./log/"
-const defaultServerMetricsFolder = "./log/metrics/server/"
-const defaultClientMetricsFolder = "./log/metrics/client/"
+const DefaultLogFolder = "./log/"
+const DefaultServerMetricsFolder = "./log/metrics/server/"
+const DefaultClientMetricsFolder = "./log/metrics/client/"
 
 // DefaultServerCacheFolder  stores default server cache file location
 const DefaultServerCacheFolder = ".tiogo/cache/server/"
-const defaultServerCacheResponse = true
+const DefaultServerCacheResponse = true
 
 func (c *Config) SetToDefaults() {
 	// Find the User's home folder
@@ -48,24 +48,24 @@ func (c *Config) SetToDefaults() {
 	}
 	c.HomeFilename = DefaultHomeFilename
 
-	c.VM.BaseURL = defaultClientBaseURL
+	c.VM.BaseURL = DefaultClientBaseURL
 
-	c.LogFolder = defaultLogFolder
+	c.LogFolder = DefaultLogFolder
 	c.VM.CacheFolder = c.HomeFolder + "/" + DefaultClientCacheFolder
-	c.VM.CacheResponse = defaultClientCacheResponse
-	c.Server.BaseURL = defaultServerBaseURL
+	c.VM.CacheResponse = DefaultClientCacheResponse
+	c.Server.BaseURL = DefaultServerBaseURL
 
 	c.Server.CacheFolder = c.HomeFolder + "/" + DefaultServerCacheFolder
-	c.Server.CacheResponse = defaultServerCacheResponse
-	c.Server.MetricsFolder = defaultServerMetricsFolder
+	c.Server.CacheResponse = DefaultServerCacheResponse
+	c.Server.MetricsFolder = DefaultServerMetricsFolder
 
-	c.Server.MetricsListenPort = defaultMetricsListenPort
-	c.Server.ListenPort = defaultServerListenPort
-	c.VerboseLevel = defaultVerboseLevel
-	c.ConfigFolder = defaultConfigFolder
+	c.Server.MetricsListenPort = DefaultMetricsListenPort
+	c.Server.ListenPort = DefaultServerListenPort
+	c.VerboseLevel = DefaultVerboseLevel
+	c.ConfigFolder = DefaultConfigFolder
 	c.ConfigFilename = DefaultConfigFilename
-	c.TemplateFolder = defaultTemplateFolder
-	c.VM.MetricsFolder = defaultClientMetricsFolder
+	c.TemplateFolder = DefaultTemplateFolder
+	c.VM.MetricsFolder = DefaultClientMetricsFolder
 
 }
 func (c *Config) SetLogFilename(filename string) {
@@ -76,12 +76,11 @@ func (c *Config) SetLogFilename(filename string) {
 
 	// If DEBUG level is on we output log to STDOUT as well.
 	mw := io.MultiWriter(f)
-	if c.Log.IsLevelEnabled(log.DebugLevel) {
+	if c.Log.IsLevelEnabled(log.TraceLevel) {
 		mw = io.MultiWriter(os.Stdout, f)
 	}
 	c.Log.SetOutput(mw)
 
-	c.Log.SetFormatter(&log.TextFormatter{})
 }
 
 func (c *ServerConfig) LogFilename() string {

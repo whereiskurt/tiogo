@@ -83,13 +83,13 @@ func (c *Config) String() string {
 	*safeConfig = *c
 
 	// Overwrite sensitive values with the masked value
-	// mask := "[**MASKED**]"
-	// safeConfig.VM.AccessKey = mask
-	// safeConfig.VM.SecretKey = mask
-	// safeConfig.VM.CacheKey = mask
-	// safeConfig.Server.AccessKey = mask
-	// safeConfig.Server.SecretKey = mask
-	// safeConfig.Server.CacheKey = mask
+	mask := "[**MASKED**]"
+	safeConfig.VM.AccessKey = mask
+	safeConfig.VM.SecretKey = mask
+	safeConfig.VM.CacheKey = mask
+	safeConfig.Server.AccessKey = mask
+	safeConfig.Server.SecretKey = mask
+	safeConfig.Server.CacheKey = mask
 
 	s := spew.Sdump(safeConfig)
 
@@ -221,7 +221,7 @@ func (c *Config) CopyDefaultConfigToHome() error {
 	}
 
 	if terminal.IsTerminal(int(os.Stdin.Fd())) {
-		PromptAppConfig(c)
+		c.PromptAppConfig()
 	} else {
 		log.Warnf("cannot prompt for AccessKey and SecretKeys")
 	}
@@ -229,7 +229,7 @@ func (c *Config) CopyDefaultConfigToHome() error {
 	return nil
 }
 
-func PromptAppConfig(c *Config) bool {
+func (c *Config) PromptAppConfig() bool {
 
 	home := c.HomeFolder
 

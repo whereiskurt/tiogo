@@ -80,7 +80,9 @@ func NewService(base string, secret string, access string) (s Service) {
 	s.AccessKey = access
 	s.RetryIntervals = DefaultRetryIntervals
 	s.Worker = new(sync.WaitGroup)
-	s.Log = new(log.Logger)
+
+	s.Log = log.New()
+
 	return
 }
 

@@ -46,12 +46,12 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 		a.Config.ValidateOrFatal() // and validate.
 	}
 
+	makeString("VerboseLevel", &a.Config.VerboseLevel, []string{"level"}, a.RootCmd)
 	makeBool("VerboseLevel1", &a.Config.VerboseLevel1, []string{"s", "silent"}, a.RootCmd)
 	makeBool("VerboseLevel2", &a.Config.VerboseLevel2, []string{"q", "quiet"}, a.RootCmd)
 	makeBool("VerboseLevel3", &a.Config.VerboseLevel3, []string{"v", "info"}, a.RootCmd)
 	makeBool("VerboseLevel4", &a.Config.VerboseLevel4, []string{"debug"}, a.RootCmd)
 	makeBool("VerboseLevel5", &a.Config.VerboseLevel5, []string{"trace"}, a.RootCmd)
-	makeString("VerboseLevel", &a.Config.VerboseLevel, []string{"level"}, a.RootCmd)
 
 	ver := cmd.NewVM(a.Config)
 	vmCmd := makeCommand("vm", ver.Help, a.RootCmd)
