@@ -167,7 +167,7 @@ func (c *Config) UnmarshalViper() {
 func (c *Config) readWithViper() {
 	var err error
 
-	f, err := TemplateFolder.Open(defaultConfigFilename + "." + defaultConfigType)
+	f, err := TemplateFolder.Open(DefaultConfigFilename + "." + DefaultConfigType)
 	defer f.Close()
 	err = viper.ReadConfig(f)
 	if err != nil {
@@ -197,7 +197,7 @@ func (c *Config) readWithViper() {
 }
 
 func (c *Config) CopyDefaultConfigToHome() error {
-	name := fmt.Sprintf("%s/%s.%s", c.HomeFolder, c.HomeFilename, defaultConfigType)
+	name := fmt.Sprintf("%s/%s.%s", c.HomeFolder, c.HomeFilename, DefaultConfigType)
 
 	to, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE, 0666)
 	defer to.Close()
@@ -206,7 +206,7 @@ func (c *Config) CopyDefaultConfigToHome() error {
 		return err
 	}
 
-	dConfig, err := TemplateFolder.Open(defaultConfigFilename + "." + defaultConfigType)
+	dConfig, err := TemplateFolder.Open(DefaultConfigFilename + "." + DefaultConfigType)
 	defer dConfig.Close()
 
 	dat, err := ioutil.ReadAll(dConfig)
@@ -221,15 +221,15 @@ func (c *Config) CopyDefaultConfigToHome() error {
 	}
 
 	if terminal.IsTerminal(int(os.Stdin.Fd())) {
-		c.PromptAppConfig()
+		PromptAppConfig(c)
 	} else {
 		log.Warnf("cannot prompt for AccessKey and SecretKeys")
 	}
 
 	return nil
 }
-func (c *Config) PromptAppConfig() (ok bool) {
-	ok = false
+
+func PromptAppConfig(c *Config) bool {
 
 	home := c.HomeFolder
 
@@ -250,17 +250,17 @@ func (c *Config) PromptAppConfig() (ok bool) {
 	fmt.Print(fmt.Sprintf("Enter required Tenable.io" + "'AccessKey'" + ": "))
 	c.VM.AccessKey, _ = reader.ReadString('\n')
 	c.VM.AccessKey = strings.TrimSpace(c.VM.AccessKey)
-	if len(c.VM.AccessKey)%64 != 0 {
-		fmt.Println(fmt.Sprintf("Invalid accessKey '%s' length %d not 64.\n\n", c.VM.AccessKey, len(c.VM.AccessKey)))
-		return
+	if len(c.VM.AccessKey) != 64 {
+		c.Log.Warnf(fmt.Sprintf("Invalid accessKey '%s' length %d not 64.\n\n", c.VM.AccessKey, len(c.VM.AccessKey)))
+		return false
 	}
 
 	fmt.Print(fmt.Sprintf("Enter required Tenable.io" + "'SecretKey'" + ": "))
 	c.VM.SecretKey, _ = reader.ReadString('\n')
 	c.VM.SecretKey = strings.TrimSpace(c.VM.SecretKey)
-	if len(c.VM.SecretKey)%64 != 0 {
-		fmt.Println(fmt.Sprintf("Invalid secretKey '%s' length %d not 64.\n\n", c.VM.SecretKey, len(c.VM.SecretKey)))
-		return
+	if len(c.VM.SecretKey) != 64 {
+		c.Log.Warnf(fmt.Sprintf("Invalid secretKey '%s' length %d not 64.\n\n", c.VM.SecretKey, len(c.VM.SecretKey)))
+		return false
 	}
 	c.VM.CacheKey = fmt.Sprintf("%s%s", c.VM.AccessKey[:16], c.VM.SecretKey[:16])
 
@@ -270,13 +270,13 @@ func (c *Config) PromptAppConfig() (ok bool) {
 	fmt.Println()
 
 	if len(shouldSave) > 0 && strings.ToUpper(shouldSave)[0] == 'Y' {
-		name := fmt.Sprintf("%s/%s.%s", home, defaultHomeFilename, defaultConfigType)
+		name := fmt.Sprintf("%s/%s.%s", home, DefaultHomeFilename, DefaultConfigType)
 		fmt.Println(fmt.Sprintf("Creating default configuration file '%s' ...", name))
 
 		file, err := os.Create(name)
 		if err != nil {
-			log.Warnf(fmt.Sprintf("Cannot create default configuration file '%s':%s", name, err))
-			return
+			c.Log.Warnf(fmt.Sprintf("Cannot create default configuration file '%s':%s", name, err))
+			return false
 		}
 		defer file.Close()
 
@@ -296,12 +296,9 @@ func (c *Config) PromptAppConfig() (ok bool) {
 		fmt.Fprintf(file, "  BaseURL: %s\n", c.Server.BaseURL)
 		fmt.Fprintf(file, "  CacheFolder: %s\n", c.Server.CacheFolder)
 		fmt.Fprintf(file, "\n")
-
 		fmt.Println(fmt.Sprintf("\n\nDone! \nSuccessfully created '%s'", name))
 		fmt.Println()
 	}
 
-	ok = true
-
-	return
+	return true
 }

@@ -11,9 +11,9 @@ import (
 )
 
 // These defaults are needed to configure Viper/Cobra
-const defaultHomeFilename = ".tiogo"
-const defaultConfigFilename = "default.tiogo"
-const defaultConfigType = "yaml"
+const DefaultHomeFilename = ".tiogo"
+const DefaultConfigFilename = "default.tiogo"
+const DefaultConfigType = "yaml"
 const defaultConfigFolder = "./config/"
 const defaultTemplateFolder = "./config/template/"
 
@@ -46,7 +46,7 @@ func (c *Config) SetToDefaults() {
 	} else {
 		c.HomeFolder = folder
 	}
-	c.HomeFilename = defaultHomeFilename
+	c.HomeFilename = DefaultHomeFilename
 
 	c.VM.BaseURL = defaultClientBaseURL
 
@@ -63,7 +63,7 @@ func (c *Config) SetToDefaults() {
 	c.Server.ListenPort = defaultServerListenPort
 	c.VerboseLevel = defaultVerboseLevel
 	c.ConfigFolder = defaultConfigFolder
-	c.ConfigFilename = defaultConfigFilename
+	c.ConfigFilename = DefaultConfigFilename
 	c.TemplateFolder = defaultTemplateFolder
 	c.VM.MetricsFolder = defaultClientMetricsFolder
 
