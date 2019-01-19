@@ -41,6 +41,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	// NOTE: we need to set the PreRun BEFORE making other commands below.
 	a.RootCmd.PreRun = func(cmd *cobra.Command, args []string) {
 		a.Config.UnmarshalViper()  // copy values from cobra
+		cmd.ParseFlags(os.Args)    // parse commandline for parameters
 		a.Config.ValidateOrFatal() // and validate.
 	}
 
@@ -53,12 +54,12 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 
 	ver := cmd.NewVM(a.Config)
 	vmCmd := makeCommand("vm", ver.Help, a.RootCmd)
-	makeString("id", &a.Config.VM.ID, []string{"i"}, vmCmd)
-	makeString("name", &a.Config.VM.Name, []string{"n"}, vmCmd)
-	makeString("regex", &a.Config.VM.Regex, []string{}, vmCmd)
-	makeString("jqex", &a.Config.VM.JQex, []string{}, vmCmd)
-	makeBool("csv", &a.Config.VM.OutputCSV, []string{}, vmCmd)
-	makeBool("json", &a.Config.VM.OutputJSON, []string{}, vmCmd)
+	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, vmCmd)
+	makeString("Name", &a.Config.VM.Name, []string{"n", "name"}, vmCmd)
+	makeString("Regex", &a.Config.VM.Regex, []string{"regex"}, vmCmd)
+	makeString("JQex", &a.Config.VM.JQex, []string{"jqex"}, vmCmd)
+	makeBool("CSV", &a.Config.VM.OutputCSV, []string{"csv"}, vmCmd)
+	makeBool("JSON", &a.Config.VM.OutputJSON, []string{"json"}, vmCmd)
 
 	_ = makeCommand("help", ver.Help, vmCmd)
 
@@ -67,6 +68,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
+
 	return
 }
 
@@ -118,6 +120,9 @@ func (a *App) usageTemplate(name string, data interface{}) (usage string) {
 }
 
 func setDefaultRootCmd() {
+	if len(os.Args) < 2 {
+		return
+	}
 	// Check if the first arg is a root command
 	arg := strings.ToLower(os.Args[1])
 

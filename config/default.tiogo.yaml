@@ -1,15 +1,4 @@
-## Copy the client section a $HOMEDIR file '.gopher.yaml' and override
-## with the AccessKey&SecretKey
-Client:
+vm:
   BaseURL: http://localhost:10101
   AccessKey: abc123,ghi789
   SecretKey: def456,jkl012
-
-Server:
-  AccessKey: abc123,ghi789
-  SecretKey: def456,jkl012
-  RootFolder: ./config/docroot/
-
-Version:
-  ShowSever: true
-  ShowClient: true

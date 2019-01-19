@@ -50,15 +50,13 @@ VM Options:
 VM Actions and Examples:
     ## Scanners conduct network based scanning and report results back to Tenable.IO.
     ## https://cloud.tenable.com/api/#/resources/scanners
+    $ tio scanners
     $ tio vm scanners
     $ tio vm scanners list
-    $ tio scanners
 
     ## Agents are installed machines that execute hosts based scans and report back to Tenable.IO.
     ## https://cloud.tenable.com/api/#/resources/agents
-    $ tio vm agents
     $ tio agents
-    $ tio agents list
     $ tio agents list --without-group
     $ tio agents list --group "New Group Name"
 

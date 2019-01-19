@@ -30,10 +30,12 @@ func (v *VM) Help(cmd *cobra.Command, args []string) {
 	return
 }
 
-func (v *VM) Scanners(cmd *cobra.Command, args []string) {
+func (vm *VM) Scanners(cmd *cobra.Command, args []string) {
 	fmt.Printf("scanners!")
 
-	cli := ui.NewCLI(v.Config)
+	fmt.Printf("%s", spew.Sprint(vm))
+
+	cli := ui.NewCLI(vm.Config)
 	cli.DrawGopher()
 	return
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -79,13 +80,13 @@ func (c *Config) String() string {
 	*safeConfig = *c
 
 	// Overwrite sensitive values with the masked value
-	mask := "[**MASKED**]"
-	safeConfig.VM.AccessKey = mask
-	safeConfig.VM.SecretKey = mask
-	safeConfig.VM.CacheKey = mask
-	safeConfig.Server.AccessKey = mask
-	safeConfig.Server.SecretKey = mask
-	safeConfig.Server.CacheKey = mask
+	// mask := "[**MASKED**]"
+	// safeConfig.VM.AccessKey = mask
+	// safeConfig.VM.SecretKey = mask
+	// safeConfig.VM.CacheKey = mask
+	// safeConfig.Server.AccessKey = mask
+	// safeConfig.Server.SecretKey = mask
+	// safeConfig.Server.CacheKey = mask
 
 	s := spew.Sdump(safeConfig)
 
@@ -163,19 +164,58 @@ func (c *Config) readWithViper() {
 	var err error
 
 	f, err := TemplateFolder.Open(defaultConfigFilename + "." + defaultConfigType)
+	defer f.Close()
 	err = viper.ReadConfig(f)
 	if err != nil {
-		c.Log.Fatalf("fatal: couldn't read in config: %s", err)
+		c.Log.Fatalf("fatal: couldn't read default config: %s", err)
 	}
 
 	viper.AddConfigPath(c.HomeFolder)
 	viper.SetConfigName(c.HomeFilename)
 	err = viper.MergeInConfig()
 	if err != nil {
-		c.Log.Infof("warning: couldn't load configs from: %s or : %s: %s", c.HomeFolder, c.HomeFilename, err)
+		err = c.CopyDefaultConfigToHome()
+		if err != nil {
+			c.Log.Fatalf("warning: couldn't init default config in home folder: %s", err)
+			return
+		}
+
+		err = viper.MergeInConfig()
+		if err != nil {
+			c.Log.Fatalf("warning: couldn't viper MergeInConfig after default config: %s", err)
+			return
+		}
+
 	}
 
 	viper.AutomaticEnv()
 
 	return
+}
+
+func (c *Config) CopyDefaultConfigToHome() error {
+	name := fmt.Sprintf("%s/%s.%s", c.HomeFolder, c.HomeFilename, defaultConfigType)
+
+	to, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE, 0666)
+	defer to.Close()
+	if err != nil {
+		c.Log.Warnf("cannot create default config file in home folder: %s", err)
+		return err
+	}
+
+	dConfig, err := TemplateFolder.Open(defaultConfigFilename + "." + defaultConfigType)
+	defer dConfig.Close()
+
+	dat, err := ioutil.ReadAll(dConfig)
+	if err != nil {
+		c.Log.Warnf("cannot read default config file for copying: %s", err)
+		return err
+	}
+	_, err = to.Write(dat)
+	if err != nil {
+		c.Log.Warnf("cannot write config file in home folder: %s", err)
+		return err
+	}
+
+	return nil
 }
