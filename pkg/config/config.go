@@ -239,7 +239,7 @@ func (c *Config) PromptAppConfig() bool {
 	tzDefault := fmt.Sprintf("%s %s", z[2], z[3])
 
 	fmt.Println()
-	fmt.Println(fmt.Sprintf("WARN: "+"No AppConfiguration file '.tio-fmt.yaml' found in homedir '%s' ", home))
+	fmt.Println(fmt.Sprintf("WARN: "+"No configuration file '.tiogo.yaml' found in homedir '%s' ", home))
 	fmt.Println()
 	fmt.Print(fmt.Sprintf("Need Tenable.IO access keys and secret keys for API usage."))
 	fmt.Println()
@@ -270,6 +270,10 @@ func (c *Config) PromptAppConfig() bool {
 	fmt.Println()
 
 	if len(shouldSave) > 0 && strings.ToUpper(shouldSave)[0] == 'Y' {
+
+		c.VM.CacheFolder = filepath.Join(home, c.VM.CacheFolder)
+		c.Server.CacheFolder = filepath.Join(home, c.Server.CacheFolder)
+
 		name := fmt.Sprintf("%s/%s.%s", home, DefaultHomeFilename, DefaultConfigType)
 		fmt.Println(fmt.Sprintf("Creating default configuration file '%s' ...", name))
 

@@ -21,11 +21,15 @@ func main() {
 	cwd, _ := os.Getwd()
 	templateFolder := "config/"
 
+	logrus.Infof("Generating from working folder: cwd:%s", cwd)
+
 	// Check if we're running inside the config/template folder, and adjust relative paths.
-	if strings.Contains(cwd, "template/") {
+	if strings.Contains(cwd, "tiogo/config") {
 		templateFolder = "./"
 		outputFilename = "../" + outputFilename
 	}
+
+	logrus.Infof("Setting template folder:'%s' and output filename:'%s'", templateFolder, outputFilename)
 
 	err := vfsgen.Generate(http.Dir(templateFolder), vfsgen.Options{
 		Filename:     outputFilename,

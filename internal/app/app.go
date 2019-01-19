@@ -3,7 +3,6 @@ package internal
 import (
 	"bytes"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/whereiskurt/tiogo/internal/app/cmd"
@@ -36,7 +35,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	a.Config = config
 	a.Metrics = mmetrics
 	a.RootCmd = new(cobra.Command)
-	a.DefaultUsage = a.usageTemplate("Usage", nil)
+	a.DefaultUsage = a.Usage()
 
 	// Ensure before any command is run we Unmarshal and Validate the Config values.
 	// NOTE: we need to set the PreRun BEFORE making other commands below.
@@ -84,40 +83,45 @@ func (a *App) InvokeCLI() {
 	return
 }
 
-// usageTemplate renders the usage/help/man pages for a cmd
-func (a *App) usageTemplate(name string, data interface{}) (usage string) {
-	var raw bytes.Buffer
+func (a *App) Usage() string {
+	return a.usageFromTemplate("Usage", nil)
+}
 
+// usageTemplate renders the usage/help/man pages for a cmd
+func (a *App) usageFromTemplate(name string, data interface{}) string {
+	var err error
 	var templateFiles []string
-	templateFiles = append(templateFiles, CommandList...)
+
 	templateFiles = append(templateFiles, ApplicationName)
 
 	t := template.New("")
-	for _, f := range templateFiles {
-		name := fmt.Sprintf("/template/cmd/%s.tmpl", f)
-		file, err := config.TemplateFolder.Open(name)
-		content, err := ioutil.ReadAll(file)
-		if err != nil {
-			log.Fatal(err)
-		}
 
-		t, err = t.Funcs(
-			template.FuncMap{
-				"Gopher": ui.Gopher,
-			},
-		).Parse(string(content))
+	file, err := config.TemplateFolder.Open("/template/cmd/tiogo.tmpl")
+	if err != nil {
+		a.Config.Log.Fatal(err)
+		return ""
 	}
 
-	var err error
+	content, err := ioutil.ReadAll(file)
+	if err != nil {
+		a.Config.Log.Fatal(err)
+		return ""
+	}
 
+	t, err = t.Funcs(
+		template.FuncMap{
+			"Gopher": ui.Gopher,
+		},
+	).Parse(string(content))
+
+	var raw bytes.Buffer
 	err = t.ExecuteTemplate(&raw, name, data)
 	if err != nil {
-		log.Printf("error execute template for usage: %v", err)
-		return
+		a.Config.Log.Fatal("error executing help usage template for tiogo: %v", err)
+		return ""
 	}
 
-	usage = raw.String()
-	return
+	return raw.String()
 }
 
 func setDefaultRootCmd() {

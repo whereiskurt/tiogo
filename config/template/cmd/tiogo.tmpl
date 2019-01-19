@@ -15,7 +15,7 @@ Commands:
 
 Sub-command:
     vm:
-      scanners, agents, agentgroups, scans, assets, export, user, usergroups, targetgroups
+      help, scanners, agents, agent-groups, scans, assets, export-assets, export-vulns, user, user-groups, target-groups
 
     server:
       start, stop
@@ -34,5 +34,11 @@ Global Options:
       --debug,          Set logging/output level [level4]
       --trace,          Output to STDOUT and to log file [level5]
       --level=3         Sets the output verbosity level numerically [default]
+
+For more help:
+    $ tio vm help scanners
+    $ tio vm help agents
+    $ tio vm help scans
+
 
 {{end}}

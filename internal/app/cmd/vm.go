@@ -28,6 +28,11 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 	fmt.Printf("tiogo version %s (%s)", ReleaseVersion, GitHash)
 	cli := ui.NewCLI(vm.Config)
 	cli.DrawGopher()
+
+	if len(args) == 0 {
+		fmt.Println(cli.Render("vmUsage", nil))
+	}
+
 	return
 }
 
