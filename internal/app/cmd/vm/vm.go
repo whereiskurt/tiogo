@@ -1,8 +1,7 @@
-package cmd
+package vm
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
@@ -21,6 +20,13 @@ var (
 type VM struct {
 	Config  *config.Config
 	Metrics *metrics.Metrics
+}
+
+// NewVersion holds a configuration and command line interface reference (for log out, etc.)
+func NewVM(c *config.Config, m *metrics.Metrics) (v VM) {
+	v.Config = c
+	v.Metrics = m
+	return
 }
 
 // Version just outputs a gopher.
@@ -58,23 +64,5 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 
 	}
 
-	return
-}
-
-func (vm *VM) Scanners(cmd *cobra.Command, args []string) {
-	vm.Config.Log.SetFormatter(&log.TextFormatter{})
-	vm.Config.VM.EnableLogging()
-
-	vm.Config.Log.Infof("tiogo scanners list command:")
-
-	cli := ui.NewCLI(vm.Config)
-	cli.DrawGopher()
-	return
-}
-
-// NewVersion holds a configuration and command line interface reference (for log out, etc.)
-func NewVM(c *config.Config, m *metrics.Metrics) (v VM) {
-	v.Config = c
-	v.Metrics = m
 	return
 }

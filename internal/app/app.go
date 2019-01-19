@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/whereiskurt/tiogo/internal/app/cmd"
+	"github.com/whereiskurt/tiogo/internal/app/cmd/vm"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"github.com/whereiskurt/tiogo/pkg/ui"
@@ -52,7 +52,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	makeBool("VerboseLevel4", &a.Config.VerboseLevel4, []string{"debug"}, a.RootCmd)
 	makeBool("VerboseLevel5", &a.Config.VerboseLevel5, []string{"trace"}, a.RootCmd)
 
-	vmApp := cmd.NewVM(a.Config, a.Metrics)
+	vmApp := vm.NewVM(a.Config, a.Metrics)
 	vmCmd := makeCommand("vm", vmApp.Help, a.RootCmd)
 	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, vmCmd)
 	makeString("Name", &a.Config.VM.Name, []string{"n", "name"}, vmCmd)
@@ -63,8 +63,8 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 
 	_ = makeCommand("help", vmApp.Help, vmCmd)
 
-	sListCmd := makeCommand("scanners", vmApp.Scanners, vmCmd)
-	_ = makeCommand("list", vmApp.Scanners, sListCmd)
+	sListCmd := makeCommand("scanners", vmApp.ScannerList, vmCmd)
+	_ = makeCommand("list", vmApp.ScannerList, sListCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)

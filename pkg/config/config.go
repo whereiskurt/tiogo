@@ -187,21 +187,18 @@ func (c *Config) readWithViper() {
 	viper.SetConfigName(c.HomeFilename)
 	err = viper.MergeInConfig()
 	if err != nil {
-
+		// First run, try and get user inputted configuration
 		if terminal.IsTerminal(int(os.Stdin.Fd())) {
 			c.userInputConfiguration(filename)
 		}
-
 		err = viper.MergeInConfig()
 		if err != nil {
 			c.Log.Warnf("warning: couldn't viper MergeInConfig after default config: %s", err)
 			return
 		}
-
 	}
 
 	viper.AutomaticEnv()
-
 	return
 }
 
