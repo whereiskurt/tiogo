@@ -1,4 +1,13 @@
-vm:
+#############################################################
+##
+## WARNING: DEFAULT CONFIGURATION - tiogo won't work like this!
+##
+## AccessKey and SecretKey must be set to access Tenable.io
+#############################################################
+VM:
   BaseURL: http://localhost:10101
-  AccessKey: abc123,ghi789
-  SecretKey: def456,jkl012
+  AccessKey: ak1,ak2
+  SecretKey: sk1,sk2
+
+Server:
+  BaseURL: https://cloud.tenable.com

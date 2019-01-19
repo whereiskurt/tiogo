@@ -16,6 +16,13 @@ import (
 	"text/template"
 )
 
+var (
+	// ApplicationName is referenced for the usage help.
+	ApplicationName = "tiogo"
+	// CommandList entry[0] becomes default when a 'command' is omitted
+	CommandList = []string{"vm", "server"}
+)
+
 // App is created from package main. App handles the configuration and cobra/viper.
 type App struct {
 	Config       *config.Config
@@ -23,12 +30,6 @@ type App struct {
 	RootCmd      *cobra.Command
 	DefaultUsage string
 }
-
-// ApplicationName is referenced for the usage help.
-var ApplicationName = "tiogo"
-
-// CommandList entry[0] becomes default when a 'command' is omitted
-var CommandList = []string{"vm", "server"}
 
 // NewApp constructs the command line and configuration
 func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {

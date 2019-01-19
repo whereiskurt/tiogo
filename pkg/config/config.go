@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
@@ -8,9 +9,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
+	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -97,6 +100,7 @@ func (c *Config) String() string {
 type ServerConfig struct {
 	Config            *Config
 	ListenPort        string
+	BaseURL           string
 	AccessKey         string
 	SecretKey         string
 	CacheKey          string
@@ -179,7 +183,6 @@ func (c *Config) readWithViper() {
 			c.Log.Fatalf("warning: couldn't init default config in home folder: %s", err)
 			return
 		}
-
 		err = viper.MergeInConfig()
 		if err != nil {
 			c.Log.Fatalf("warning: couldn't viper MergeInConfig after default config: %s", err)
@@ -217,5 +220,88 @@ func (c *Config) CopyDefaultConfigToHome() error {
 		return err
 	}
 
+	if terminal.IsTerminal(int(os.Stdin.Fd())) {
+		c.PromptAppConfig()
+	} else {
+		log.Warnf("cannot prompt for AccessKey and SecretKeys")
+	}
+
 	return nil
+}
+func (c *Config) PromptAppConfig() (ok bool) {
+	ok = false
+
+	home := c.HomeFolder
+
+	t := time.Now()
+	ts := fmt.Sprintf("%v", t)
+	z := strings.Split(ts, " ")
+	tzDefault := fmt.Sprintf("%s %s", z[2], z[3])
+
+	fmt.Println()
+	fmt.Println(fmt.Sprintf("WARN: "+"No AppConfiguration file '.tio-fmt.yaml' found in homedir '%s' ", home))
+	fmt.Println()
+	fmt.Print(fmt.Sprintf("Need Tenable.IO access keys and secret keys for API usage."))
+	fmt.Println()
+	fmt.Println(fmt.Sprintf("You must provide the X-ApiKeys '" + "accessKey" + "' and '" + "secretKey" + "' to the Tenable.IO API."))
+	fmt.Println(fmt.Sprintf("For complete details see: https://cloud.tenable.com/api#/authorization"))
+	fmt.Println()
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print(fmt.Sprintf("Enter required Tenable.io" + "'AccessKey'" + ": "))
+	c.VM.AccessKey, _ = reader.ReadString('\n')
+	c.VM.AccessKey = strings.TrimSpace(c.VM.AccessKey)
+	if len(c.VM.AccessKey)%64 != 0 {
+		fmt.Println(fmt.Sprintf("Invalid accessKey '%s' length %d not 64.\n\n", c.VM.AccessKey, len(c.VM.AccessKey)))
+		return
+	}
+
+	fmt.Print(fmt.Sprintf("Enter required Tenable.io" + "'SecretKey'" + ": "))
+	c.VM.SecretKey, _ = reader.ReadString('\n')
+	c.VM.SecretKey = strings.TrimSpace(c.VM.SecretKey)
+	if len(c.VM.SecretKey)%64 != 0 {
+		fmt.Println(fmt.Sprintf("Invalid secretKey '%s' length %d not 64.\n\n", c.VM.SecretKey, len(c.VM.SecretKey)))
+		return
+	}
+	c.VM.CacheKey = fmt.Sprintf("%s%s", c.VM.AccessKey[:16], c.VM.SecretKey[:16])
+
+	fmt.Println()
+	fmt.Print(fmt.Sprintf("Save configuration file? [yes or default:no]: "))
+	shouldSave, _ := reader.ReadString('\n')
+	fmt.Println()
+
+	if len(shouldSave) > 0 && strings.ToUpper(shouldSave)[0] == 'Y' {
+		name := fmt.Sprintf("%s/%s.%s", home, defaultHomeFilename, defaultConfigType)
+		fmt.Println(fmt.Sprintf("Creating default configuration file '%s' ...", name))
+
+		file, err := os.Create(name)
+		if err != nil {
+			log.Warnf(fmt.Sprintf("Cannot create default configuration file '%s':%s", name, err))
+			return
+		}
+		defer file.Close()
+
+		fmt.Fprintf(file, "#################################################\n")
+		fmt.Fprintf(file, "## Successfully created by tiogo commandline tool\n")
+		fmt.Fprintf(file, "#################################################\n")
+		fmt.Fprintf(file, "\n")
+		fmt.Fprintf(file, "VM:\n")
+		fmt.Fprintf(file, "  BaseURL: %s\n", c.VM.BaseURL)
+		fmt.Fprintf(file, "  AccessKey: %s\n", c.VM.AccessKey)
+		fmt.Fprintf(file, "  SecretKey: %s\n", c.VM.SecretKey)
+		fmt.Fprintf(file, "  CacheKey: %s%s\n", c.VM.AccessKey[:16], c.VM.SecretKey[:16])
+		fmt.Fprintf(file, "  CacheFolder: %s\n", c.VM.CacheFolder)
+		fmt.Fprintf(file, "  DefaultTimezone: %s\n", tzDefault)
+		fmt.Fprintf(file, "\n")
+		fmt.Fprintf(file, "Server:\n")
+		fmt.Fprintf(file, "  BaseURL: %s\n", c.Server.BaseURL)
+		fmt.Fprintf(file, "  CacheFolder: %s\n", c.Server.CacheFolder)
+		fmt.Fprintf(file, "\n")
+
+		fmt.Println(fmt.Sprintf("\n\nDone! \nSuccessfully created '%s'", name))
+		fmt.Println()
+	}
+
+	ok = true
+
+	return
 }

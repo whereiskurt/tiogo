@@ -13,5 +13,6 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.2
 	github.com/spf13/viper v1.2.1
+	golang.org/x/crypto v0.0.0-20180904163835-0709b304e793
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
 )
