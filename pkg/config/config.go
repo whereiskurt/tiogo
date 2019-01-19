@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"golang.org/x/crypto/ssh/terminal"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -119,6 +118,12 @@ func NewConfig() (config *Config) {
 	config.Log = log.New()
 
 	cobra.OnInitialize(func() {
+		for i := range os.Args {
+			if strings.ToLower(os.Args[i]) == "help" {
+				return
+			}
+		}
+		// Only read configuration when not invoked with 'help'
 		config.readWithViper()
 	})
 
@@ -167,25 +172,29 @@ func (c *Config) UnmarshalViper() {
 func (c *Config) readWithViper() {
 	var err error
 
-	f, err := TemplateFolder.Open(DefaultConfigFilename + "." + DefaultConfigType)
+	defaultFilename := DefaultConfigFilename + "." + DefaultConfigType
+	f, err := TemplateFolder.Open(defaultFilename)
 	defer f.Close()
 	err = viper.ReadConfig(f)
 	if err != nil {
 		c.Log.Fatalf("fatal: couldn't read default config: %s", err)
 	}
 
+	filename := filepath.Join(c.HomeFolder, c.HomeFilename)
+	filename = filename + "." + DefaultConfigType
+
 	viper.AddConfigPath(c.HomeFolder)
 	viper.SetConfigName(c.HomeFilename)
 	err = viper.MergeInConfig()
 	if err != nil {
-		err = c.CopyDefaultConfigToHome()
-		if err != nil {
-			c.Log.Fatalf("warning: couldn't init default config in home folder: %s", err)
-			return
+
+		if terminal.IsTerminal(int(os.Stdin.Fd())) {
+			c.userInputConfiguration(filename)
 		}
+
 		err = viper.MergeInConfig()
 		if err != nil {
-			c.Log.Fatalf("warning: couldn't viper MergeInConfig after default config: %s", err)
+			c.Log.Warnf("warning: couldn't viper MergeInConfig after default config: %s", err)
 			return
 		}
 
@@ -196,42 +205,9 @@ func (c *Config) readWithViper() {
 	return
 }
 
-func (c *Config) CopyDefaultConfigToHome() error {
-	name := fmt.Sprintf("%s/%s.%s", c.HomeFolder, c.HomeFilename, DefaultConfigType)
+func (c *Config) userInputConfiguration(filename string) bool {
 
-	to, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE, 0666)
-	defer to.Close()
-	if err != nil {
-		c.Log.Warnf("cannot create default config file in home folder: %s", err)
-		return err
-	}
-
-	dConfig, err := TemplateFolder.Open(DefaultConfigFilename + "." + DefaultConfigType)
-	defer dConfig.Close()
-
-	dat, err := ioutil.ReadAll(dConfig)
-	if err != nil {
-		c.Log.Warnf("cannot read default config file for copying: %s", err)
-		return err
-	}
-	_, err = to.Write(dat)
-	if err != nil {
-		c.Log.Warnf("cannot write config file in home folder: %s", err)
-		return err
-	}
-
-	if terminal.IsTerminal(int(os.Stdin.Fd())) {
-		c.PromptAppConfig()
-	} else {
-		log.Warnf("cannot prompt for AccessKey and SecretKeys")
-	}
-
-	return nil
-}
-
-func (c *Config) PromptAppConfig() bool {
-
-	home := c.HomeFolder
+	// home := c.HomeFolder
 
 	t := time.Now()
 	ts := fmt.Sprintf("%v", t)
@@ -239,7 +215,7 @@ func (c *Config) PromptAppConfig() bool {
 	tzDefault := fmt.Sprintf("%s %s", z[2], z[3])
 
 	fmt.Println()
-	fmt.Println(fmt.Sprintf("WARN: "+"No configuration file '.tiogo.yaml' found in homedir '%s' ", home))
+	fmt.Println(fmt.Sprintf("WARN: "+"No configuration file '%s' found", filename))
 	fmt.Println()
 	fmt.Print(fmt.Sprintf("Need Tenable.IO access keys and secret keys for API usage."))
 	fmt.Println()
@@ -270,16 +246,13 @@ func (c *Config) PromptAppConfig() bool {
 	fmt.Println()
 
 	if len(shouldSave) > 0 && strings.ToUpper(shouldSave)[0] == 'Y' {
+		// Sensible defaults - users homedir are usually writeable for a cache
 
-		c.VM.CacheFolder = filepath.Join(home, c.VM.CacheFolder)
-		c.Server.CacheFolder = filepath.Join(home, c.Server.CacheFolder)
+		fmt.Println(fmt.Sprintf("Creating default configuration file '%s' ...", filename))
 
-		name := fmt.Sprintf("%s/%s.%s", home, DefaultHomeFilename, DefaultConfigType)
-		fmt.Println(fmt.Sprintf("Creating default configuration file '%s' ...", name))
-
-		file, err := os.Create(name)
+		file, err := os.Create(filename)
 		if err != nil {
-			c.Log.Warnf(fmt.Sprintf("Cannot create default configuration file '%s':%s", name, err))
+			c.Log.Warnf(fmt.Sprintf("Cannot create default configuration file '%s':%s", filename, err))
 			return false
 		}
 		defer file.Close()
@@ -300,9 +273,11 @@ func (c *Config) PromptAppConfig() bool {
 		fmt.Fprintf(file, "  BaseURL: %s\n", c.Server.BaseURL)
 		fmt.Fprintf(file, "  CacheFolder: %s\n", c.Server.CacheFolder)
 		fmt.Fprintf(file, "\n")
-		fmt.Println(fmt.Sprintf("\n\nDone! \nSuccessfully created '%s'", name))
+		fmt.Println(fmt.Sprintf("\n\nDone! \nSuccessfully created '%s'", filename))
 		fmt.Println()
+
+		return true
 	}
 
-	return true
+	return false
 }

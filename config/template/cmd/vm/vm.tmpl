@@ -10,9 +10,6 @@ Usage:
 Sub-commands:
     help, scanners, agents, agent-groups, scans, assets, export-assets, export-vulns, user, user-groups, target-groups
 
-Action:
-    list, create, delete, sync, reschedule, tag, untag
-
 VM Options:
     Selection modifiers:
     --id=[unique id]
@@ -25,14 +22,67 @@ Output Modes:
     --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
 VM Actions and Examples:
-    ## Scanners conduct network based scanning and report results back to Tenable.IO.
-    ## https://cloud.tenable.com/api/#/resources/scanners
-    $ tio scanners
-    $ tio vm scanners
-    $ tio vm scanners list
+    $ tio vm help scanners
+    $ tio vm help agents
+    $ tio vm help agent-groups
+    $ tio vm help scans
 
-    ## Agents are installed machines that execute hosts based scans and report back to Tenable.IO.
-    ## https://cloud.tenable.com/api/#/resources/agents
+{{end}}
+
+{{define "scannersUsage" -}}
+Scanners:
+    Scanners conduct network based scanning and report results back to Tenable.IO.
+    (https://cloud.tenable.com/api/#/resources/scanners)
+
+Usage:
+    tio vm scanners [ACTION ...] [OPTIONS]
+
+Action:
+      list
+
+Scanners Options:
+    Selection modifiers:
+        --id=[unique id]
+        --name=[string]
+        --regex=[regular expression]
+        --jqex=[jq expression]
+
+    Output Modes:
+        --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+        --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
+        $ tio scanners
+        $ tio vm scanners
+        $ tio vm scanners list
+        $ tio vm scanners list --csv
+        $ tio vm scanners list --json
+        $ tio vm scanners list --regex '.*PROD[0-9][0-9]?.*'
+{{end}}
+
+{{define "agentsUsage" -}}
+Agents:
+    Agents are installed machines that execute hosts based scans and report back to Tenable.IO.
+    https://cloud.tenable.com/api/#/resources/agents)
+
+Usage:
+    tio vm agents [ACTION ...] [OPTIONS]
+
+Action:
+      list, group, ungroup
+
+Agents Options:
+    Selection modifiers:
+        --id=[unique id]
+        --name=[string]
+        --regex=[regular expression]
+        --jqex=[jq expression]
+
+    Output Modes:
+        --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+        --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
     $ tio agents
     $ tio agents list --without-group
     $ tio agents list --group "New Group Name"
@@ -41,8 +91,30 @@ VM Actions and Examples:
     $ tio agents group --group "New Group Name" --regex "10\.0\.2\"
     $ tio agents ungroup --group "New Group Name"
 
-    ## Agents Groups - Agents are put into Groups and it is 'Agent Groups' that are Targets of Agent Scans.
-    ## https://cloud.tenable.com/api/#/resources/agent-groups
+{{end}}
+{{define "agentGroupsUsage" -}}
+Agent Groups:
+    Agents are put into Groups and used for the purposes of Agent Scans.
+    (https://cloud.tenable.com/api/#/resources/agent-groups)
+
+Usage:
+    tio vm agent-groups [ACTION ...] [OPTIONS]
+
+Action:
+      list, create, delete, sync
+
+Agents Options:
+    Selection modifiers:
+        --id=[unique id]
+        --name=[string]
+        --regex=[regular expression]
+        --jqex=[jq expression]
+
+    Output Modes:
+        --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+        --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
     $ tio vm agent-groups list
     $ tio agent-groups
 
@@ -53,36 +125,201 @@ VM Actions and Examples:
     $ tio vm agent-groups list --as-target-groups --size=16
     $ tio vm agent-groups sync --as-target-groups --size=16
 
+{{end}}
+
+{{define "scansUsage" -}}
+Scans:
+    Network Scans are executed against Target Groups and Agent Scans against Agent Groups
+    (https://cloud.tenable.com/api/#/resources/scans)
+
+Usage:
+    tio vm scans [ACTION ...] [OPTIONS]
+
+Action:
+    list, reschedule
+
+Agents Options:
+    Selection modifiers:
+    --id=[unique id]
+    --name=[string]
+    --regex=[regular expression]
+    --jqex=[jq expression]
+
+    Output Modes:
+    --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+    Examples:
     $ tio vm scans list
     $ tio vm scans list --never-run
 
     $ tio vm scans reschedule --onetime --date "next second Wednesday" --time "1400"
 
-    ## Assets
-    ## https://cloud.tenable.com/api/#/resources/assets
+{{end}}
+{{define "assetsUsage" -}}
+Assets:
+    (https://cloud.tenable.com/api/#/resources/assets)
+
+Usage:
+    tio vm assets [ACTION ...] [OPTIONS]
+
+Action:
+    list, tag, untag
+
+Assets Options:
+    Selection modifiers:
+    --id=[unique id]
+    --name=[string]
+    --regex=[regular expression]
+    --jqex=[jq expression]
+
+    Output Modes:
+    --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+    Examples:
     $ tio vm assets list
 
     $ tio vm assets tag --uuid="0123-123-3245-21395" --category "Owner" --tag "Finance"
     $ tio vm assets untag --uuid="0123-123-3245-21395" --category "Owner" --tag "Finance"
 
-    # Exports - Assets and Vulns
-    # https://cloud.tenable.com/api/#/resources/exports
+
+{{end}}
+
+{{define "exportAssetsUsage" -}}
+Export Assets:
+    Bulk Exports of Assets
+    (https://cloud.tenable.com/api/#/resources/exports)
+
+Usage:
+    tio vm export-assets [ACTION ...] [OPTIONS]
+
+Action:
+
+Export Assets Options:
+    Selection modifiers:
+    --id=[unique id]
+    --name=[string]
+    --regex=[regular expression]
+    --jqex=[jq expression]
+
+Output Modes:
+    --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
     $ tio vm export-assets
     $ tio vm export-assets --convert-to-cache
 
+
+{{end}}
+
+{{define "exportVulnsUsage" -}}
+Export Vulns:
+    Bulk Exports of Vulns
+    (https://cloud.tenable.com/api/#/resources/exports)
+
+Usage:
+    tio vm export-vulns [ACTION ...] [OPTIONS]
+
+Action:
+
+Export Vulns Options:
+    Selection modifiers:
+    --id=[unique id]
+    --name=[string]
+    --regex=[regular expression]
+    --jqex=[jq expression]
+
+Output Modes:
+    --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
     $ tio vm export-vulns
 
-    ## User
+{{end}}
+
+{{define "usersUsage" -}}
+Users:
+    Tenable.io portal user management.
+    (https://cloud.tenable.com/api/#/resources/exports)
+
+Usage:
+    tio vm users [ACTION ...] [OPTIONS]
+
+Action:
+    list, create, delete
+Assets Options:
+    Selection modifiers:
+    --id=[unique id]
+    --name=[string]
+    --regex=[regular expression]
+    --jqex=[jq expression]
+    --email=[string]
+
+    Output Modes:
+    --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
     $ tio vm user list
     $ tio vm user create --name "Real Name" --email "reaname@domain.tld"
     $ tio vm user delete --name "User Group #X"
 
-    ## UserGroup. Not implementing, but a reminder why we don't call 'AgentGroups' just 'Groups'
+{{end}}
+{{define "userGroupsUsage" -}}
+User Groups:
+    Tenable.io portal user management.
+    (https://cloud.tenable.com/api/#/resources/exports)
+
+Usage:
+    tio vm user-groups [ACTION ...] [OPTIONS]
+
+Action:
+    list, create, delete
+Assets Options:
+    Selection modifiers:
+    --id=[unique id]
+    --name=[string]
+    --regex=[regular expression]
+    --jqex=[jq expression]
+
+    Output Modes:
+    --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
+
     $ tio vm user-groups list
     $ tio vm user-groups create --name "User Group #X"
     $ tio vm user-groups delete --name "User Group #X"
+{{end}}
 
-    ## Target Groups are used in reports and dash boards in Tenable.IO.
+{{define "targetGroupsUsage" -}}
+Target Groups:
+    Target Groups are used in reports and dash boards in Tenable.IO.
+    (https://cloud.tenable.com/api/)
+
+Usage:
+    tio vm target-groups [ACTION ...] [OPTIONS]
+
+Action:
+    list, create, delete, append, remove, set
+
+Target Groups Options:
+    Selection modifiers:
+    --id=[unique id]
+    --name=[string]
+    --regex=[regular expression]
+    --jqex=[jq expression]
+
+Output Modes:
+    --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
+    $ tio vm target-groups list
     $ tio vm target-groups create --name "DEV Network #X" --members="10.1.0.0/16, 10.2.0.0/16"
     $ tio vm target-groups set --name "DEV Network #X" --members="10.1.0.0/16, 10.2.0.0/16"
     $ tio vm target-groups append --name "DEV Network #X" --members="10.3.0.0/16, 10.4.0.0/16"

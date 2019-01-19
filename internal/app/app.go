@@ -52,8 +52,8 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	makeBool("VerboseLevel4", &a.Config.VerboseLevel4, []string{"debug"}, a.RootCmd)
 	makeBool("VerboseLevel5", &a.Config.VerboseLevel5, []string{"trace"}, a.RootCmd)
 
-	ver := cmd.NewVM(a.Config)
-	vmCmd := makeCommand("vm", ver.Help, a.RootCmd)
+	vmApp := cmd.NewVM(a.Config, a.Metrics)
+	vmCmd := makeCommand("vm", vmApp.Help, a.RootCmd)
 	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, vmCmd)
 	makeString("Name", &a.Config.VM.Name, []string{"n", "name"}, vmCmd)
 	makeString("Regex", &a.Config.VM.Regex, []string{"regex"}, vmCmd)
@@ -61,10 +61,10 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	makeBool("CSV", &a.Config.VM.OutputCSV, []string{"csv"}, vmCmd)
 	makeBool("JSON", &a.Config.VM.OutputJSON, []string{"json"}, vmCmd)
 
-	_ = makeCommand("help", ver.Help, vmCmd)
+	_ = makeCommand("help", vmApp.Help, vmCmd)
 
-	sListCmd := makeCommand("scanners", ver.Scanners, vmCmd)
-	_ = makeCommand("list", ver.Scanners, sListCmd)
+	sListCmd := makeCommand("scanners", vmApp.Scanners, vmCmd)
+	_ = makeCommand("list", vmApp.Scanners, sListCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
