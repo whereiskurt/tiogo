@@ -63,8 +63,9 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 
 	_ = makeCommand("help", vmApp.Help, vmCmd)
 
-	sListCmd := makeCommand("scanners", vmApp.ScannerList, vmCmd)
-	_ = makeCommand("list", vmApp.ScannerList, sListCmd)
+	sListCmd := makeCommand("scanners", vmApp.ScannersList, vmCmd)
+	_ = makeCommand("list", vmApp.ScannersList, sListCmd)
+	_ = makeCommand("help", vmApp.ScannersHelp, sListCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
@@ -84,11 +85,11 @@ func (a *App) InvokeCLI() {
 }
 
 func (a *App) Usage() string {
-	return a.usageFromTemplate("Usage", nil)
+	return a.commandUsageTmpl("Usage", nil)
 }
 
 // usageTemplate renders the usage/help/man pages for a cmd
-func (a *App) usageFromTemplate(name string, data interface{}) string {
+func (a *App) commandUsageTmpl(name string, data interface{}) string {
 	var err error
 	var templateFiles []string
 
@@ -117,7 +118,7 @@ func (a *App) usageFromTemplate(name string, data interface{}) string {
 	var raw bytes.Buffer
 	err = t.ExecuteTemplate(&raw, name, data)
 	if err != nil {
-		a.Config.Log.Fatal("error executing help usage template for tiogo: %v", err)
+		a.Config.Log.Fatalf("error executing help usage template for tiogo: %v", err)
 		return ""
 	}
 

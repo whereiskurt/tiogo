@@ -8,7 +8,6 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/cache"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
-	"github.com/whereiskurt/tiogo/pkg/server/db"
 	"github.com/whereiskurt/tiogo/pkg/server/middleware"
 	"github.com/whereiskurt/tiogo/pkg/tenable"
 	"net/http"
@@ -20,11 +19,11 @@ import (
 
 // Server is built on go-chi
 type Server struct {
-	Context           context.Context
-	Router            *chi.Mux
-	HTTP              *http.Server
-	Finished          context.CancelFunc
-	DB                db.SimpleDB
+	Context  context.Context
+	Router   *chi.Mux
+	HTTP     *http.Server
+	Finished context.CancelFunc
+	// DB                db.SimpleDB
 	DiskCache         *cache.Disk
 	Log               *log.Logger
 	CacheFolder       string
@@ -62,7 +61,7 @@ func NewServer(config *config.Config, metrics *metrics.Metrics) (server Server) 
 	// 	WriteTimeout: time.Duration(time.Second),
 	// }
 
-	server.DB = db.NewSimpleDB()
+	// server.DB = db.NewSimpleDB()
 	server.Metrics = metrics
 	return
 }

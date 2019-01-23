@@ -29,7 +29,7 @@ func NewVM(c *config.Config, m *metrics.Metrics) (v VM) {
 	return
 }
 
-// Version just outputs a gopher.
+// The help command renders a template showing the help based on parameters
 func (vm *VM) Help(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("tiogo version %s (%s)", ReleaseVersion, GitHash)
@@ -43,7 +43,7 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 	helpType := strings.ToLower(args[0])
 	switch helpType {
 	case "scanners":
-		fmt.Println(cli.Render("scannersUsage", nil))
+		vm.ScannersHelp(cmd, args)
 	case "scans":
 		fmt.Println(cli.Render("scansUsage", nil))
 	case "agent-groups":

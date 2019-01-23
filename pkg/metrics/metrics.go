@@ -74,10 +74,6 @@ func (m *Metrics) clientInit() {
 	)
 }
 
-func (m *Metrics) Marshal(filename string) {
-	_ = prometheus.WriteToTextfile(filename, prometheus.DefaultGatherer)
-}
-
 func (m *Metrics) ServerInc(endPoint EndPointType, method serviceMethodType) {
 	if m.server.endPoint == nil {
 		return
