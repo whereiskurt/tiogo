@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"github.com/go-chi/chi"
 	"net/http"
 	"strings"
 )
@@ -38,6 +39,24 @@ func InitialCtx(next http.Handler) http.Handler {
 				ctxMap["SecretKey"] = keys[1]
 			}
 		}
+		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func ExportCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
+		ctxMap["ExportUUID"] = chi.URLParam(r, "ExportUUID")
+		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func ExportChunkCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
+		ctxMap["ChunkID"] = chi.URLParam(r, "ChunkID")
 		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

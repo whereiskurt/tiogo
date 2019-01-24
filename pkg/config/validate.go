@@ -2,27 +2,25 @@ package config
 
 import (
 	log "github.com/sirupsen/logrus"
-	"os"
-	"path"
 )
 
 // ValidateOrFatal will validate the string values inside of the Config after copying from Unmarshal or self-setting.
 func (c *Config) ValidateOrFatal() {
 	c.validateVerbosity()
 
-	var err error
-	err = os.MkdirAll(path.Dir(c.VM.MetricsFolder), 0777)
-	if err != nil {
-		log.Fatalf("error: making folder for client metrics: '%s'", err)
-	}
-	err = os.MkdirAll(path.Dir(c.Server.MetricsFolder), 0777)
-	if err != nil {
-		log.Fatalf("error: making folder for server metrics: '%s'", err)
-	}
-	err = os.MkdirAll(path.Dir(c.LogFolder), 0777)
-	if err != nil {
-		log.Fatalf("error: making folder for log folder: '%s'", err)
-	}
+	// var err error
+	// err = os.MkdirAll(path.Dir(c.VM.MetricsFolder), 0777)
+	// if err != nil {
+	// 	log.Fatalf("error: making folder for client metrics: '%s'", err)
+	// }
+	// err = os.MkdirAll(path.Dir(c.Server.MetricsFolder), 0777)
+	// if err != nil {
+	// 	log.Fatalf("error: making folder for server metrics: '%s'", err)
+	// }
+	// err = os.MkdirAll(path.Dir(c.LogFolder), 0777)
+	// if err != nil {
+	// 	log.Fatalf("error: making folder for log folder: '%s'", err)
+	// }
 
 	return
 }

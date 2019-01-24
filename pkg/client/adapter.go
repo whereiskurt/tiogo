@@ -7,6 +7,7 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/cache"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
+	"github.com/whereiskurt/tiogo/pkg/tenable"
 	"os/exec"
 	"strings"
 	"sync"
@@ -67,4 +68,14 @@ func PrettyJSON(json []byte) []byte {
 		}
 	}
 	return json
+}
+
+func (a *Adapter) VulnsExportStatus(exportUUID string) string {
+	s := tenable.NewService(a.Config.VM.BaseURL, a.Config.VM.SecretKey, a.Config.VM.AccessKey)
+
+	s.EnableMetrics(a.Metrics)
+
+	s.VulnsExportStatus(exportUUID)
+
+	return ""
 }

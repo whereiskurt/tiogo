@@ -110,6 +110,6 @@ func (m *Metrics) ClientInc(endPoint string, method serviceMethodType) {
 	m.client.command.With(labels).Inc()
 }
 
-func DumpMetrics(file string) {
+func DumpMetricsToFile(file string) {
 	_ = prometheus.WriteToTextfile(file, prometheus.DefaultGatherer)
 }

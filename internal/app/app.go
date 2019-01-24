@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/whereiskurt/tiogo/internal/app/cmd/server"
 	"github.com/whereiskurt/tiogo/internal/app/cmd/vm"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
@@ -52,6 +53,12 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	makeBool("VerboseLevel4", &a.Config.VerboseLevel4, []string{"debug"}, a.RootCmd)
 	makeBool("VerboseLevel5", &a.Config.VerboseLevel5, []string{"trace"}, a.RootCmd)
 
+	vmServer := server.NewServer(a.Config, a.Metrics)
+	vmServerCmd := makeCommand("server", vmServer.ServerHelp, a.RootCmd)
+	_ = makeCommand("help", vmServer.ServerHelp, vmServerCmd)
+	_ = makeCommand("start", vmServer.Start, vmServerCmd)
+	_ = makeCommand("stop", vmServer.Stop, vmServerCmd)
+
 	vmApp := vm.NewVM(a.Config, a.Metrics)
 	vmCmd := makeCommand("vm", vmApp.Help, a.RootCmd)
 	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, vmCmd)
@@ -62,6 +69,10 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	makeBool("JSON", &a.Config.VM.OutputJSON, []string{"json"}, vmCmd)
 
 	_ = makeCommand("help", vmApp.Help, vmCmd)
+
+	exportVulnsCmd := makeCommand("export-vulns", vmApp.ExportVulnsHelp, vmCmd)
+	_ = makeCommand("start", vmApp.ExportVulnsStart, exportVulnsCmd)
+	_ = makeCommand("status", vmApp.ExportVulnsStatus, exportVulnsCmd)
 
 	sListCmd := makeCommand("scanners", vmApp.ScannersList, vmCmd)
 	_ = makeCommand("list", vmApp.ScannersList, sListCmd)

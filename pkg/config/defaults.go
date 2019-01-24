@@ -30,9 +30,9 @@ const DefaultServerBaseURL = "https://cloud.tenable.com"
 const DefaultClientCacheFolder = ".tiogo/cache/client/"
 const DefaultClientCacheResponse = true
 
-const DefaultLogFolder = "./log/"
-const DefaultServerMetricsFolder = "./log/metrics/server/"
-const DefaultClientMetricsFolder = "./log/metrics/client/"
+const DefaultLogFolder = ".tiogo/log/"
+const DefaultServerMetricsFolder = ".tiogo/log/metrics/server/"
+const DefaultClientMetricsFolder = ".tiogo/log/metrics/client/"
 
 // DefaultServerCacheFolder  stores default server cache file location
 const DefaultServerCacheFolder = ".tiogo/cache/server/"
@@ -50,14 +50,14 @@ func (c *Config) SetToDefaults() {
 
 	c.VM.BaseURL = DefaultClientBaseURL
 
-	c.LogFolder = DefaultLogFolder
-	c.VM.CacheFolder = c.HomeFolder + "/" + DefaultClientCacheFolder
+	c.LogFolder = filepath.Join(c.HomeFolder, DefaultLogFolder)
+	c.VM.CacheFolder = filepath.Join(c.HomeFolder, DefaultClientCacheFolder)
 	c.VM.CacheResponse = DefaultClientCacheResponse
 	c.Server.BaseURL = DefaultServerBaseURL
 
-	c.Server.CacheFolder = c.HomeFolder + "/" + DefaultServerCacheFolder
+	c.Server.CacheFolder = filepath.Join(c.HomeFolder, DefaultServerCacheFolder)
 	c.Server.CacheResponse = DefaultServerCacheResponse
-	c.Server.MetricsFolder = DefaultServerMetricsFolder
+	c.Server.MetricsFolder = filepath.Join(c.HomeFolder, DefaultServerMetricsFolder)
 
 	c.Server.MetricsListenPort = DefaultMetricsListenPort
 	c.Server.ListenPort = DefaultServerListenPort

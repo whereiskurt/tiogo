@@ -18,21 +18,42 @@ import (
 var DefaultRetryIntervals = []int{0, 500, 500, 500, 500, 1000, 1000, 1000, 1000, 1000, 3000}
 
 var EndPoints = endPointTypes{
-	Scanners:      EndPointType("Scanners"),
-	ScannerAgents: EndPointType("ScannerAgents"),
+	Scanners:          EndPointType("Scanners"),
+	VulnsExport:       EndPointType("VulnsExport"),
+	VulnsExportStatus: EndPointType("VulnsExportStatus"),
+	VulnsExportChunk:  EndPointType("VulnsExportChunk"),
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
 var ServiceMap = map[EndPointType]ServiceTransport{
-	EndPoints.Scanners: {
-		URL:            "/scanners",
-		CacheFilename:  "Scanners.json",
-		MethodTemplate: map[httpMethodType]MethodTemplate{},
+	EndPoints.VulnsExport: {
+		URL:           "/vulns/export",
+		CacheFilename: "/export/vulns/request.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
+		},
 	},
-	EndPoints.ScannerAgents: {
-		URL:            "/scanners/{{.ScannerID}}/agents",
-		CacheFilename:  "ScannerAgents.json",
-		MethodTemplate: map[httpMethodType]MethodTemplate{},
+	EndPoints.VulnsExportStatus: {
+		URL:           "/vulns/export/{{.ExportUUID}}/status",
+		CacheFilename: "/export/vulns/{{.ExportUUID}}/status.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
+		},
+	},
+
+	EndPoints.VulnsExportChunk: {
+		URL:           "/vulns/export/{{.ExportUUID}}/chunks/{{.ChunkID}}",
+		CacheFilename: "/export/vulns/{{.ExportUUID}}/chunk.{{.ChunkID}}.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
+		},
+	},
+	EndPoints.Scanners: {
+		URL:           "/scanners",
+		CacheFilename: "/scanners.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
+		},
 	},
 }
 
@@ -64,8 +85,10 @@ type Service struct {
 
 type EndPointType string
 type endPointTypes struct {
-	Scanners      EndPointType
-	ScannerAgents EndPointType
+	Scanners          EndPointType
+	VulnsExport       EndPointType
+	VulnsExportStatus EndPointType
+	VulnsExportChunk  EndPointType
 }
 
 func (c EndPointType) String() string {
@@ -280,4 +303,8 @@ func (s *Service) add(endPoint EndPointType, p map[string]string) ([]byte, int, 
 	}
 
 	return body, status, err
+}
+
+func (s *Service) VulnsExportStatus(exportUUID string) string {
+	return ""
 }

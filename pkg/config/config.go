@@ -110,12 +110,12 @@ type ServerConfig struct {
 }
 
 // NewConfig returns config that has default values set and is hooked to cobra/viper (if invoked.)
-func NewConfig() (config *Config) {
-	config = new(Config)
-	config.SetToDefaults()
+func NewConfig() (c *Config) {
+	c = new(Config)
+	c.SetToDefaults()
 
-	config.Context = context.Background()
-	config.Log = log.New()
+	c.Context = context.Background()
+	c.Log = log.New()
 
 	cobra.OnInitialize(func() {
 		for i := range os.Args {
@@ -124,12 +124,12 @@ func NewConfig() (config *Config) {
 			}
 		}
 		// Only read configuration when not invoked with 'help'
-		config.readWithViper()
+		c.readWithViper()
 	})
 
-	// Provide access to config variables - ie. log!
-	config.VM.Config = config
-	config.Server.Config = config
+	// Provide access to c variables - ie. log!
+	c.VM.Config = c
+	c.Server.Config = c
 
 	return
 }
@@ -139,22 +139,30 @@ func (c *VMConfig) DumpMetrics() {
 	dts := time.Now().Format("20060102150405")
 	name := fmt.Sprintf("client.%d.%s.prom", pid, dts)
 	file := filepath.Join(".", c.MetricsFolder, name)
-	metrics.DumpMetrics(file)
+	metrics.DumpMetricsToFile(file)
 }
 func (c *ServerConfig) DumpMetrics() {
 	pid := os.Getpid()
 	dts := time.Now().Format("20060102150405")
 	name := fmt.Sprintf("server.%d.%s.prom", pid, dts)
 	file := filepath.Join(".", c.MetricsFolder, name)
-	metrics.DumpMetrics(file)
+	metrics.DumpMetricsToFile(file)
 }
 
-func (c *VMConfig) EnableLogging() {
+func (c *VMConfig) EnableLogging() *log.Logger {
 	filename := c.LogFilename()
 	c.Config.SetLogFilename(filename)
+	return c.Config.Log
 }
 func (c *ServerConfig) EnableLogging() {
 	filename := c.LogFilename()
+	dirName := filepath.Dir(c.LogFilename())
+
+	err := os.MkdirAll(dirName, 0777)
+	if err != nil {
+		log.Fatalf("error: making folder for log folder: '%s'", err)
+	}
+
 	c.Config.SetLogFilename(filename)
 }
 

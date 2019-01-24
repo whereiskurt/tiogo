@@ -3,15 +3,21 @@ package metrics
 type EndPointType string
 
 var EndPoints = endPointTypes{
-	Scanners:    EndPointType("Scanners"),
-	Agents:      EndPointType("Agents"),
-	AgentGroups: EndPointType("AgentGroups"),
+	Scanners:          EndPointType("Scanners"),
+	Agents:            EndPointType("Agents"),
+	AgentGroups:       EndPointType("AgentGroups"),
+	VulnsExport:       EndPointType("VulnsExport"),
+	VulnsExportStatus: EndPointType("VulnsExportStatus"),
+	VulnsExportChunk:  EndPointType("VulnsExportChunk"),
 }
 
 type endPointTypes struct {
-	Scanners    EndPointType
-	Agents      EndPointType
-	AgentGroups EndPointType
+	Scanners          EndPointType
+	Agents            EndPointType
+	AgentGroups       EndPointType
+	VulnsExport       EndPointType
+	VulnsExportStatus EndPointType
+	VulnsExportChunk  EndPointType
 }
 
 func (c EndPointType) String() string {
