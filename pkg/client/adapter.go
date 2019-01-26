@@ -7,6 +7,7 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/cache"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
+	"github.com/whereiskurt/tiogo/pkg/tenable"
 	"os/exec"
 	"strings"
 	"sync"
@@ -89,11 +90,18 @@ func (a *Adapter) VulnsExportStart() (string, error) {
 
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	json, err := u.VulnsExportStart()
+	raw, err := u.VulnsExportStart()
 	if err != nil {
 		a.Config.Log.Errorf("error: failed to get the export-vulns: %v", err)
 		return "", err
 	}
 
-	return json, nil
+	var export tenable.VulnExportStart
+	err = json.Unmarshal(raw, &export)
+	if err != nil {
+		a.Config.Log.Errorf("error: failed to unmarshal response from start export-vulns: %v", err)
+		return "", err
+	}
+
+	return export.UUID, nil
 }

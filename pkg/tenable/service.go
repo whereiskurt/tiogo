@@ -327,8 +327,8 @@ func (s *Service) VulnsExportStatus(exportUUID string) (string, error) {
 	return json, err
 }
 
-func (s *Service) VulnsExportStart() (string, error) {
-	var json string
+func (s *Service) VulnsExportStart() ([]byte, error) {
+	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
 		body, status, err := s.update(EndPoints.VulnsExportStart, nil)
@@ -338,11 +338,11 @@ func (s *Service) VulnsExportStart() (string, error) {
 			return retry, err
 		}
 
-		json = string(body)
-		s.Log.Debugf("JSON body from export-vulns start: %s", json)
+		raw = body
+		s.Log.Debugf("JSON body from export-vulns start: %s", string(raw))
 
 		return false, nil
 	})
 
-	return json, err
+	return raw, err
 }

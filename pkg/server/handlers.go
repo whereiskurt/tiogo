@@ -41,6 +41,7 @@ func (s *Server) VulnsExportStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Take the AccessKeys and SecretKeys from context
 	ak := middleware.AccessKey(r)
 	sk := middleware.SecretKey(r)
 
@@ -51,9 +52,8 @@ func (s *Server) VulnsExportStart(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
 
-	bb = []byte(json)
-	s.cacheStore(w, r, bb, endPoint, metricType)
-	_, _ = w.Write(bb)
+	s.cacheStore(w, r, json, endPoint, metricType)
+	_, _ = w.Write(json)
 
 	return
 }

@@ -524,7 +524,7 @@ type AssetExportChunk struct {
 	}
 }
 
-type VulnExport struct {
+type VulnExportStart struct {
 	UUID string `json:"export_uuid"`
 }
 type VulnExportStatus struct {

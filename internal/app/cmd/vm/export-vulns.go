@@ -12,23 +12,27 @@ import (
 func (vm *VM) ExportVulnsStart(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
 
-	log.Debug("ExportVulnsStart")
-
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 
-	json, err := a.VulnsExportStart()
+	uuid, err := a.VulnsExportStart()
 	if err != nil {
 		log.Errorf("error: couldn't start export-vulns: %v", err)
 		return
 	}
-	log.Infof("successfully started export-vulns: %s", json)
 
+	log.Infof("successfully started export-vulns: %s", uuid)
+
+	cli := ui.NewCLI(vm.Config)
+	fmt.Println(cli.Render("exportVulnsStarted", map[string]string{"ExportUUID": uuid}))
+
+	return
 }
+
 func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
-
 	log.Debug("ExportVulnsStatus")
 
+	return
 }
 
 func (vm *VM) ExportVulnsHelp(cmd *cobra.Command, args []string) {

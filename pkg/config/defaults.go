@@ -90,7 +90,7 @@ func (c *ServerConfig) LogFilename() string {
 	file := filepath.Join(".", c.Config.LogFolder, name)
 	return file
 }
-func (c *VMConfig) LogFilename() string {
+func (c *VMClient) LogFilename() string {
 	pid := os.Getpid()
 	dts := time.Now().Format("20060102150405")
 	name := fmt.Sprintf("client.%d.%s.log", pid, dts)

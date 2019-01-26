@@ -34,12 +34,12 @@ type Config struct {
 	VerboseLevel4  bool
 	VerboseLevel5  bool
 
-	VM     VMConfig
+	VM     VMClient
 	Server ServerConfig
 }
 
 // ClientConfig are all of the params for the Client Command
-type VMConfig struct {
+type VMClient struct {
 	Config           *Config
 	BaseURL          string
 	AccessKey        string
@@ -134,7 +134,7 @@ func NewConfig() (c *Config) {
 	return
 }
 
-func (c *VMConfig) DumpMetrics() {
+func (c *VMClient) DumpMetrics() {
 	pid := os.Getpid()
 	dts := time.Now().Format("20060102150405")
 	name := fmt.Sprintf("client.%d.%s.prom", pid, dts)
@@ -149,7 +149,7 @@ func (c *ServerConfig) DumpMetrics() {
 	metrics.DumpMetricsToFile(file)
 }
 
-func (c *VMConfig) EnableLogging() *log.Logger {
+func (c *VMClient) EnableLogging() *log.Logger {
 	filename := c.LogFilename()
 	c.Config.SetLogFilename(filename)
 	return c.Config.Log

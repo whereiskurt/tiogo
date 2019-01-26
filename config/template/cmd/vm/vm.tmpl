@@ -60,6 +60,17 @@ Export Vulns Options:
 
 {{end}}
 
+
+{{define "exportVulnsStarted" -}}
+Successfully requested vulnerability export UUID='{{.ExportUUID}}'
+
+To review the status and then download the READY the export:
+
+    Examples:
+        $ tio vm export-vulns status --uuid={{.ExportUUID}}
+        $ tio vm export-vulns get --uuid={{.ExportUUID  }}
+{{- end}}
+
 {{define "scannersUsage" -}}
 Scanners:
 

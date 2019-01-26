@@ -33,7 +33,7 @@ func (u *Unmarshal) service() (s tenable.Service) {
 	return
 }
 
-func (u *Unmarshal) VulnsExportStart() (string, error) {
+func (u *Unmarshal) VulnsExportStart() ([]byte, error) {
 	s := u.service()
 	json, err := s.VulnsExportStart()
 	return json, err
