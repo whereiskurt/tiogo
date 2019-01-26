@@ -19,11 +19,11 @@ import (
 
 // Server is built on go-chi
 type Server struct {
-	Context  context.Context
-	Router   *chi.Mux
-	HTTP     *http.Server
-	Finished context.CancelFunc
-	// DB                db.SimpleDB
+	Context           context.Context
+	Router            *chi.Mux
+	HTTP              *http.Server
+	Finished          context.CancelFunc
+	ServiceBaseURL    string
 	DiskCache         *cache.Disk
 	Log               *log.Logger
 	CacheFolder       string
@@ -38,6 +38,7 @@ func NewServer(config *config.Config, metrics *metrics.Metrics) (server Server) 
 		log.Fatalf("error: config cannot be nil value.")
 	}
 
+	server.ServiceBaseURL = config.Server.ServiceBaseURL
 	server.Log = config.Log
 	server.ListenPort = config.Server.ListenPort
 	server.CacheFolder = config.Server.CacheFolder

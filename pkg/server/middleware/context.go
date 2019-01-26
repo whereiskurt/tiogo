@@ -44,6 +44,17 @@ func InitialCtx(next http.Handler) http.Handler {
 	})
 }
 
+// AccessKey is the Tenable.IO access key required in the header
+func AccessKey(r *http.Request) string {
+	return ContextMap(r)["AccessKey"]
+}
+
+// SecretKey is the Tenable.IO secret key required in the header
+func SecretKey(r *http.Request) string {
+	return ContextMap(r)["SecretKey"]
+}
+
+
 func ExportCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)

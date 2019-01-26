@@ -62,6 +62,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	vmApp := vm.NewVM(a.Config, a.Metrics)
 	vmCmd := makeCommand("vm", vmApp.Help, a.RootCmd)
 	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, vmCmd)
+	makeString("UUID", &a.Config.VM.UUID, []string{"uuid"}, vmCmd)
 	makeString("Name", &a.Config.VM.Name, []string{"n", "name"}, vmCmd)
 	makeString("Regex", &a.Config.VM.Regex, []string{"regex"}, vmCmd)
 	makeString("JQex", &a.Config.VM.JQex, []string{"jqex"}, vmCmd)

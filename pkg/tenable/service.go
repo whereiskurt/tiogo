@@ -19,14 +19,14 @@ var DefaultRetryIntervals = []int{0, 500, 500, 500, 500, 1000, 1000, 1000, 1000,
 
 var EndPoints = endPointTypes{
 	Scanners:          EndPointType("Scanners"),
-	VulnsExport:       EndPointType("VulnsExport"),
+	VulnsExportStart:  EndPointType("VulnsExportStart"),
 	VulnsExportStatus: EndPointType("VulnsExportStatus"),
 	VulnsExportChunk:  EndPointType("VulnsExportChunk"),
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
 var ServiceMap = map[EndPointType]ServiceTransport{
-	EndPoints.VulnsExport: {
+	EndPoints.VulnsExportStart: {
 		URL:           "/vulns/export",
 		CacheFilename: "/export/vulns/request.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
@@ -86,7 +86,7 @@ type Service struct {
 type EndPointType string
 type endPointTypes struct {
 	Scanners          EndPointType
-	VulnsExport       EndPointType
+	VulnsExportStart  EndPointType
 	VulnsExportStatus EndPointType
 	VulnsExportChunk  EndPointType
 }
@@ -95,8 +95,8 @@ func (c EndPointType) String() string {
 	return "pkg.tenable.endpoints." + string(c)
 }
 
-// NewService is configured to call ACME services with the BaseURL and credentials.
-// BaseURL is ofter set to localhost for Unit Testing
+// NewService is configured to call ACME services with the ServiceBaseURL and credentials.
+// ServiceBaseURL is ofter set to localhost for Unit Testing
 func NewService(base string, secret string, access string) (s Service) {
 	s.BaseURL = strings.TrimSuffix(base, "/")
 	s.SecretKey = secret
@@ -169,9 +169,9 @@ func ToURL(baseURL string, name EndPointType, p map[string]string) (string, erro
 	if p == nil {
 		p = make(map[string]string)
 	}
-	p["BaseURL"] = baseURL
+	p["ServiceBaseURL"] = baseURL
 
-	// Append the BaseURL to the URL
+	// Append the ServiceBaseURL to the URL
 	url := fmt.Sprintf("%s%s", baseURL, sMap.URL)
 
 	return ToTemplate(name, p, url)
@@ -193,7 +193,8 @@ func ToJSON(name EndPointType, method httpMethodType, p map[string]string) (stri
 
 	mMap, hasTemplate := sMap.MethodTemplate[method]
 	if !hasTemplate {
-		return "", fmt.Errorf("invalid template for method '%s' for name '%s'", method, name)
+		// return "", fmt.Errorf("invalid template for method '%s' for name '%s'", method, name)
+		return "", nil
 	}
 
 	tmpl := mMap.Template
@@ -273,6 +274,7 @@ func (s *Service) update(endPoint EndPointType, p map[string]string) ([]byte, in
 	if err != nil {
 		return nil, 0, err
 	}
+
 	j, err := ToJSON(endPoint, HTTP.Post, p)
 	if err != nil {
 		return nil, 0, err
@@ -305,6 +307,42 @@ func (s *Service) add(endPoint EndPointType, p map[string]string) ([]byte, int, 
 	return body, status, err
 }
 
-func (s *Service) VulnsExportStatus(exportUUID string) string {
-	return ""
+func (s *Service) VulnsExportStatus(exportUUID string) (string, error) {
+	var json string
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.get(EndPoints.VulnsExportStatus, map[string]string{"ExportUUID": exportUUID})
+		if err != nil {
+			s.Log.Infof("failed to get export-vulns status: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		json = string(body)
+		s.Log.Debugf("JSON body from start export-vulns status: %s", json)
+
+		return false, nil
+	})
+
+	return json, err
+}
+
+func (s *Service) VulnsExportStart() (string, error) {
+	var json string
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.update(EndPoints.VulnsExportStart, nil)
+		if err != nil {
+			s.Log.Infof("failed to export-vulns start: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		json = string(body)
+		s.Log.Debugf("JSON body from export-vulns start: %s", json)
+
+		return false, nil
+	})
+
+	return json, err
 }

@@ -6,7 +6,7 @@ var EndPoints = endPointTypes{
 	Scanners:          EndPointType("Scanners"),
 	Agents:            EndPointType("Agents"),
 	AgentGroups:       EndPointType("AgentGroups"),
-	VulnsExport:       EndPointType("VulnsExport"),
+	VulnsExportStart:  EndPointType("VulnsExportStart"),
 	VulnsExportStatus: EndPointType("VulnsExportStatus"),
 	VulnsExportChunk:  EndPointType("VulnsExportChunk"),
 }
@@ -15,7 +15,7 @@ type endPointTypes struct {
 	Scanners          EndPointType
 	Agents            EndPointType
 	AgentGroups       EndPointType
-	VulnsExport       EndPointType
+	VulnsExportStart  EndPointType
 	VulnsExportStatus EndPointType
 	VulnsExportChunk  EndPointType
 }

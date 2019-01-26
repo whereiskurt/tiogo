@@ -79,7 +79,7 @@ func (t *Transport) authHeaderValue() string {
 	mod := headerCallCount % len(ak)
 	t.ThreadSafe.Unlock()
 
-	return fmt.Sprintf("AccessKey=%s;SecretKey=%s", ak[mod], sk[mod])
+	return fmt.Sprintf("accessKey=%s;secretKey=%s", ak[mod], sk[mod])
 }
 
 // Get will HTTP GET for the url provided, returning the body, status, and error associated with the call.
@@ -136,7 +136,11 @@ func (t *Transport) Post(url string, data string, datatype string) ([]byte, int,
 	if err != nil {
 		return nil, 0, err
 	}
-	req.Header.Add(t.authHeaderKey(), t.authHeaderValue())
+
+	key := t.authHeaderKey()
+	value := t.authHeaderValue()
+
+	req.Header.Add(key, value)
 	req.Header.Set("Content-Type", datatype)
 
 	resp, err = client.Do(req)

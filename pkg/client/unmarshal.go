@@ -33,6 +33,17 @@ func (u *Unmarshal) service() (s tenable.Service) {
 	return
 }
 
+func (u *Unmarshal) VulnsExportStart() (string, error) {
+	s := u.service()
+	json, err := s.VulnsExportStart()
+	return json, err
+}
+func (u *Unmarshal) VulnsExportStatus(uuid string) (string, error) {
+	s := u.service()
+	json, err := s.VulnsExportStatus(uuid)
+	return json, err
+}
+
 // func (u *Unmarshal) updateThing(thing Thing) (tt tenable.Thing) {
 // 	s := u.service()
 //

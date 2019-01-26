@@ -21,7 +21,7 @@ func (s *Server) EnableDefaultRouter() {
 
 		r.Route("/vulns", func(r chi.Router) {
 			r.Route("/export", func(r chi.Router) {
-				r.Post("/", s.VulnsExport)
+				r.Post("/", s.VulnsExportStart)
 
 				r.Route("/{ExportUUID}", func(r chi.Router) {
 					r.Use(middleware.ExportCtx)
@@ -29,7 +29,7 @@ func (s *Server) EnableDefaultRouter() {
 
 					r.Route("/chunks/{ChunkID}", func(r chi.Router) {
 						r.Use(middleware.ExportChunkCtx)
-						r.Get("", s.VulnsExportChunk)
+						r.Get("/", s.VulnsExportChunk)
 					})
 				})
 			})

@@ -7,7 +7,6 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/cache"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
-	"github.com/whereiskurt/tiogo/pkg/tenable"
 	"os/exec"
 	"strings"
 	"sync"
@@ -70,12 +69,31 @@ func PrettyJSON(json []byte) []byte {
 	return json
 }
 
-func (a *Adapter) VulnsExportStatus(exportUUID string) string {
-	s := tenable.NewService(a.Config.VM.BaseURL, a.Config.VM.SecretKey, a.Config.VM.AccessKey)
+func (a *Adapter) VulnsExportStatus(exportUUID string) (string, error) {
 
-	s.EnableMetrics(a.Metrics)
+	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Get)
 
-	s.VulnsExportStatus(exportUUID)
+	u := NewUnmarshal(a.Config, a.Metrics)
 
-	return ""
+	status, err := u.VulnsExportStatus(exportUUID)
+	if err != nil {
+		a.Config.Log.Errorf("error: failed to get the export-vulns: %v", err)
+		return "", err
+	}
+
+	return status, nil
+}
+
+func (a *Adapter) VulnsExportStart() (string, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStart, metrics.Methods.Service.Update)
+
+	u := NewUnmarshal(a.Config, a.Metrics)
+
+	json, err := u.VulnsExportStart()
+	if err != nil {
+		a.Config.Log.Errorf("error: failed to get the export-vulns: %v", err)
+		return "", err
+	}
+
+	return json, nil
 }

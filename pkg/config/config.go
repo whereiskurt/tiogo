@@ -99,7 +99,7 @@ func (c *Config) String() string {
 type ServerConfig struct {
 	Config            *Config
 	ListenPort        string
-	BaseURL           string
+	ServiceBaseURL    string
 	AccessKey         string
 	SecretKey         string
 	CacheKey          string
@@ -267,7 +267,7 @@ func (c *Config) userInputConfiguration(filename string) bool {
 		fmt.Fprintf(file, "#################################################\n")
 		fmt.Fprintf(file, "\n")
 		fmt.Fprintf(file, "VM:\n")
-		fmt.Fprintf(file, "  BaseURL: %s\n", c.VM.BaseURL)
+		fmt.Fprintf(file, "  ServiceBaseURL: %s\n", c.VM.BaseURL)
 		fmt.Fprintf(file, "  AccessKey: %s\n", c.VM.AccessKey)
 		fmt.Fprintf(file, "  SecretKey: %s\n", c.VM.SecretKey)
 		fmt.Fprintf(file, "  CacheKey: %s%s\n", c.VM.AccessKey[:16], c.VM.SecretKey[:16])
@@ -275,8 +275,9 @@ func (c *Config) userInputConfiguration(filename string) bool {
 		fmt.Fprintf(file, "  DefaultTimezone: %s\n", tzDefault)
 		fmt.Fprintf(file, "\n")
 		fmt.Fprintf(file, "Server:\n")
-		fmt.Fprintf(file, "  BaseURL: %s\n", c.Server.BaseURL)
+		fmt.Fprintf(file, "  ServiceBaseURL: %s\n", c.Server.ServiceBaseURL)
 		fmt.Fprintf(file, "  CacheFolder: %s\n", c.Server.CacheFolder)
+		fmt.Fprintf(file, "  ListenPort: %s\n", c.Server.ListenPort)
 		fmt.Fprintf(file, "\n")
 		fmt.Println(fmt.Sprintf("\n\nDone! \nSuccessfully created '%s'", filename))
 		fmt.Println()

@@ -53,7 +53,7 @@ func (c *Config) SetToDefaults() {
 	c.LogFolder = filepath.Join(c.HomeFolder, DefaultLogFolder)
 	c.VM.CacheFolder = filepath.Join(c.HomeFolder, DefaultClientCacheFolder)
 	c.VM.CacheResponse = DefaultClientCacheResponse
-	c.Server.BaseURL = DefaultServerBaseURL
+	c.Server.ServiceBaseURL = DefaultServerBaseURL
 
 	c.Server.CacheFolder = filepath.Join(c.HomeFolder, DefaultServerCacheFolder)
 	c.Server.CacheResponse = DefaultServerCacheResponse
@@ -65,7 +65,7 @@ func (c *Config) SetToDefaults() {
 	c.ConfigFolder = DefaultConfigFolder
 	c.ConfigFilename = DefaultConfigFilename
 	c.TemplateFolder = DefaultTemplateFolder
-	c.VM.MetricsFolder = DefaultClientMetricsFolder
+	c.VM.MetricsFolder = filepath.Join(c.HomeFolder, DefaultClientMetricsFolder)
 
 }
 func (c *Config) SetLogFilename(filename string) {

@@ -102,11 +102,11 @@ func (m *Metrics) TransportInc(endPoint EndPointType, method transportMethodType
 	labels := prometheus.Labels{"endpoint": endPoint.String(), "method": method.String(), "status": fmt.Sprintf("%d", status)}
 	m.service.transport.With(labels).Inc()
 }
-func (m *Metrics) ClientInc(endPoint string, method serviceMethodType) {
+func (m *Metrics) ClientInc(endPoint EndPointType, method serviceMethodType) {
 	if m.client.command == nil {
 		return
 	}
-	labels := prometheus.Labels{"endpoint": endPoint, "method": method.String()}
+	labels := prometheus.Labels{"endpoint": endPoint.String(), "method": method.String()}
 	m.client.command.With(labels).Inc()
 }
 
