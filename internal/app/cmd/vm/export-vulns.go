@@ -30,7 +30,20 @@ func (vm *VM) ExportVulnsStart(cmd *cobra.Command, args []string) {
 
 func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
-	log.Debug("ExportVulnsStatus")
+
+	a := client.NewAdapter(vm.Config, vm.Metrics)
+	uuid := vm.Config.VM.UUID
+
+	status, err := a.VulnsExportStatus(uuid)
+	if err != nil {
+		log.Errorf("error: couldn't status export-vulns: %v", err)
+		return
+	}
+
+	log.Infof("successfully got status export-vulns UUID='%s' status='%s' ", uuid, status)
+
+	cli := ui.NewCLI(vm.Config)
+	fmt.Println(cli.Render("exportVulnsStatus", map[string]string{"ExportUUID": uuid, "Status": status.Status}))
 
 	return
 }

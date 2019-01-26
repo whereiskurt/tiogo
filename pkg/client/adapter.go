@@ -70,21 +70,6 @@ func PrettyJSON(json []byte) []byte {
 	return json
 }
 
-func (a *Adapter) VulnsExportStatus(exportUUID string) (string, error) {
-
-	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Get)
-
-	u := NewUnmarshal(a.Config, a.Metrics)
-
-	status, err := u.VulnsExportStatus(exportUUID)
-	if err != nil {
-		a.Config.Log.Errorf("error: failed to get the export-vulns: %v", err)
-		return "", err
-	}
-
-	return status, nil
-}
-
 func (a *Adapter) VulnsExportStart() (string, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStart, metrics.Methods.Service.Update)
 
@@ -104,4 +89,22 @@ func (a *Adapter) VulnsExportStart() (string, error) {
 	}
 
 	return export.UUID, nil
+}
+
+func (a *Adapter) VulnsExportStatus(exportUUID string) (VulnExportStatus, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Get)
+
+	u := NewUnmarshal(a.Config, a.Metrics)
+
+	var status VulnExportStatus
+	raw, err := u.VulnsExportStatus(exportUUID)
+	if err != nil {
+		a.Config.Log.Errorf("error: failed to get the export-vulns: %v", err)
+		return status, err
+	}
+
+	convert := NewConvert()
+	status, err = convert.ToVulnExportStatus(raw)
+
+	return status, err
 }

@@ -57,23 +57,32 @@ Export Vulns Options:
         $ tio vm export-vulns get
         $ tio vm export-vulns get --id=1234 --chunk=3,4
         $ tio vm export-vulns get --id=1234 --chunk=ALL
-
 {{end}}
 
 
 {{define "exportVulnsStarted" -}}
 Successfully requested vulnerability export UUID='{{.ExportUUID}}'
 
-To review the status and then download the READY the export:
+To review the status for 'FINISHED' and then download the the export:
 
     Examples:
         $ tio vm export-vulns status --uuid={{.ExportUUID}}
-        $ tio vm export-vulns get --uuid={{.ExportUUID  }}
+        $ tio vm export-vulns get --uuid={{.ExportUUID}}
+{{- end}}
+
+{{define "exportVulnsStatus" -}}
+Successfully requested vulnerability export for UUID='{{.ExportUUID}}'
+
+   Status='{{.Status}}'
+
+Once the status becomes 'FINISHED' you may download the exported vulnerabilities:
+
+    Examples:
+        $ tio vm export-vulns get --uuid={{.ExportUUID}}
+
 {{- end}}
 
 {{define "scannersUsage" -}}
-Scanners:
-
 Scanners conduct network based scanning and report results back to Tenable.IO.
 (https://cloud.tenable.com/api/#/resources/scanners)
 

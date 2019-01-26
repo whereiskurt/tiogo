@@ -54,6 +54,10 @@ func SecretKey(r *http.Request) string {
 	return ContextMap(r)["SecretKey"]
 }
 
+// ExportUUID is used for Vulns and Asset exports
+func ExportUUID(r *http.Request) string {
+	return ContextMap(r)["ExportUUID"]
+}
 
 func ExportCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

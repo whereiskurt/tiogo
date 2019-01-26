@@ -59,9 +59,27 @@ func (s *Server) VulnsExportStart(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) VulnsExportStatus(w http.ResponseWriter, r *http.Request) {
+	endPoint := tenable.EndPoints.VulnsExportStart
+	metricType := metrics.EndPoints.VulnsExportStart
+
 	s.Metrics.ServerInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Update)
 	exportUUID := chi.URLParam(r, "ExportUUID")
-	s.Log.Infof("Check status of ExportUUDI: %s", exportUUID)
+	s.Log.Infof("Check status of ExportUUID: %s", exportUUID)
+
+	// Take the AccessKeys and SecretKeys from context
+	ak := middleware.AccessKey(r)
+	sk := middleware.SecretKey(r)
+	uuid := middleware.ExportUUID(r)
+
+	t := tenable.NewService(s.ServiceBaseURL, sk, ak)
+
+	json, err := t.VulnsExportStatus(uuid)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	}
+
+	s.cacheStore(w, r, json, endPoint, metricType)
+	_, _ = w.Write(json)
 
 }
 func (s *Server) VulnsExportChunk(w http.ResponseWriter, r *http.Request) {

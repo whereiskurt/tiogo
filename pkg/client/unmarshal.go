@@ -35,13 +35,14 @@ func (u *Unmarshal) service() (s tenable.Service) {
 
 func (u *Unmarshal) VulnsExportStart() ([]byte, error) {
 	s := u.service()
-	json, err := s.VulnsExportStart()
-	return json, err
+	raw, err := s.VulnsExportStart()
+	return raw, err
 }
-func (u *Unmarshal) VulnsExportStatus(uuid string) (string, error) {
+
+func (u *Unmarshal) VulnsExportStatus(uuid string) ([]byte, error) {
 	s := u.service()
-	json, err := s.VulnsExportStatus(uuid)
-	return json, err
+	raw, err := s.VulnsExportStatus(uuid)
+	return raw, err
 }
 
 // func (u *Unmarshal) updateThing(thing Thing) (tt tenable.Thing) {
