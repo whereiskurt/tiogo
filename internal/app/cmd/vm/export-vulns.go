@@ -23,7 +23,7 @@ func (vm *VM) ExportVulnsStart(cmd *cobra.Command, args []string) {
 	log.Infof("successfully started export-vulns: %s", uuid)
 
 	cli := ui.NewCLI(vm.Config)
-	fmt.Println(cli.Render("exportVulnsStarted", map[string]string{"ExportUUID": uuid}))
+	fmt.Println(cli.Render("ExportVulnsStart", map[string]string{"ExportUUID": uuid}))
 
 	return
 }
@@ -34,6 +34,11 @@ func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 	uuid := vm.Config.VM.UUID
 
+	if uuid == "" {
+		log.Errorf("error: uuid not specified. Use '--uuid=XYZ' to specify the uuid of the vulnerability export")
+		return
+	}
+
 	status, err := a.VulnsExportStatus(uuid)
 	if err != nil {
 		log.Errorf("error: couldn't status export-vulns: %v", err)
@@ -43,7 +48,7 @@ func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 	log.Infof("successfully got status export-vulns UUID='%s' status='%s' ", uuid, status)
 
 	cli := ui.NewCLI(vm.Config)
-	fmt.Println(cli.Render("exportVulnsStatus", map[string]string{"ExportUUID": uuid, "Status": status.Status}))
+	fmt.Println(cli.Render("ExportVulnsStatus", map[string]string{"ExportUUID": uuid, "Status": status.Status}))
 
 	return
 }
@@ -55,7 +60,6 @@ func (vm *VM) ExportVulnsHelp(cmd *cobra.Command, args []string) {
 	}
 
 	cli := ui.NewCLI(vm.Config)
-	fmt.Println(cli.Render("exportVulnsUsage", nil))
-
+	fmt.Println(cli.Render("ExportVulnsHelp", nil))
 	return
 }

@@ -57,7 +57,7 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 	case "target-groups":
 		fmt.Println(cli.Render("targetGroupsUsage", nil))
 	case "export-vulns":
-		fmt.Println(cli.Render("exportVulnsUsage", nil))
+		fmt.Println(cli.Render("ExportVulnsHelp", nil))
 	case "export-assets":
 		fmt.Println(cli.Render("exportAssetsUsage", nil))
 	default:

@@ -30,11 +30,20 @@ VM Actions and Examples:
 
 {{/* This is a template comment. */}}
 
-{{define "exportVulnsUsage" -}}
+{{define "ExportVulnsHelp" -}}
 Export Vulnerabilities:
 
 Bulk Exports of Vulnerabilities
 (https://cloud.tenable.com/api/#/resources/exports)
+
+Extract vulnerabilities with 'start' sub-command - instructs Tenable.IO to begin producing chunk files.
+Use the 'status' sub-command confirm all the chunks are generated. Using 'download' will wait & poll for
+the 'FINISHED' status and then download each of the chunks that make up your export. Calling 'get' will fail if
+the status not 'FINISHED', 'download' cannot be call until after 'start'.
+
+By default 50000 vulnerabilities are store per chunk file.
+
+NOTE: Calling 'get' on an export without 'FINISHED' status will result in an error.
 
 Usage:
     tio vm export-vulns [ACTION ...] [OPTIONS]
@@ -44,7 +53,7 @@ Action:
 
 Export Vulns Options:
     Selection modifiers:
-        --id=[unique id]
+        --uuid=[unique id]
         --jqex=[jq expression]
         --chunk=[chunk to get]
 
@@ -54,33 +63,47 @@ Export Vulns Options:
     Examples:
         $ tio vm export-vulns start
         $ tio vm export-vulns status
+        $ tio vm export-vulns download
         $ tio vm export-vulns get
-        $ tio vm export-vulns get --id=1234 --chunk=3,4
-        $ tio vm export-vulns get --id=1234 --chunk=ALL
+        $ tio vm export-vulns get --uuid=1234-232-12123 --chunk=3,4
+        $ tio vm export-vulns get --uuid=1234-232-12123 --chunk=ALL
 {{end}}
 
 
-{{define "exportVulnsStarted" -}}
-Successfully requested vulnerability export UUID='{{.ExportUUID}}'
+{{define "ExportVulnsStart" -}}
+Successfully requested vulnerability export uuid='{{.ExportUUID}}'
 
-To review the status for 'FINISHED' and then download the the export:
+To review the 'status' for 'FINISHED' and then 'download' the export:
 
     Examples:
+        ## Check the status of the chunk file creation:
         $ tio vm export-vulns status --uuid={{.ExportUUID}}
+
+        ## Poll and wait until status is 'FINISHED', then download all chunks. NOTE: Could be long running.
+        $ tio vm export-vulns download --uuid={{.ExportUUID}}
+
+        ## Retrieve all chunk files. NOTE: Fails unless status is 'FINISHED'
         $ tio vm export-vulns get --uuid={{.ExportUUID}}
+
 {{- end}}
 
-{{define "exportVulnsStatus" -}}
-Successfully requested vulnerability export for UUID='{{.ExportUUID}}'
+{{define "ExportVulnsStatus" -}}
+Success. Requested status for uuid='{{.ExportUUID}}'.
 
-   Status='{{.Status}}'
-
-Once the status becomes 'FINISHED' you may download the exported vulnerabilities:
+Once the status='{{.Status}}' is 'FINISHED' download the exported vulnerabilities:
 
     Examples:
+        ## Poll and wait until status is 'FINISHED' and then download all chunks. NOTE: Could be long running.
+        $ tio vm export-vulns download --uuid={{.ExportUUID}}
+
+        ## Retrieve all of the chunks. NOTE: Fails unless status is 'FINISHED'
         $ tio vm export-vulns get --uuid={{.ExportUUID}}
 
+        ## Retrieve FINISHED chunks 1,2,3. NOTE: Fails unless status is 'FINISHED'
+        $ tio vm export-vulns get --uuid={{.ExportUUID}} --chunk=1,2,3
 {{- end}}
+
+
 
 {{define "scannersUsage" -}}
 Scanners conduct network based scanning and report results back to Tenable.IO.
