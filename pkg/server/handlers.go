@@ -2,8 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
-	"github.com/go-chi/chi"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"github.com/whereiskurt/tiogo/pkg/server/middleware"
 	"github.com/whereiskurt/tiogo/pkg/tenable"
@@ -63,17 +61,16 @@ func (s *Server) VulnsExportStatus(w http.ResponseWriter, r *http.Request) {
 	metricType := metrics.EndPoints.VulnsExportStart
 
 	s.Metrics.ServerInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Update)
-	exportUUID := chi.URLParam(r, "ExportUUID")
-	s.Log.Infof("Check status of ExportUUID: %s", exportUUID)
 
 	// Take the AccessKeys and SecretKeys from context
 	ak := middleware.AccessKey(r)
 	sk := middleware.SecretKey(r)
-	uuid := middleware.ExportUUID(r)
+	exportUUID := middleware.ExportUUID(r)
+	s.Log.Infof("Check status of ExportUUID: %s", exportUUID)
 
 	t := tenable.NewService(s.ServiceBaseURL, sk, ak)
 
-	json, err := t.VulnsExportStatus(uuid)
+	json, err := t.VulnsExportStatus(exportUUID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
@@ -82,17 +79,34 @@ func (s *Server) VulnsExportStatus(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(json)
 
 }
-func (s *Server) VulnsExportChunk(w http.ResponseWriter, r *http.Request) {
-	s.Metrics.ServerInc(metrics.EndPoints.VulnsExportChunk, metrics.Methods.Service.Update)
-	exportUUID := chi.URLParam(r, "ExportUUID")
-	chunkID := chi.URLParam(r, "ChunkID")
+func (s *Server) VulnsExportGet(w http.ResponseWriter, r *http.Request) {
+	endPoint := tenable.EndPoints.VulnsExportGet
+	metricType := metrics.EndPoints.VulnsExportGet
+
+	s.Metrics.ServerInc(metrics.EndPoints.VulnsExportGet, metrics.Methods.Service.Get)
+
+	exportUUID := middleware.ExportUUID(r)
+	chunkID := middleware.ChunkID(r)
 	s.Log.Infof("Fetching ExportUUID: %s, ChunkID: %s", exportUUID, chunkID)
 
-	ak := middleware.ContextMap(r)["SecretKey"]
-	sk := middleware.ContextMap(r)["AccessKey"]
+	// Check for a cache hit! :- )
+	bb, err := s.cacheFetch(r, endPoint, metricType)
+	if err == nil && len(bb) > 0 {
+		_, _ = w.Write(bb)
+		return
+	}
 
-	bb := fmt.Sprintf("AccessKey: %s, SecretKey: %s", ak, sk)
+	ak := middleware.AccessKey(r)
+	sk := middleware.SecretKey(r)
 
-	_, _ = w.Write([]byte(bb))
+	t := tenable.NewService(s.ServiceBaseURL, sk, ak)
+
+	json, err := t.VulnsExportGet(exportUUID, chunkID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	}
+
+	s.cacheStore(w, r, json, endPoint, metricType)
+	_, _ = w.Write(json)
 
 }

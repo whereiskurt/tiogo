@@ -572,5 +572,11 @@ type VulnExportChunk struct {
 		StartedAt    string `json:"started_at"`
 		UUID         string `json:"uuid"`
 	}
-	Severity string `json:"severity"`
+	Severity             string      `json:"severity"`
+	SeverityID           json.Number `json:"severity_id"`
+	SeverityDefaultID    json.Number `json:"severity_default_id"`
+	SeverityModification string      `json:"severity_modification_type"`
+	FirstFound           string      `json:"first_found"`
+	LastFound            string      `json:"last_found"`
+	State                string      `json:"state"`
 }

@@ -59,6 +59,11 @@ func ExportUUID(r *http.Request) string {
 	return ContextMap(r)["ExportUUID"]
 }
 
+// CHunkID ...
+func ChunkID(r *http.Request) string {
+	return ContextMap(r)["ChunkID"]
+}
+
 func ExportCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)

@@ -44,6 +44,11 @@ func (u *Unmarshal) VulnsExportStatus(uuid string) ([]byte, error) {
 	raw, err := s.VulnsExportStatus(uuid)
 	return raw, err
 }
+func (u *Unmarshal) VulnsExportGet(uuid string, chunk string) ([]byte, error) {
+	s := u.service()
+	raw, err := s.VulnsExportGet(uuid, chunk)
+	return raw, err
+}
 
 // func (u *Unmarshal) updateThing(thing Thing) (tt tenable.Thing) {
 // 	s := u.service()

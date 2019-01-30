@@ -62,16 +62,16 @@ Export Vulns Options:
 
     Examples:
         $ tio vm export-vulns start
-        $ tio vm export-vulns status
-        $ tio vm export-vulns download
-        $ tio vm export-vulns get
+        $ tio vm export-vulns status --uuid=1234-232-12123
+        $ tio vm export-vulns get --uuid=1234-232-12123
         $ tio vm export-vulns get --uuid=1234-232-12123 --chunk=3,4
-        $ tio vm export-vulns get --uuid=1234-232-12123 --chunk=ALL
+        $ tio vm export-vulns query --uuid=1234-232-12123 --chunk=3,4
+
 {{end}}
 
 
 {{define "ExportVulnsStart" -}}
-Successfully requested vulnerability export uuid='{{.ExportUUID}}'
+Successfully started vulnerability export uuid='{{.ExportUUID}}'
 
 To review the 'status' for 'FINISHED' and then 'download' the export:
 
@@ -79,23 +79,17 @@ To review the 'status' for 'FINISHED' and then 'download' the export:
         ## Check the status of the chunk file creation:
         $ tio vm export-vulns status --uuid={{.ExportUUID}}
 
-        ## Poll and wait until status is 'FINISHED', then download all chunks. NOTE: Could be long running.
-        $ tio vm export-vulns download --uuid={{.ExportUUID}}
-
         ## Retrieve all chunk files. NOTE: Fails unless status is 'FINISHED'
         $ tio vm export-vulns get --uuid={{.ExportUUID}}
 
 {{- end}}
 
 {{define "ExportVulnsStatus" -}}
-Success. Requested status for uuid='{{.ExportUUID}}'.
+Successfully requested status for uuid='{{.ExportUUID}}'.
 
-Once the status='{{.Status}}' is 'FINISHED' download the exported vulnerabilities:
+Once the current status='{{.Status}}' is 'FINISHED' you can download the exported vulnerabilities:
 
     Examples:
-        ## Poll and wait until status is 'FINISHED' and then download all chunks. NOTE: Could be long running.
-        $ tio vm export-vulns download --uuid={{.ExportUUID}}
-
         ## Retrieve all of the chunks. NOTE: Fails unless status is 'FINISHED'
         $ tio vm export-vulns get --uuid={{.ExportUUID}}
 
@@ -103,6 +97,19 @@ Once the status='{{.Status}}' is 'FINISHED' download the exported vulnerabilitie
         $ tio vm export-vulns get --uuid={{.ExportUUID}} --chunk=1,2,3
 {{- end}}
 
+{{define "ExportVulnsGet" -}}
+Successfully retrieved chunks='{{.Chunks}} for uuid='{{.ExportUUID}}'.
+
+    Examples:
+        ## Query
+        ##Output all of the contents of the chunks as JSON
+        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex=".[]"
+
+        ##Output all of the contents of the chunks as JSON
+        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex=".[]" --chunk=1,2
+        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex="@jqex.txt" --chunk=1,2
+
+{{- end}}
 
 
 {{define "scannersUsage" -}}

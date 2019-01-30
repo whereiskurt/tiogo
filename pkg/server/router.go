@@ -29,7 +29,7 @@ func (s *Server) EnableDefaultRouter() {
 
 					r.Route("/chunks/{ChunkID}", func(r chi.Router) {
 						r.Use(middleware.ExportChunkCtx)
-						r.Get("/", s.VulnsExportChunk)
+						r.Get("/", s.VulnsExportGet)
 					})
 				})
 			})

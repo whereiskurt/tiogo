@@ -24,7 +24,7 @@ func main() {
 	logrus.Infof("Generating from working folder: cwd:%s", cwd)
 
 	// Check if we're running inside the config/template folder, and adjust relative paths.
-	if strings.Contains(cwd, "tiogo/config") {
+	if strings.Contains(cwd, "config") {
 		templateFolder = "./"
 		outputFilename = "../" + outputFilename
 	}

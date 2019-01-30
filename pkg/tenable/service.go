@@ -21,7 +21,7 @@ var EndPoints = endPointTypes{
 	Scanners:          EndPointType("Scanners"),
 	VulnsExportStart:  EndPointType("VulnsExportStart"),
 	VulnsExportStatus: EndPointType("VulnsExportStatus"),
-	VulnsExportChunk:  EndPointType("VulnsExportChunk"),
+	VulnsExportGet:    EndPointType("VulnsExportGet"),
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
@@ -30,7 +30,7 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 		URL:           "/vulns/export",
 		CacheFilename: "/export/vulns/request.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
-			HTTP.Get: {},
+			HTTP.Post: {},
 		},
 	},
 	EndPoints.VulnsExportStatus: {
@@ -41,7 +41,7 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 		},
 	},
 
-	EndPoints.VulnsExportChunk: {
+	EndPoints.VulnsExportGet: {
 		URL:           "/vulns/export/{{.ExportUUID}}/chunks/{{.ChunkID}}",
 		CacheFilename: "/export/vulns/{{.ExportUUID}}/chunk.{{.ChunkID}}.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
@@ -88,7 +88,7 @@ type endPointTypes struct {
 	Scanners          EndPointType
 	VulnsExportStart  EndPointType
 	VulnsExportStatus EndPointType
-	VulnsExportChunk  EndPointType
+	VulnsExportGet    EndPointType
 }
 
 func (c EndPointType) String() string {
@@ -220,6 +220,7 @@ func ToTemplate(name EndPointType, data map[string]string, tmpl string) (string,
 
 func (s *Service) sleepBeforeRetry(attempt int) (shouldReRun bool) {
 	if attempt < len(s.RetryIntervals) {
+		s.Log.Infof("Failure leading to sleep='%dms'", s.RetryIntervals[attempt])
 		time.Sleep(time.Duration(s.RetryIntervals[attempt]) * time.Millisecond)
 		shouldReRun = true
 	}
@@ -340,6 +341,26 @@ func (s *Service) VulnsExportStart() ([]byte, error) {
 
 		raw = body
 		s.Log.Debugf("JSON body from export-vulns start: %s", string(raw))
+
+		return false, nil
+	})
+
+	return raw, err
+}
+
+func (s *Service) VulnsExportGet(exportUUID string, chunk string) ([]byte, error) {
+	var raw []byte
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.get(EndPoints.VulnsExportGet, map[string]string{"ExportUUID": exportUUID, "ChunkID": chunk})
+		if err != nil {
+			s.Log.Infof("failed to get export-vulns status: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		raw = body
+		s.Log.Debugf("JSON body from get export-vulns length: %d", len(raw))
 
 		return false, nil
 	})

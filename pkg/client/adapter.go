@@ -3,12 +3,16 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/whereiskurt/tiogo/pkg/cache"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"github.com/whereiskurt/tiogo/pkg/tenable"
+	"io/ioutil"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -56,10 +60,15 @@ func (a *Adapter) diskStore(label CachePathLabel, obj interface{}) {
 
 // PrettyJSON will look for 'jq' to pretty the json input
 func PrettyJSON(json []byte) []byte {
+	return JSONQuery(json, ".")
+}
+
+// JSON Query will pipe bytes through jq and return results.
+func JSONQuery(json []byte, jqex string) []byte {
 	jq, err := exec.LookPath("jq")
 	if err == nil {
 		var pretty bytes.Buffer
-		cmd := exec.Command(jq, ".")
+		cmd := exec.Command(jq, "-c", jqex)
 		cmd.Stdin = strings.NewReader(string(json))
 		cmd.Stdout = &pretty
 		err := cmd.Run()
@@ -90,7 +99,6 @@ func (a *Adapter) VulnsExportStart() (string, error) {
 
 	return export.UUID, nil
 }
-
 func (a *Adapter) VulnsExportStatus(exportUUID string) (VulnExportStatus, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Get)
 
@@ -107,4 +115,79 @@ func (a *Adapter) VulnsExportStatus(exportUUID string) (VulnExportStatus, error)
 	status, err = convert.ToVulnExportStatus(raw)
 
 	return status, err
+}
+func (a *Adapter) VulnsExportGet(exportUUID string, chunks string) error {
+	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportGet, metrics.Methods.Service.Get)
+
+	if exportUUID == "" {
+		return errors.New("error: empty uuid: must provide uuid using '--uid=12344-1231-23323'")
+	}
+
+	chunks, err := a.ChunkList(exportUUID, chunks)
+	if err != nil {
+		return err
+	}
+
+	u := NewUnmarshal(a.Config, a.Metrics)
+
+	chunkSize := len(strings.Split(chunks, ","))
+	a.Config.Log.Infof("ChunkSize='%d' for uuid='%s", chunkSize, exportUUID)
+	for _, chunk := range strings.Split(chunks, ",") {
+		raw, err := u.VulnsExportGet(exportUUID, chunk)
+		if err != nil {
+			a.Config.Log.Errorf("error: failed to get the export-vulns: %v", err)
+			return err
+		}
+
+		a.Config.Log.Infof("Downloaded chunk '%s', file size '%d' bytes", chunk, len(raw))
+	}
+
+	return nil
+}
+func (a *Adapter) VulnsExportQuery(exportUUID string, chunks string, jqex string) error {
+	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportQuery, metrics.Methods.Service.Get)
+
+	if exportUUID == "" {
+		return errors.New("error: empty uuid: must provide uuid using '--uid=12344-1231-23323'")
+	}
+
+	chunks, err := a.ChunkList(exportUUID, chunks)
+	if err != nil {
+		return err
+	}
+
+	for _, chunk := range strings.Split(chunks, ",") {
+		filename, err := tenable.ToCacheFilename(tenable.EndPoints.VulnsExportGet, map[string]string{"ExportUUID": exportUUID, "ChunkID": chunk})
+		if err != nil {
+			return errors.New(fmt.Sprintf("error: can't get chunk filename for uuid='%s', chunk='%s'", exportUUID, chunk))
+		}
+		filename = filepath.Join(a.Config.VM.CacheFolder, "service", filename)
+
+		a.Config.Log.Infof("Reading chunk file '%s' ", filename)
+
+		if _, stat := os.Stat(filename); os.IsNotExist(stat) {
+			// File doesn't exist return no error
+			return errors.New(fmt.Sprintf("Cannot read cached file: '%s", filename))
+		}
+
+		bb, err := ioutil.ReadFile(filename)
+		filt := JSONQuery(bb, jqex)
+		fmt.Printf("%s\n", string(filt))
+
+	}
+
+	return nil
+}
+
+func (a *Adapter) ChunkList(exportUUID string, chunks string) (string, error) {
+	chunkList := chunks
+	if chunkList == "ALL" || chunkList == "" {
+		status, err := a.VulnsExportStatus(exportUUID)
+		if err != nil {
+			a.Config.Log.Errorf("error: can get status for uuid='%s': %v", exportUUID, err)
+			return "", err
+		}
+		chunkList = strings.Join(status.Chunks, ",")
+	}
+	return chunkList, nil
 }

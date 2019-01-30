@@ -50,6 +50,7 @@ type VMClient struct {
 	MetricsFolder    string
 	OutputCSV        bool
 	OutputJSON       bool
+	Chunk            string
 	ID               string
 	Name             string
 	Regex            string

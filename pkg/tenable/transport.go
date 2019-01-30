@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -34,8 +34,9 @@ func (c httpMethodType) String() string {
 }
 
 var tr = &http.Transport{
-	MaxIdleConns:    20,
-	IdleConnTimeout: 10 * time.Second,
+	MaxIdleConns:        20,
+	IdleConnTimeout:     20 * time.Second,
+	TLSHandshakeTimeout: 10 * time.Second,
 }
 
 // Transport defines the HTTP details for the API call.
@@ -43,6 +44,7 @@ type Transport struct {
 	BaseURL     string
 	AccessKey   string
 	SecretKey   string
+	Log         *log.Logger
 	WorkerCount int
 	ThreadSafe  *sync.Mutex
 }
@@ -53,6 +55,7 @@ func NewTransport(s *Service) (p Transport) {
 	p.AccessKey = s.AccessKey
 	p.SecretKey = s.SecretKey
 	p.ThreadSafe = new(sync.Mutex)
+	p.Log = s.Log
 	return
 }
 
@@ -69,7 +72,7 @@ func (t *Transport) authHeaderValue() string {
 	sk := strings.Split(t.SecretKey, ",")
 
 	if len(ak) != len(sk) {
-		logrus.Fatalf("error: equal amount of accesskeys and secretkeys must be specified.")
+		t.Log.Fatalf("error: equal amount of accesskeys and secretkeys must be specified.")
 		return ""
 	}
 
@@ -87,7 +90,10 @@ func (t *Transport) Get(url string) ([]byte, int, error) {
 	var req *http.Request
 	var resp *http.Response
 
-	client := &http.Client{Transport: tr}
+	client := &http.Client{
+		Transport: tr,
+		Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
+	}
 
 	var err error
 	req, err = http.NewRequest(http.MethodGet, url, nil)
@@ -95,13 +101,18 @@ func (t *Transport) Get(url string) ([]byte, int, error) {
 		return nil, 0, err
 	}
 	req.Header.Add(t.authHeaderKey(), t.authHeaderValue())
+	// req.Header.Add("Accept-Encoding", "gzip, deflate")
+
+	log.Debugf("tenable.transport.Get - URL='%s'", url)
 
 	resp, err = client.Do(req)
 	if err != nil {
 		return nil, 0, err
 	}
-
+	defer resp.Body.Close()
 	status := resp.StatusCode
+
+	log.Debugf("tenable.transport.Get - URL='%s', stuat='%d'", url, http.StatusAccepted)
 	if status == http.StatusTooManyRequests {
 		err = errors.New("error: we need to slow down")
 		return nil, status, err
@@ -111,15 +122,19 @@ func (t *Transport) Get(url string) ([]byte, int, error) {
 		return nil, status, err
 	}
 	if status != http.StatusOK {
-		err = fmt.Errorf("error: status code does not appear successful: %d", status)
+		err = fmt.Errorf("error: status code '%d' does not appear successful for '%s'", status, url)
 		return nil, status, err
 	}
 
+	respBody := resp.Body
+	//
+	// switch strings.ToLower(resp.Header.Get("Content-Encoding")) {
+	// case "gzip":
+	// 	respBody, err = gzip.NewReader(resp.Body)
+	// }
+
 	var body []byte
-	body, err = ioutil.ReadAll(resp.Body)
-	if err == nil {
-		err = resp.Body.Close()
-	}
+	body, err = ioutil.ReadAll(respBody)
 
 	return body, status, err
 }
@@ -129,7 +144,10 @@ func (t *Transport) Post(url string, data string, datatype string) ([]byte, int,
 	var req *http.Request
 	var resp *http.Response
 
-	client := &http.Client{Transport: tr}
+	client := &http.Client{
+		Transport: tr,
+		Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
+	}
 
 	var err error
 	req, err = http.NewRequest(http.MethodPost, url, bytes.NewBuffer([]byte(data)))
@@ -137,11 +155,9 @@ func (t *Transport) Post(url string, data string, datatype string) ([]byte, int,
 		return nil, 0, err
 	}
 
-	key := t.authHeaderKey()
-	value := t.authHeaderValue()
-
-	req.Header.Add(key, value)
+	req.Header.Add(t.authHeaderKey(), t.authHeaderValue())
 	req.Header.Set("Content-Type", datatype)
+	// req.Header.Add("Accept-Encoding", "gzip, deflate")
 
 	resp, err = client.Do(req)
 	if err != nil {
@@ -163,7 +179,10 @@ func (t *Transport) Put(url string, data string, datatype string) ([]byte, int, 
 	var req *http.Request
 	var resp *http.Response
 
-	client := &http.Client{Transport: tr}
+	client := &http.Client{
+		Transport: tr,
+		Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
+	}
 
 	var err error
 	req, err = http.NewRequest(http.MethodPut, url, bytes.NewBuffer([]byte(data)))
@@ -172,6 +191,7 @@ func (t *Transport) Put(url string, data string, datatype string) ([]byte, int, 
 	}
 
 	req.Header.Add(t.authHeaderKey(), t.authHeaderValue())
+	// req.Header.Add("Accept-Encoding", "gzip, deflate")
 
 	resp, err = client.Do(req)
 	if err != nil {
@@ -193,7 +213,10 @@ func (t *Transport) Delete(url string) ([]byte, int, error) {
 	var req *http.Request
 	var resp *http.Response
 
-	client := &http.Client{Transport: tr}
+	client := &http.Client{
+		Transport: tr,
+		Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
+	}
 
 	var err error
 	req, err = http.NewRequest(http.MethodDelete, url, nil)
@@ -202,6 +225,7 @@ func (t *Transport) Delete(url string) ([]byte, int, error) {
 	}
 
 	req.Header.Add(t.authHeaderKey(), t.authHeaderValue())
+	// req.Header.Add("Accept-Encoding", "gzip, deflate")
 
 	resp, err = client.Do(req)
 	if err != nil {

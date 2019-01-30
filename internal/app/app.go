@@ -74,6 +74,10 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	exportVulnsCmd := makeCommand("export-vulns", vmApp.ExportVulnsHelp, vmCmd)
 	_ = makeCommand("start", vmApp.ExportVulnsStart, exportVulnsCmd)
 	_ = makeCommand("status", vmApp.ExportVulnsStatus, exportVulnsCmd)
+	_ = makeCommand("get", vmApp.ExportVulnsGet, exportVulnsCmd)
+	_ = makeCommand("query", vmApp.ExportVulnsQuery, exportVulnsCmd)
+
+	makeString("Chunk", &a.Config.VM.Chunk, []string{"chunk"}, exportVulnsCmd)
 
 	sListCmd := makeCommand("scanners", vmApp.ScannersList, vmCmd)
 	_ = makeCommand("list", vmApp.ScannersList, sListCmd)

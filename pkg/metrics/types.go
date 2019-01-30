@@ -8,7 +8,8 @@ var EndPoints = endPointTypes{
 	AgentGroups:       EndPointType("AgentGroups"),
 	VulnsExportStart:  EndPointType("VulnsExportStart"),
 	VulnsExportStatus: EndPointType("VulnsExportStatus"),
-	VulnsExportChunk:  EndPointType("VulnsExportChunk"),
+	VulnsExportGet:    EndPointType("VulnsExportGet"),
+	VulnsExportQuery:  EndPointType("VulnsExportQuery"),
 }
 
 type endPointTypes struct {
@@ -17,7 +18,8 @@ type endPointTypes struct {
 	AgentGroups       EndPointType
 	VulnsExportStart  EndPointType
 	VulnsExportStatus EndPointType
-	VulnsExportChunk  EndPointType
+	VulnsExportGet    EndPointType
+	VulnsExportQuery  EndPointType
 }
 
 func (c EndPointType) String() string {
