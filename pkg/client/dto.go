@@ -315,12 +315,18 @@ type VulnExportStatus struct {
 	ChunksCancelled []string `json:"chunks_cancelled"`
 }
 type VulnExportChunk struct {
-	Asset    VulnExportChunkAsset
-	Output   string
-	Plugin   VulnExportChunkPlugin
-	Network  VulnExportChunkPort
-	Scan     VulnExportChunkScan
-	Severity string
+	Asset                VulnExportChunkAsset
+	Output               string
+	Plugin               VulnExportChunkPlugin
+	Network              VulnExportChunkPort
+	Scan                 VulnExportChunkScan
+	Severity             string
+	SeverityID           string
+	SeverityDefaultID    string
+	SeverityModification string
+	FirstFound           string
+	LastFound            string
+	State                string
 }
 type VulnExportChunkAsset struct {
 	DeviceType               string   `json:"device_type"`

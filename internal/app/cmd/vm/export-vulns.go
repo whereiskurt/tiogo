@@ -14,7 +14,7 @@ func (vm *VM) ExportVulnsStart(cmd *cobra.Command, args []string) {
 
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 
-	uuid, err := a.VulnsExportStart()
+	uuid, err := a.ExportVulnsStart()
 	if err != nil {
 		log.Errorf("error: couldn't start export-vulns: %v", err)
 		return
@@ -27,7 +27,6 @@ func (vm *VM) ExportVulnsStart(cmd *cobra.Command, args []string) {
 
 	return
 }
-
 func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
 
@@ -45,7 +44,7 @@ func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	status, err := a.VulnsExportStatus(uuid)
+	status, err := a.ExportVulnsStatus(uuid)
 	if err != nil {
 		log.Errorf("error: couldn't status export-vulns: %v", err)
 		return
@@ -82,7 +81,7 @@ func (vm *VM) ExportVulnsGet(cmd *cobra.Command, args []string) {
 	// Fetches all of the chunks - this can e long running and return
 	// large amounts of data. Files are stored in the client cache and
 	// and can be copied out using export-vulns --jq=. | gzip > all.vulns.json.gz
-	err := a.VulnsExportGet(uuid, chunks)
+	err := a.ExportVulnsGet(uuid, chunks)
 	if err != nil {
 		log.Errorf("error: couldn't get export-vulns: %v", err)
 		return
@@ -122,7 +121,7 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 		log.Infof("info:  Using --chunk='%s' -- no chunk range/value specified.", chunks)
 	}
 
-	_ = a.VulnsExportQuery(uuid, chunks, jqex)
+	_ = a.ExportVulnsQuery(uuid, chunks, jqex)
 
 	return
 }
