@@ -11,8 +11,8 @@ import (
 )
 
 // These defaults are needed to configure Viper/Cobra
-const DefaultHomeFilename = ".tiogo"
-const DefaultConfigFilename = "default.tiogo"
+const DefaultHomeFilename = ".tiogo.v1"
+const DefaultConfigFilename = "default.tiogo.v1"
 const DefaultConfigType = "yaml"
 const DefaultConfigFolder = "./config/"
 const DefaultTemplateFolder = "./config/template/"

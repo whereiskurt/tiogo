@@ -35,8 +35,14 @@ func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 	uuid := vm.Config.VM.UUID
 
 	if uuid == "" {
-		log.Errorf("error: uuid not specified. Use '--uuid=XYZ' to specify the uuid of the vulnerability export")
-		return
+		a.Config.Log.Infof("export uuid was not specified - will use attempt to lookup from last 'start' call")
+
+		var err error
+		uuid, err = a.CachedExportUUID()
+		if err != nil {
+			vm.Config.Log.Errorf("error: cannot get export uuid: %v", err)
+			return
+		}
 	}
 
 	status, err := a.VulnsExportStatus(uuid)
@@ -60,8 +66,12 @@ func (vm *VM) ExportVulnsGet(cmd *cobra.Command, args []string) {
 	chunks := vm.Config.VM.Chunk
 
 	if uuid == "" {
-		log.Errorf("error: uuid not specified. Use '--uuid=XYZ' to specify the uuid of the vulnerability export")
-		return
+		a.Config.Log.Infof("export uuid was not specified - will use attempt to lookup from last 'start' call")
+		var err error
+		uuid, err = a.CachedExportUUID()
+		if err != nil {
+			return
+		}
 	}
 
 	if chunks == "" {
@@ -95,11 +105,16 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 	jqex := vm.Config.VM.JQex
 	if jqex == "" {
 		jqex = "."
+		a.Config.Log.Infof("query --jqex was not specified - will use default '%s", jqex)
 	}
 
 	if uuid == "" {
-		log.Errorf("error: uuid not specified. Use '--uuid=XYZ' to specify the uuid of the vulnerability export")
-		return
+		a.Config.Log.Infof("export uuid was not specified - will use attempt to lookup from last 'start' call")
+		var err error
+		uuid, err = a.CachedExportUUID()
+		if err != nil {
+			return
+		}
 	}
 
 	if chunks == "" {
@@ -107,7 +122,7 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 		log.Infof("info:  Using --chunk='%s' -- no chunk range/value specified.", chunks)
 	}
 
-	a.VulnsExportQuery(uuid, chunks, jqex)
+	_ = a.VulnsExportQuery(uuid, chunks, jqex)
 
 	return
 }
