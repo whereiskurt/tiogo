@@ -99,6 +99,15 @@ Once the current status='{{.Status}}' is 'FINISHED' you can download the exporte
 {{define "ExportVulnsGet" -}}
 Successfully retrieved chunks='{{.Chunks}} for uuid='{{.ExportUUID}}'.
 
+    Options modifiers:
+        --uuid=[unique id]
+        --jqex=[jq expression]
+        --chunk=[chunk to get]
+
+        --critical, --high, --medium, --info [severity to match for vulnerability]
+        --before,--after=[YYYY-MM-DD of date boundaries]
+        --days=[number of days to bound query to]
+
     Examples:
         ## Query
         ##Output all of the contents of the chunks as JSON
@@ -106,7 +115,14 @@ Successfully retrieved chunks='{{.Chunks}} for uuid='{{.ExportUUID}}'.
 
         ##Output all of the contents of the chunks as JSON
         $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex=".[]" --chunk=1,2
-        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex="@jqex.txt" --chunk=1,2
+
+        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --medium --days=45
+        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --days=30
+
+        ## These three examples all produce the same results -- 15 day time boxes
+        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --after 2019-01-01 --days=15
+        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --before 2019-01-15 --days=15
+        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --after 2019-01-01 --before 2019-01-15
 
 {{- end}}
 

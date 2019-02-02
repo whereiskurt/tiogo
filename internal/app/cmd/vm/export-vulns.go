@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
 	"github.com/whereiskurt/tiogo/pkg/ui"
+	"strings"
 )
 
 func (vm *VM) ExportVulnsStart(cmd *cobra.Command, args []string) {
@@ -37,7 +38,7 @@ func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 		a.Config.Log.Infof("export uuid was not specified - will use attempt to lookup from last 'start' call")
 
 		var err error
-		uuid, err = a.CachedExportUUID()
+		uuid, err = a.ExportCachedUUID()
 		if err != nil {
 			vm.Config.Log.Errorf("error: cannot get export uuid: %v", err)
 			return
@@ -67,15 +68,10 @@ func (vm *VM) ExportVulnsGet(cmd *cobra.Command, args []string) {
 	if uuid == "" {
 		a.Config.Log.Infof("export uuid was not specified - will use attempt to lookup from last 'start' call")
 		var err error
-		uuid, err = a.CachedExportUUID()
+		uuid, err = a.ExportCachedUUID()
 		if err != nil {
 			return
 		}
-	}
-
-	if chunks == "" {
-		chunks = "ALL"
-		log.Infof("info:  Using --chunk='%s' -- no chunk range/value specified.", chunks)
 	}
 
 	// Fetches all of the chunks - this can e long running and return
@@ -95,37 +91,56 @@ func (vm *VM) ExportVulnsGet(cmd *cobra.Command, args []string) {
 	return
 }
 func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
-	log := vm.Config.VM.EnableLogging()
+	vm.Config.VM.EnableLogging()
 
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 	uuid := vm.Config.VM.UUID
 	chunks := vm.Config.VM.Chunk
-
 	jqex := vm.Config.VM.JQex
+
 	if jqex == "" {
 		jqex = "."
 		a.Config.Log.Infof("query --jqex was not specified - will use default '%s", jqex)
 	}
 
+	before := vm.Config.VM.BeforeDate
+	after := vm.Config.VM.AfterDate
+
+	lastfound := fmt.Sprintf(`.last_found >= "%s" and .last_found <= "%s"`, after, before)
+
+	var sevs []string
+	if vm.Config.VM.Critical == true {
+		sevs = append(sevs, `.severity == "critical"`)
+	}
+	if vm.Config.VM.High == true {
+		sevs = append(sevs, `.severity == "high"`)
+	}
+	if vm.Config.VM.Medium == true {
+		sevs = append(sevs, `.severity == "medium"`)
+	}
+	if vm.Config.VM.Info == true {
+		sevs = append(sevs, `.severity == "info"`)
+	}
+	if len(sevs) > 0 {
+		sev := strings.Join(sevs, " or ")
+		lastfound = fmt.Sprintf("select( (%s) and (%s) )", lastfound, sev)
+	}
+
+	jqex = ".[]|" + lastfound + "|" + jqex
+
 	if uuid == "" {
 		a.Config.Log.Infof("export uuid was not specified - will use attempt to lookup from last 'start' call")
 		var err error
-		uuid, err = a.CachedExportUUID()
+		uuid, err = a.ExportCachedUUID()
 		if err != nil {
 			return
 		}
-	}
-
-	if chunks == "" {
-		chunks = "ALL"
-		log.Infof("info:  Using --chunk='%s' -- no chunk range/value specified.", chunks)
 	}
 
 	_ = a.ExportVulnsQuery(uuid, chunks, jqex)
 
 	return
 }
-
 func (vm *VM) ExportVulnsHelp(cmd *cobra.Command, args []string) {
 	fmt.Printf("tiogo version %s (%s)", ReleaseVersion, GitHash)
 	if vm.Config.Log.IsLevelEnabled(log.DebugLevel) {

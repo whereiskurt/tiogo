@@ -21,6 +21,7 @@ func (c *Converter) ToVulnExportStatus(raw []byte) (VulnExportStatus, error) {
 	}
 
 	dst.Status = src.Status
+
 	for i := range src.Chunks {
 		dst.Chunks = append(dst.Chunks, string(src.Chunks[i]))
 	}

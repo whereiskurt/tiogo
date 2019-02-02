@@ -1,12 +1,19 @@
 package config
 
 import (
+	"fmt"
 	log "github.com/sirupsen/logrus"
+	"strconv"
+	"strings"
+	"time"
 )
 
 // ValidateOrFatal will validate the string values inside of the Config after copying from Unmarshal or self-setting.
 func (c *Config) ValidateOrFatal() {
 	c.validateVerbosity()
+
+	c.validateChunks()
+	c.validateDateBounds()
 
 	// var err error
 	// err = os.MkdirAll(path.Dir(c.VM.MetricsFolder), 0777)
@@ -21,6 +28,93 @@ func (c *Config) ValidateOrFatal() {
 	// if err != nil {
 	// 	log.Fatalf("error: making folder for log folder: '%s'", err)
 	// }
+
+	return
+}
+
+func (c *Config) validateChunks() {
+	if c.VM.Chunk == "" {
+		c.VM.Chunk = "ALL"
+		return
+	}
+
+	var chunks []string
+	for _, v := range strings.Split(c.VM.Chunk, ",") {
+		// Expand chunks expressed as --chunk=1-100,102-103
+		if strings.Contains(v, "-") {
+			r := strings.Split(v, "-")
+			lower, err := strconv.Atoi(r[0])
+			if err != nil {
+				log.Fatal("error: invalid lower bound for chunk range:%s", r)
+			}
+			upper, err := strconv.Atoi(r[0])
+			if err != nil {
+				log.Fatal("error: invalid lower bound for chunk range:%s", r)
+			}
+
+			var vv []string
+			for i := lower; i <= upper; i++ {
+				vv = append(vv, fmt.Sprintf("%d", i))
+			}
+			v = strings.Join(vv, ",")
+		}
+		chunks = append(chunks, v)
+	}
+
+}
+
+func (c *Config) validateDateBounds() {
+	now := time.Now()
+
+	var days = 0
+	if c.VM.Days != "" {
+		d, err := strconv.Atoi(c.VM.Days)
+		if err != nil {
+			log.Fatalf("error: invalid days: %s", days)
+		}
+		days = d
+	}
+
+	if c.VM.BeforeDate == "" && c.VM.AfterDate == "" {
+		if c.VM.Days == "" {
+			days = 365
+		}
+		c.VM.BeforeDate = now.Format("2006-01-02")
+		c.VM.AfterDate = now.AddDate(0, 0, -1*days).Format("2006-01-02")
+		return
+	}
+
+	if c.VM.BeforeDate != "" && c.VM.AfterDate != "" {
+		if c.VM.Days != "" {
+			log.Fatalf("Setting '--days' value with --before and --after parameters is not supported.")
+		}
+	}
+
+	// If we are missing a BEFORE date
+	if c.VM.BeforeDate == "" {
+		if c.VM.Days != "" {
+			log.Fatalf("Must set --days with --before ")
+		}
+		after, err := time.Parse("2006-01-02", c.VM.AfterDate)
+		if err != nil {
+			log.Fatalf("error: invalid after date: %s: %s", after, err)
+		}
+		c.VM.BeforeDate = after.AddDate(0, 0, 1*days).Format("2006-01-02")
+		return
+	}
+
+	// If we are missing an AFTER date
+	if c.VM.AfterDate == "" {
+		if c.VM.Days != "" {
+			log.Fatalf("Must set --days with --after")
+		}
+		before, err := time.Parse("2006-01-02", c.VM.BeforeDate)
+		if err != nil {
+			log.Fatalf("error: invalid before date: %s: %s", before, err)
+		}
+		c.VM.AfterDate = before.AddDate(0, 0, -1*days).Format("2006-01-02")
+		return
+	}
 
 	return
 }

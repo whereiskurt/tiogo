@@ -40,24 +40,34 @@ type Config struct {
 
 // ClientConfig are all of the params for the Client Command
 type VMClient struct {
-	Config           *Config
-	BaseURL          string
-	AccessKey        string
-	SecretKey        string
-	CacheKey         string
-	CacheFolder      string
-	CacheResponse    bool
-	MetricsFolder    string
-	OutputCSV        bool
-	OutputJSON       bool
-	Chunk            string
-	ID               string
-	Name             string
-	Regex            string
-	JQex             string
-	UUID             string
-	Category         string
-	Tag              string
+	Config        *Config
+	BaseURL       string
+	AccessKey     string
+	SecretKey     string
+	CacheKey      string
+	CacheFolder   string
+	CacheResponse bool
+	MetricsFolder string
+	OutputCSV     bool
+	OutputJSON    bool
+
+	ID       string
+	Name     string
+	Regex    string
+	JQex     string
+	UUID     string
+	Critical bool
+	High     bool
+	Medium   bool
+	Info     bool
+
+	Chunk      string
+	BeforeDate string // Date bounding YYYY-MM-DD
+	AfterDate  string // Date bounded for YYYY-MM-DD
+	Days       string // Number of days to include either before or after
+
+	Category         string // Asset Category
+	Tag              string // Asset Tagging
 	Members          string
 	GroupName        string
 	WithoutGroupName bool

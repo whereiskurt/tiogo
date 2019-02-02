@@ -69,6 +69,11 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	makeBool("CSV", &a.Config.VM.OutputCSV, []string{"csv"}, vmCmd)
 	makeBool("JSON", &a.Config.VM.OutputJSON, []string{"json"}, vmCmd)
 
+	makeBool("Critical", &a.Config.VM.Critical, []string{"critical", "crit"}, vmCmd)
+	makeBool("High", &a.Config.VM.High, []string{"high"}, vmCmd)
+	makeBool("Medium", &a.Config.VM.Medium, []string{"medium", "med"}, vmCmd)
+	makeBool("Info", &a.Config.VM.Info, []string{"info", "low"}, vmCmd)
+
 	_ = makeCommand("help", vmApp.Help, vmCmd)
 
 	exportVulnsCmd := makeCommand("export-vulns", vmApp.ExportVulnsHelp, vmCmd)
@@ -77,7 +82,10 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	_ = makeCommand("get", vmApp.ExportVulnsGet, exportVulnsCmd)
 	_ = makeCommand("query", vmApp.ExportVulnsQuery, exportVulnsCmd)
 
-	makeString("Chunk", &a.Config.VM.Chunk, []string{"chunk"}, exportVulnsCmd)
+	makeString("Chunk", &a.Config.VM.Chunk, []string{"chunk", "chunks"}, exportVulnsCmd)
+	makeString("BeforeDate", &a.Config.VM.BeforeDate, []string{"before"}, exportVulnsCmd)
+	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportVulnsCmd)
+	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportVulnsCmd)
 
 	sListCmd := makeCommand("scanners", vmApp.ScannersList, vmCmd)
 	_ = makeCommand("list", vmApp.ScannersList, sListCmd)

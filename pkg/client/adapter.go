@@ -89,13 +89,13 @@ func (a *Adapter) ExportVulnsGet(uuid string, chunks string) error {
 
 	if uuid == "" {
 		var err error
-		uuid, err = a.CachedExportUUID()
+		uuid, err = a.ExportCachedUUID()
 		if err != nil {
 			return err
 		}
 	}
 
-	chunks, err := a.CachedChunkList(uuid, chunks)
+	chunks, err := a.ExportCachedChunks(uuid, chunks)
 	if err != nil {
 		return err
 	}
@@ -123,13 +123,16 @@ func (a *Adapter) ExportVulnsQuery(uuid string, chunks string, jqex string) erro
 		return errors.New("error: uuid not specified")
 	}
 
-	chunks, err := a.CachedChunkList(uuid, chunks)
+	chunks, err := a.ExportCachedChunks(uuid, chunks)
 	if err != nil {
 		return err
 	}
 
 	for _, chunk := range strings.Split(chunks, ",") {
-		filename, err := a.ToCacheFilename(tenable.EndPoints.VulnsExportGet, map[string]string{"ExportUUID": uuid, "ChunkID": chunk})
+		ep := tenable.EndPoints.VulnsExportGet
+		p := map[string]string{"ExportUUID": uuid, "ChunkID": chunk}
+		filename, err := a.CachedFilename(ep, p)
+
 		if err != nil {
 			a.Config.Log.Errorf("error: reading chunk file '%s' ", filename)
 			return err
@@ -141,22 +144,22 @@ func (a *Adapter) ExportVulnsQuery(uuid string, chunks string, jqex string) erro
 		}
 
 		filter := a.JSONQuery(bb, jqex)
-
-		// Output the JQEX filtered JSON response.
-		fmt.Println(string(filter))
+		if len(filter) > 1 {
+			fmt.Println(string(filter))
+		}
 	}
 
 	return nil
 }
 
-// CachedChunkList
-func (a *Adapter) CachedChunkList(uuid string, chunks string) (string, error) {
-	if chunks != "ALL" || chunks != "" {
+// ExportCachedChunks reads hte chunks for uuid from the cached file
+func (a *Adapter) ExportCachedChunks(uuid string, chunks string) (string, error) {
+	if !(chunks == "ALL" || chunks == "") {
 		return chunks, nil
 	}
 	ep := tenable.EndPoints.VulnsExportStatus
 	p := map[string]string{"ExportUUID": uuid}
-	filename, err := a.ToCacheFilename(ep, p)
+	filename, err := a.CachedFilename(ep, p)
 	if err != nil {
 		a.Config.Log.Errorf("error: reading cached 'status' file '%s' ", filename)
 		return "", err
@@ -167,16 +170,45 @@ func (a *Adapter) CachedChunkList(uuid string, chunks string) (string, error) {
 		return "", errors.New(fmt.Sprintf("error: cannot read cached file: '%s: %v", filename, err))
 	}
 
-	var status VulnExportStatus
-	err = json.Unmarshal(bb, status)
+	var status tenable.VulnExportStatus
+	err = json.Unmarshal(bb, &status)
 	if err != nil {
 		a.Config.Log.Errorf("error: can get unmarshal '%s': %v", filename, err)
 		return "", err
 	}
 
-	chunkList := strings.Join(status.Chunks, ",")
+	var cc []string
+	for i := range status.Chunks {
+		cc = append(cc, fmt.Sprintf("%s", string(status.Chunks[i])))
+	}
+	c := strings.Join(cc, ",")
+	return c, nil
+}
 
-	return chunkList, nil
+// ExportCachedUUID reads the service export vulns cache for entries, and returns the first one as exportUUID
+func (a *Adapter) ExportCachedUUID() (string, error) {
+	folder := filepath.Join(a.Config.VM.CacheFolder, "service", "export", "vulns")
+	entries, err := a.DirEntries(folder)
+	if err != nil || len(entries) == 0 {
+		return "", err
+	}
+	a.Config.Log.Debugf("Returning first entry as uuid: %s", entries[0])
+	return entries[0], nil
+}
+
+// CachedFilename will output the filename on disk for that end-point requested with a parameter map p
+func (a *Adapter) CachedFilename(endpoint tenable.EndPointType, p map[string]string) (string, error) {
+
+	filename, err := tenable.ToCacheFilename(endpoint, p)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("error: can't get chunk filename for '%s'", filename))
+	}
+	filename = filepath.Join(a.Config.VM.CacheFolder, "service", filename)
+	if _, stat := os.Stat(filename); os.IsNotExist(stat) {
+		return "", errors.New(fmt.Sprintf("Cannot read cached file: '%s", filename))
+	}
+
+	return filename, nil
 }
 
 // JSONPretty will look for 'jq' to pretty the json input
@@ -187,6 +219,8 @@ func (a *Adapter) JSONPretty(json []byte) []byte {
 // UnpackJQExec extracts the jq executable packed in templates.go
 func (a *Adapter) UnpackJQExec() (string, error) {
 	tempFile, err := ioutil.TempFile("", "jq.")
+	tempFile.Close()
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -270,17 +304,6 @@ func (a *Adapter) JSONQuery(json []byte, jqex string) []byte {
 	return []byte(stdout.String())
 }
 
-// CachedExportUUID reads the service export vulns cache for entries, and returns the first one as exportUUID
-func (a *Adapter) CachedExportUUID() (string, error) {
-	folder := filepath.Join(a.Config.VM.CacheFolder, "service", "export", "vulns")
-	entries, err := a.DirEntries(folder)
-	if err != nil || len(entries) == 0 {
-		return "", err
-	}
-	a.Config.Log.Debugf("Returning first entry as uuid: %s", entries[0])
-	return entries[0], nil
-}
-
 // DirEntries returns an array of files in a folder or error
 func (a *Adapter) DirEntries(dirname string) ([]string, error) {
 	f, err := os.Open(dirname)
@@ -302,17 +325,4 @@ func (a *Adapter) DirEntries(dirname string) ([]string, error) {
 	}
 
 	return files, nil
-}
-func (a *Adapter) ToCacheFilename(endpoint tenable.EndPointType, p map[string]string) (string, error) {
-
-	filename, err := tenable.ToCacheFilename(endpoint, p)
-	if err != nil {
-		return "", errors.New(fmt.Sprintf("error: can't get chunk filename for '%s'", filename))
-	}
-	filename = filepath.Join(a.Config.VM.CacheFolder, "service", filename)
-	if _, stat := os.Stat(filename); os.IsNotExist(stat) {
-		return "", errors.New(fmt.Sprintf("Cannot read cached file: '%s", filename))
-	}
-
-	return filename, nil
 }
