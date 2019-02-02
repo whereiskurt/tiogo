@@ -1,7 +1,6 @@
 package tenable
 
 import (
-	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/whereiskurt/tiogo/pkg/cache"
@@ -11,14 +10,18 @@ import (
 	"sync"
 )
 
-// DefaultRetryIntervals values in here we control the re-try of the Service
-var DefaultRetryIntervals = []int{0, 500, 500, 500, 500, 1000, 1000, 1000, 1000, 1000, 3000}
-
 var EndPoints = endPointTypes{
 	Scanners:          EndPointType("Scanners"),
 	VulnsExportStart:  EndPointType("VulnsExportStart"),
 	VulnsExportStatus: EndPointType("VulnsExportStatus"),
 	VulnsExportGet:    EndPointType("VulnsExportGet"),
+}
+
+type endPointTypes struct {
+	Scanners          EndPointType
+	VulnsExportStart  EndPointType
+	VulnsExportStatus EndPointType
+	VulnsExportGet    EndPointType
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
@@ -80,21 +83,6 @@ type Service struct {
 	Metrics        *metrics.Metrics
 }
 
-type EndPointType string
-
-func (c EndPointType) String() string {
-	return "pkg.tenable.endpoints." + string(c)
-}
-
-type endPointTypes struct {
-	Scanners          EndPointType
-	VulnsExportStart  EndPointType
-	VulnsExportStatus EndPointType
-	VulnsExportGet    EndPointType
-}
-
-// NewService is configured to call ACME services with the ServiceBaseURL and credentials.
-// ServiceBaseURL is ofter set to localhost for Unit Testing
 func NewService(base string, secret string, access string) (s Service) {
 	s.BaseURL = strings.TrimSuffix(base, "/")
 	s.SecretKey = secret
@@ -107,6 +95,7 @@ func NewService(base string, secret string, access string) (s Service) {
 	return
 }
 
+// EnableMetrics will produce prometheus metrics calls
 func (s *Service) EnableMetrics(metrics *metrics.Metrics) {
 	s.Metrics = metrics
 }
@@ -118,43 +107,6 @@ func (s *Service) EnableCache(cacheFolder string, cryptoKey string) {
 		useCrypto = true
 	}
 	s.DiskCache = cache.NewDisk(cacheFolder, cryptoKey, useCrypto)
-	return
-}
-
-func (s *Service) SetLogger(log *log.Logger) {
-	s.Log = log
-}
-
-// GetGophers uses a Transport to make GET HTTP call against ACME "GetGophers"
-// If the Service RetryIntervals list is populated the calls will retry on Transport errors.
-func (s *Service) GetScanners() (scanners []Scanner) {
-
-	tErr := try.Do(func(attempt int) (shouldRetry bool, err error) {
-		body, status, err := s.get(EndPoints.Scanners, nil)
-
-		if s.Metrics != nil {
-			s.Metrics.TransportInc(metrics.EndPoints.Scanners, metrics.Methods.Transport.Get, status)
-		}
-
-		if err != nil {
-			s.Log.Warnf("failed getting scanners: error:%s: %d", err, status)
-			shouldRetry = s.sleepBeforeRetry(attempt)
-			return
-		}
-		// Take the Transport results and convert to []struts
-		err = json.Unmarshal(body, &scanners)
-		if err != nil {
-			s.Log.Warnf("failed to unmarshal scanners: %s: ", err)
-			shouldRetry = s.sleepBeforeRetry(attempt)
-			return
-		}
-
-		return
-	})
-	if tErr != nil {
-		s.Log.Warnf("failed to GET scanners: %+v", tErr)
-	}
-
 	return
 }
 

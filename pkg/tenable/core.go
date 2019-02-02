@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-func (s *Service) sleepBeforeRetry(attempt int) (shouldReRun bool) {
-	if attempt < len(s.RetryIntervals) {
-		s.Log.Infof("Failure leading to sleep='%dms'", s.RetryIntervals[attempt])
-		time.Sleep(time.Duration(s.RetryIntervals[attempt]) * time.Millisecond)
-		shouldReRun = true
-	}
-	return
+// DefaultRetryIntervals values in here we control the re-try of the Service
+var DefaultRetryIntervals = []int{0, 500, 500, 500, 500, 1000, 1000, 1000, 1000, 1000, 3000}
+
+type EndPointType string
+
+func (c EndPointType) String() string {
+	return "pkg.tenable.endpoints." + string(c)
 }
 
 func (s *Service) get(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
@@ -113,6 +113,7 @@ func toURL(baseURL string, name EndPointType, p map[string]string) (string, erro
 
 	return toTemplate(name, p, url)
 }
+
 func toJSON(name EndPointType, method httpMethodType, p map[string]string) (string, error) {
 	sMap, hasMethod := ServiceMap[name]
 	if !hasMethod {
@@ -143,4 +144,13 @@ func toTemplate(name EndPointType, data map[string]string, tmpl string) (string,
 	url := rawURL.String()
 
 	return url, nil
+}
+
+func (s *Service) sleepBeforeRetry(attempt int) (shouldReRun bool) {
+	if attempt < len(s.RetryIntervals) {
+		s.Log.Infof("Failure leading to sleep='%dms'", s.RetryIntervals[attempt])
+		time.Sleep(time.Duration(s.RetryIntervals[attempt]) * time.Millisecond)
+		shouldReRun = true
+	}
+	return
 }

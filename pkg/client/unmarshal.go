@@ -28,6 +28,8 @@ func (u *Unmarshal) service() (s tenable.Service) {
 		serviceCacheFolder := filepath.Join(".", u.Config.VM.CacheFolder, "service/")
 		s.EnableCache(serviceCacheFolder, u.Config.VM.CacheKey)
 	}
+	s.Log = u.Config.Log
+
 	s.SetLogger(u.Config.Log)
 
 	return
