@@ -26,6 +26,8 @@ VM Actions and Examples:
     $ tio vm help agents
     $ tio vm help agent-groups
     $ tio vm help scans
+    $ tio vm help export-vulns
+
 {{end}}
 
 {{/* This is a template comment. */}}
@@ -36,14 +38,11 @@ Export Vulnerabilities:
 Bulk Exports of Vulnerabilities
 (https://cloud.tenable.com/api/#/resources/exports)
 
-Extract vulnerabilities with 'start' sub-command - instructs Tenable.IO to begin producing chunk files.
-Use the 'status' sub-command confirm all the chunks are generated. Using 'download' will wait & poll for
-the 'FINISHED' status and then download each of the chunks that make up your export. Calling 'get' will fail if
-the status not 'FINISHED', 'download' cannot be call until after 'start'.
-
-By default 50000 vulnerabilities are store per chunk file.
-
-NOTE: Calling 'get' on an export without 'FINISHED' status will result in an error.
+   1) Use 'start' to begin extracting vulns - instructing Tenable.IO to start producing "chunk files" remotely
+   2) Use 'status' to poll/confirm the chunks files are 'FINISHED' being produced remotely
+   3) Use 'get' to retrieve 'FINISHED' chunk files locally
+      NOTE: Calling 'get' will fail if the status is not 'FINISHED'
+   4) Use 'query' to select specific vulns from download chunk files
 
 Usage:
     tio vm export-vulns [ACTION ...] [OPTIONS]
@@ -56,23 +55,31 @@ Export Vulns Options:
         --uuid=[unique id]
         --jqex=[jq expression]
         --chunk=[chunk to get]
+        --critical, --high, --medium, --info  [severity to match for vulnerability]
+        --before=[YYYY-MM-DD], --after=[YYYY-MM-DD] [date boundaries]
+        --days=[number of days to bound query to]
 
     Output Modes:
         --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
     Examples:
         $ tio vm export-vulns start
+        $ tio vm export-vulns start --after=2019-01-01
+        $ tio vm export-vulns start --after=2019-01-01 --critical
+        $ tio vm export-vulns start --after=2019-01-01 --before=2019-01-31
+        $ tio vm export-vulns start --before=2019-01-31 --days=31 --critical --high
+        $ tio vm export-vulns start --after=2019-01-01 --days=31
+
         $ tio vm export-vulns status
         $ tio vm export-vulns get
         $ tio vm export-vulns query
-
 {{end}}
 
 
 {{define "ExportVulnsStart" -}}
 Successfully started vulnerability export uuid='{{.ExportUUID}}'
 
-To review the 'status' for 'FINISHED' and then 'download' the export:
+To review the 'status' for 'FINISHED' and then 'get' the export:
 
     Examples:
         ## Check the status of the chunk file creation:
