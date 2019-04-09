@@ -106,7 +106,7 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 	before := vm.Config.VM.BeforeDate
 	after := vm.Config.VM.AfterDate
 
-	lastfound := fmt.Sprintf(`.last_found >= "%s" and .last_found <= "%s"`, after, before)
+	lastfound := fmt.Sprintf(`select( .last_found >= "%s" and .last_found <= "%s" )`, after, before)
 
 	var sevs []string
 	if vm.Config.VM.Critical == true {
@@ -136,6 +136,8 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 			return
 		}
 	}
+
+	a.Config.Log.Debugf("Exporting JSON for '%s', chunks='%s' with JQex=`%s`", uuid,chunks,jqex )
 
 	_ = a.ExportVulnsQuery(uuid, chunks, jqex)
 

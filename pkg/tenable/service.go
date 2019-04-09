@@ -30,7 +30,11 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 		URL:           "/vulns/export",
 		CacheFilename: "/export/vulns/request.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
-			HTTP.Post: {},
+			HTTP.Post: {`
+			"export-request": "export-request",
+			"filters": {
+				"since": "2019-01-01T00:00:00Z"
+			}`},
 		},
 	},
 	EndPoints.VulnsExportStatus: {

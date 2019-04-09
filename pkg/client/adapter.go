@@ -138,6 +138,8 @@ func (a *Adapter) ExportVulnsQuery(uuid string, chunks string, jqex string) erro
 			return err
 		}
 
+		a.Config.Log.Debugf("read chunk file: %s", filename)
+
 		bb, err := ioutil.ReadFile(filename)
 		if err != nil {
 			return errors.New(fmt.Sprintf("error: cannot read cached file: '%s: %v", filename, err))
