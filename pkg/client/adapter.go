@@ -294,7 +294,7 @@ func (a *Adapter) JSONQuery(json []byte, jqex string) []byte {
 	}
 
 	var stdout bytes.Buffer
-	cmd := exec.Command(jq, "-c", jqex)
+	cmd := exec.Command(jq, "-c", "-r", jqex)
 	cmd.Stdin = strings.NewReader(string(json))
 	cmd.Stdout = &stdout
 	err = cmd.Run()

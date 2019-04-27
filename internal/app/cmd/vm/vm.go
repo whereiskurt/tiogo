@@ -32,7 +32,7 @@ func NewVM(c *config.Config, m *metrics.Metrics) (v VM) {
 // The help command renders a template showing the help based on parameters
 func (vm *VM) Help(cmd *cobra.Command, args []string) {
 
-	fmt.Printf("tiogo version %s (%s)", ReleaseVersion, GitHash)
+	fmt.Printf("tiogo version %s (%s)\n", ReleaseVersion, GitHash)
 	cli := ui.NewCLI(vm.Config)
 	if len(args) == 0 {
 		cli.DrawGopher()
@@ -45,21 +45,21 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 	case "scanners":
 		vm.ScannersHelp(cmd, args)
 	case "scans":
-		fmt.Println(cli.Render("scansUsage", nil))
+		fmt.Print(cli.Render("scansUsage", nil))
 	case "agent-groups":
-		fmt.Println(cli.Render("agentGroupsUsage", nil))
+		fmt.Print(cli.Render("agentGroupsUsage", nil))
 	case "agents":
-		fmt.Println(cli.Render("agentsUsage", nil))
+		fmt.Print(cli.Render("agentsUsage", nil))
 	case "users":
-		fmt.Println(cli.Render("usersUsage", nil))
+		fmt.Print(cli.Render("usersUsage", nil))
 	case "user-groups":
-		fmt.Println(cli.Render("userGroupsUsage", nil))
+		fmt.Print(cli.Render("userGroupsUsage", nil))
 	case "target-groups":
-		fmt.Println(cli.Render("targetGroupsUsage", nil))
+		fmt.Print(cli.Render("targetGroupsUsage", nil))
 	case "export-vulns":
-		fmt.Println(cli.Render("ExportVulnsHelp", nil))
+		fmt.Print(cli.Render("ExportVulnsHelp", nil))
 	case "export-assets":
-		fmt.Println(cli.Render("exportAssetsUsage", nil))
+		fmt.Print(cli.Render("exportAssetsUsage", nil))
 	default:
 
 	}
