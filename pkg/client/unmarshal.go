@@ -30,8 +30,6 @@ func (u *Unmarshal) service() (s tenable.Service) {
 	}
 	s.Log = u.Config.Log
 
-	s.SetLogger(u.Config.Log)
-
 	return
 }
 
