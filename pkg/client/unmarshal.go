@@ -29,7 +29,7 @@ func (u *Unmarshal) service() (s tenable.Service) {
 		s.EnableCache(serviceCacheFolder, u.Config.VM.CacheKey)
 	}
 	s.Log = u.Config.Log
-	
+
 	return
 }
 

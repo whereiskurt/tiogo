@@ -1,27 +1,27 @@
 {{define "vmUsage" -}}
-'tio.go' is an interface into Tenable.IO API using Go.
+    'tio.go' is an interface into Tenable.IO API using Go.
 
-Find more information at:
+    Find more information at:
     https://github.com/whereiskurt/tiogo/
 
-Usage:
+    Usage:
     tio vm [SUBCOMMAND] [ACTION ...] [OPTIONS]
 
-Sub-commands:
+    Sub-commands:
     help, scanners, agents, agent-groups, scans, assets, export-assets, export-vulns, user, user-groups, target-groups
 
-VM Options:
+    VM Options:
     Selection modifiers:
     --id=[unique id]
     --name=[string]
     --regex=[regular expression]
     --jqex=[jq expression]
 
-Output Modes:
+    Output Modes:
     --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
     --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
-VM Actions and Examples:
+    VM Actions and Examples:
     $ tio vm help scanners
     $ tio vm help agents
     $ tio vm help agent-groups
@@ -33,160 +33,153 @@ VM Actions and Examples:
 {{/* This is a template comment. */}}
 
 {{define "ExportVulnsHelp" -}}
-Export Vulnerabilities:
+    Bulk Exports of Vulnerabilities
+    https://developer.tenable.com/reference#exports
 
-Bulk Exports of Vulnerabilities
-(https://cloud.tenable.com/api/#/resources/exports)
-
-   1) Use 'start' to begin extracting vulns - instructing Tenable.IO to start producing "chunk files" remotely
-   2) Use 'status' to poll/confirm the chunks files are 'FINISHED' being produced remotely
-   3) Use 'get' to retrieve 'FINISHED' chunk files locally
-      NOTE: Calling 'get' will fail if the status is not 'FINISHED'
-   4) Use 'query' to select specific vulns from download chunk files
-
-Usage:
+    Usage:
     tio vm export-vulns [ACTION ...] [OPTIONS]
 
-Action:
+    Action:
     start, status, get, query
 
-Export Vulns Options:
+    Export Vulns Options:
     Selection modifiers:
-        --uuid=[unique id]
-        --jqex=[jq expression]
-        --chunk=[chunk to get]
-        --critical, --high, --medium, --info  [severity to match for vulnerability]
-        --before=[YYYY-MM-DD], --after=[YYYY-MM-DD] [date boundaries]
-        --days=[number of days to bound query to]
+    --uuid=[unique id]
+    --jqex=[jq expression]
+    --chunk=[chunk to get, defaults: ALL]
+    --critical, --high, --medium, --info  [severity to match for vulnerability]
+    --before=[YYYY-MM-DD], --after=[YYYY-MM-DD] [date boundaries]
+    --days=[number of days to bound query to]
 
     Output Modes:
-        --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
     Examples:
-        $ tio vm export-vulns start
-        $ tio vm export-vulns start --after=2019-01-01
-        $ tio vm export-vulns start --after=2019-01-01 --critical
-        $ tio vm export-vulns start --after=2019-01-01 --before=2019-01-31
-        $ tio vm export-vulns start --before=2019-01-31 --days=31 --critical --high
-        $ tio vm export-vulns start --after=2019-01-01 --days=31
+    $ tio vm export-vulns start
+    $ tio vm export-vulns start --after=2019-01-01
+    $ tio vm export-vulns start --after=2019-01-01 --critical
+    $ tio vm export-vulns start --after=2019-01-01 --before=2019-01-31
+    $ tio vm export-vulns start --before=2019-01-31 --days=31 --critical --high
+    $ tio vm export-vulns start --after=2019-01-01 --days=31
 
-        $ tio vm export-vulns status
-        $ tio vm export-vulns get
-        $ tio vm export-vulns query
+    $ tio vm export-vulns status
+    $ tio vm export-vulns get
+    $ tio vm export-vulns query --jqex="[.asset.operating_system[0]]"
 {{end}}
 
 
 {{define "ExportVulnsStart" -}}
-Successfully started vulnerability export uuid='{{.ExportUUID}}'
+    Successfully started vulnerability export uuid='{{.ExportUUID}}'
 
-To review the 'status' for 'FINISHED' and then 'get' the export:
+    To review the 'status' for 'FINISHED' and then 'get' the export:
 
     Examples:
-        ## Check the status of the chunk file creation:
-        $ tio vm export-vulns status --uuid={{.ExportUUID}}
+    ## Check the status of the chunk file creation:
+    $ tio vm export-vulns status --uuid={{.ExportUUID}}
 
-        ## Retrieve all chunk files. NOTE: Fails unless status is 'FINISHED'
-        $ tio vm export-vulns get --uuid={{.ExportUUID}}
+    ## Retrieve all chunk files. NOTE: Fails unless status is 'FINISHED'
+    $ tio vm export-vulns get --uuid={{.ExportUUID}}
 
 {{- end}}
 
 {{define "ExportVulnsStatus" -}}
-Successfully requested status for uuid='{{.ExportUUID}}'.
+    Successfully requested status for uuid='{{.ExportUUID}}'.
 
-Once the current status='{{.Status}}' is 'FINISHED' you can download the exported vulnerabilities:
+    Once the current status='{{.Status}}' is 'FINISHED' you can download the exported vulnerabilities:
 
     Examples:
-        ## Retrieve all of the chunks. NOTE: Fails unless status is 'FINISHED'
-        $ tio vm export-vulns get --uuid={{.ExportUUID}}
+    ## Retrieve all of the chunks. NOTE: Fails unless status is 'FINISHED'
+    $ tio vm export-vulns get --uuid={{.ExportUUID}}
 
-        ## Retrieve FINISHED chunks 1,2,3. NOTE: Fails unless status is 'FINISHED'
-        $ tio vm export-vulns get --uuid={{.ExportUUID}} --chunk=1,2,3
+    ## Retrieve FINISHED chunks 1,2,3. NOTE: Fails unless status is 'FINISHED'
+    $ tio vm export-vulns get --uuid={{.ExportUUID}} --chunk=1,2,3
 {{- end}}
 
 {{define "ExportVulnsGet" -}}
-Successfully retrieved chunks='{{.Chunks}} for uuid='{{.ExportUUID}}'.
+    Successfully retrieved chunks='{{.Chunks}} for uuid='{{.ExportUUID}}'.
 
     Options modifiers:
-        --uuid=[unique id]
-        --jqex=[jq expression]
-        --chunk=[chunk to get]
+    --uuid=[unique id]
+    --jqex=[jq expression]
+    --chunk=[chunk to get]
 
-        --critical, --high, --medium, --info [severity to match for vulnerability]
-        --before,--after=[YYYY-MM-DD of date boundaries]
-        --days=[number of days to bound query to]
+    --critical, --high, --medium, --info [severity to match for vulnerability]
+    --before,--after=[YYYY-MM-DD of date boundaries]
+    --days=[number of days to bound query to]
 
     Examples:
-        ## Query
-        ##Output all of the contents of the chunks as JSON
-        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex=".[]"
+    ## Query
+    ##Output all of the contents of the chunks as JSON
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex=".[]"
 
-        ##Output all of the contents of the chunks as JSON
-        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex=".[]" --chunk=1,2
+    ##Output all of the contents of the chunks as JSON
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex=".[]" --chunk=1,2
 
-        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --medium --days=45
-        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --days=30
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --medium --days=45
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --days=30
 
-        ## These three examples all produce the same results -- 15 day time boxes
-        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --after 2019-01-01 --days=15
-        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --before 2019-01-15 --days=15
-        $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --after 2019-01-01 --before 2019-01-15
+    ## These three examples all produce the same results -- 15 day time boxes
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --after 2019-01-01 --days=15
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --before 2019-01-15 --days=15
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --after 2019-01-01 --before 2019-01-15
 
 {{- end}}
 
 
 {{define "scannersUsage" -}}
-Scanners conduct network based scanning and report results back to Tenable.IO.
-(https://cloud.tenable.com/api/#/resources/scanners)
+    Scanners conduct network based scanning and report results back to Tenable.IO.
+    (https://cloud.tenable.com/api/#/resources/scanners)
 
-Usage:
+    Usage:
     tio vm scanners [ACTION ...] [OPTIONS]
 
-Action:
-      list
+    Action:
+    list
 
-Scanners Options:
+    Scanners Options:
     Selection modifiers:
-        --id=[unique id]
-        --name=[string]
-        --regex=[regular expression]
-        --jqex=[jq expression]
+    --id=[unique id]
+    --name=[string]
+    --regex=[regular expression]
+    --jqex=[jq expression]
 
     Output Modes:
-        --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
-        --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+    --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
-Examples:
-        $ tio scanners
-        $ tio vm scanners
-        $ tio vm scanners list
-        $ tio vm scanners list --csv
-        $ tio vm scanners list --json
-        $ tio vm scanners list --regex '.*PROD[0-9][0-9]?.*'
+    Examples:
+    $ tio scanners
+    $ tio vm scanners
+    $ tio vm scanners list
+    $ tio vm scanners list --csv
+    $ tio vm scanners list --json
+    $ tio vm scanners list --regex '.*PROD[0-9][0-9]?.*'
 {{end}}
 
 {{define "agentsUsage" -}}
-Agents:
-    Agents are installed machines that execute hosts based scans and report back to Tenable.IO.
-    https://cloud.tenable.com/api/#/resources/agents)
+    Agents:
 
-Usage:
+    Agents are software installed on hosts that execute local host scans and report back to Tenable.io
+    https://developer.tenable.com/reference#agents
+
+    Usage:
     tio vm agents [ACTION ...] [OPTIONS]
 
-Action:
-      list, group, ungroup
+    Action:
+    list, group, ungroup
 
-Agents Options:
+    Agents Options:
     Selection modifiers:
-        --id=[unique id]
-        --name=[string]
-        --regex=[regular expression]
-        --jqex=[jq expression]
+    --id=[unique id]
+    --name=[string]
+    --regex=[regular expression]
+    --jqex=[jq expression]
 
     Output Modes:
-        --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
-        --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+    --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
-Examples:
+    Examples:
     $ tio agents
     $ tio agents list --without-group
     $ tio agents list --group "New Group Name"
@@ -194,31 +187,30 @@ Examples:
     ## Group and Ungroup Agents into Agent Groups
     $ tio agents group --group "New Group Name" --regex "10\.0\.2\"
     $ tio agents ungroup --group "New Group Name"
-
 {{end}}
 {{define "agentGroupsUsage" -}}
-Agent Groups:
+    Agent Groups:
     Agents are put into Groups and used for the purposes of Agent Scans.
     (https://cloud.tenable.com/api/#/resources/agent-groups)
 
-Usage:
+    Usage:
     tio vm agent-groups [ACTION ...] [OPTIONS]
 
-Action:
-      list, create, delete, sync
+    Action:
+    list, create, delete, sync
 
-Agents Options:
+    Agents Options:
     Selection modifiers:
-        --id=[unique id]
-        --name=[string]
-        --regex=[regular expression]
-        --jqex=[jq expression]
+    --id=[unique id]
+    --name=[string]
+    --regex=[regular expression]
+    --jqex=[jq expression]
 
     Output Modes:
-        --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
-        --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+    --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
-Examples:
+    Examples:
     $ tio vm agent-groups list
     $ tio agent-groups
 
@@ -232,17 +224,17 @@ Examples:
 {{end}}
 
 {{define "scansUsage" -}}
-Scans:
+    Scans:
     Network Scans are executed against Target Groups and Agent Scans against Agent Groups
     (https://cloud.tenable.com/api/#/resources/scans)
 
-Usage:
+    Usage:
     tio vm scans [ACTION ...] [OPTIONS]
 
-Action:
+    Action:
     list, reschedule
 
-Agents Options:
+    Agents Options:
     Selection modifiers:
     --id=[unique id]
     --name=[string]
@@ -261,16 +253,16 @@ Agents Options:
 
 {{end}}
 {{define "assetsUsage" -}}
-Assets:
+    Assets:
     (https://cloud.tenable.com/api/#/resources/assets)
 
-Usage:
+    Usage:
     tio vm assets [ACTION ...] [OPTIONS]
 
-Action:
+    Action:
     list, tag, untag
 
-Assets Options:
+    Assets Options:
     Selection modifiers:
     --id=[unique id]
     --name=[string]
@@ -291,27 +283,27 @@ Assets Options:
 {{end}}
 
 {{define "exportAssetsUsage" -}}
-Export Assets:
+    Export Assets:
     Bulk Exports of Assets
     (https://cloud.tenable.com/api/#/resources/exports)
 
-Usage:
+    Usage:
     tio vm export-assets [ACTION ...] [OPTIONS]
 
-Action:
+    Action:
 
-Export Assets Options:
+    Export Assets Options:
     Selection modifiers:
     --id=[unique id]
     --name=[string]
     --regex=[regular expression]
     --jqex=[jq expression]
 
-Output Modes:
+    Output Modes:
     --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
     --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
-Examples:
+    Examples:
     $ tio vm export-assets
     $ tio vm export-assets --convert-to-cache
 
@@ -319,16 +311,16 @@ Examples:
 {{end}}
 
 {{define "usersUsage" -}}
-Users:
+    Users:
     Tenable.io portal user management.
     (https://cloud.tenable.com/api/#/resources/exports)
 
-Usage:
+    Usage:
     tio vm users [ACTION ...] [OPTIONS]
 
-Action:
+    Action:
     list, create, delete
-Assets Options:
+    Assets Options:
     Selection modifiers:
     --id=[unique id]
     --name=[string]
@@ -340,23 +332,23 @@ Assets Options:
     --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
     --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
-Examples:
+    Examples:
     $ tio vm user list
     $ tio vm user create --name "Real Name" --email "reaname@domain.tld"
-    $ tio vm user delete --email "reaname@domain.tld"
+    $ tio vm user delete --name "User Group #X"
 
 {{end}}
 {{define "userGroupsUsage" -}}
-User Groups:
+    User Groups:
     Tenable.io portal user management.
     (https://cloud.tenable.com/api/#/resources/exports)
 
-Usage:
+    Usage:
     tio vm user-groups [ACTION ...] [OPTIONS]
 
-Action:
+    Action:
     list, create, delete
-Assets Options:
+    Assets Options:
     Selection modifiers:
     --id=[unique id]
     --name=[string]
@@ -367,7 +359,7 @@ Assets Options:
     --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
     --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
-Examples:
+    Examples:
 
     $ tio vm user-groups list
     $ tio vm user-groups create --name "User Group #X"
@@ -375,28 +367,28 @@ Examples:
 {{end}}
 
 {{define "targetGroupsUsage" -}}
-Target Groups:
+    Target Groups:
     Target Groups are used in reports and dash boards in Tenable.IO.
     (https://cloud.tenable.com/api/)
 
-Usage:
+    Usage:
     tio vm target-groups [ACTION ...] [OPTIONS]
 
-Action:
+    Action:
     list, create, delete, append, remove, set
 
-Target Groups Options:
+    Target Groups Options:
     Selection modifiers:
     --id=[unique id]
     --name=[string]
     --regex=[regular expression]
     --jqex=[jq expression]
 
-Output Modes:
+    Output Modes:
     --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
     --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
-Examples:
+    Examples:
     $ tio vm target-groups list
     $ tio vm target-groups create --name "DEV Network #X" --members="10.1.0.0/16, 10.2.0.0/16"
     $ tio vm target-groups set --name "DEV Network #X" --members="10.1.0.0/16, 10.2.0.0/16"
