@@ -33,12 +33,17 @@ func (u *Unmarshal) service() (s tenable.Service) {
 	return
 }
 
+func (u *Unmarshal) Scanners() ([]byte, error) {
+	s := u.service()
+	raw, err := s.ScannersList()
+	return raw, err
+}
+
 func (u *Unmarshal) VulnsExportStart() ([]byte, error) {
 	s := u.service()
 	raw, err := s.VulnsExportStart()
 	return raw, err
 }
-
 func (u *Unmarshal) VulnsExportStatus(uuid string) ([]byte, error) {
 	s := u.service()
 	raw, err := s.VulnsExportStatus(uuid)

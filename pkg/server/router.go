@@ -33,8 +33,14 @@ func (s *Server) EnableDefaultRouter() {
 					})
 				})
 			})
-
 		})
-	})
 
+		r.Route("/scanners", func(r chi.Router) {
+			r.Get("/", s.ScannersList)
+			r.Route("/{ScannerUUID}", func(r chi.Router) {
+				r.Get("/agents", s.AgentsList)
+			})
+		})
+
+	})
 }

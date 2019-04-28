@@ -33,16 +33,16 @@
 {{/* This is a template comment. */}}
 
 {{define "ExportVulnsHelp" -}}
-    Bulk Exports of Vulnerabilities
-    https://developer.tenable.com/reference#exports
+Bulk Exports of Vulnerabilities
+https://developer.tenable.com/reference#exports
 
-    Usage:
+Usage:
     tio vm export-vulns [ACTION ...] [OPTIONS]
 
-    Action:
+Action:
     start, status, get, query
 
-    Export Vulns Options:
+Export Vulns Options:
     Selection modifiers:
     --uuid=[unique id]
     --jqex=[jq expression]
@@ -51,10 +51,10 @@
     --before=[YYYY-MM-DD], --after=[YYYY-MM-DD] [date boundaries]
     --days=[number of days to bound query to]
 
-    Output Modes:
+Output Modes:
     --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
-    Examples:
+Examples:
     $ tio vm export-vulns start
     $ tio vm export-vulns start --after=2019-01-01
     $ tio vm export-vulns start --after=2019-01-01 --critical
@@ -69,11 +69,11 @@
 
 
 {{define "ExportVulnsStart" -}}
-    Successfully started vulnerability export uuid='{{.ExportUUID}}'
+Successfully started vulnerability export uuid='{{.ExportUUID}}'
 
-    To review the 'status' for 'FINISHED' and then 'get' the export:
+To review the 'status' for 'FINISHED' and then 'get' the export:
 
-    Examples:
+Examples:
     ## Check the status of the chunk file creation:
     $ tio vm export-vulns status --uuid={{.ExportUUID}}
 
@@ -83,11 +83,11 @@
 {{- end}}
 
 {{define "ExportVulnsStatus" -}}
-    Successfully requested status for uuid='{{.ExportUUID}}'.
+Successfully requested status for uuid='{{.ExportUUID}}'.
 
-    Once the current status='{{.Status}}' is 'FINISHED' you can download the exported vulnerabilities:
+Once the current of '{{.Status}}' becomes 'FINISHED' you can get the exported vulnerabilities:
 
-    Examples:
+Examples:
     ## Retrieve all of the chunks. NOTE: Fails unless status is 'FINISHED'
     $ tio vm export-vulns get --uuid={{.ExportUUID}}
 
@@ -96,9 +96,9 @@
 {{- end}}
 
 {{define "ExportVulnsGet" -}}
-    Successfully retrieved chunks='{{.Chunks}} for uuid='{{.ExportUUID}}'.
+Successfully retrieved chunks='{{.Chunks}} for uuid='{{.ExportUUID}}'.
 
-    Options modifiers:
+Options modifiers:
     --uuid=[unique id]
     --jqex=[jq expression]
     --chunk=[chunk to get]
@@ -107,7 +107,7 @@
     --before,--after=[YYYY-MM-DD of date boundaries]
     --days=[number of days to bound query to]
 
-    Examples:
+Examples:
     ## Query
     ##Output all of the contents of the chunks as JSON
     $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex=".[]"
@@ -127,27 +127,27 @@
 
 
 {{define "scannersUsage" -}}
-    Scanners conduct network based scanning and report results back to Tenable.IO.
-    (https://cloud.tenable.com/api/#/resources/scanners)
+Scanners conduct network based scanning and report results back to Tenable.IO.
+https://developer.tenable.com/reference#scanners
 
-    Usage:
+Usage:
     tio vm scanners [ACTION ...] [OPTIONS]
 
-    Action:
+Action:
     list
 
-    Scanners Options:
+Scanners Options:
     Selection modifiers:
     --id=[unique id]
     --name=[string]
     --regex=[regular expression]
     --jqex=[jq expression]
 
-    Output Modes:
+Output Modes:
     --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
     --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
-    Examples:
+Examples:
     $ tio scanners
     $ tio vm scanners
     $ tio vm scanners list

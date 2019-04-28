@@ -47,6 +47,30 @@ func NewAdapter(config *config.Config, metrics *metrics.Metrics) (a *Adapter) {
 	return
 }
 
+func (a *Adapter) Scanners() ([]Scanner, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Get)
+
+	u := NewUnmarshal(a.Config, a.Metrics)
+	var scanners []Scanner
+	raw, err := u.Scanners()
+	if err != nil {
+		a.Config.Log.Errorf("error: failed to get the scanners list: %v", err)
+		return scanners, err
+	}
+
+	convert := NewConvert()
+	scanners, err = convert.ToScanners(raw)
+
+	return scanners, err
+}
+
+func (a *Adapter) Agents() ([]ScannerAgent, error) {
+	return nil, nil
+}
+func (a *Adapter) AgentGroups() ([]ScannerAgentGroup, error) {
+	return nil, nil
+}
+
 func (a *Adapter) ExportVulnsStart() (string, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStart, metrics.Methods.Service.Update)
 

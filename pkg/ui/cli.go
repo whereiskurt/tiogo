@@ -53,6 +53,8 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 	// TODO: Replace this with an 'index' concept - needs to be generated. vfsgen types/methods not visible.
 	var templateFiles []string
 	templateFiles = append(templateFiles, "template/client/table.tmpl")
+	templateFiles = append(templateFiles, "template/client/csv.tmpl")
+
 	templateFiles = append(templateFiles, "template/cmd/tiogo.tmpl")
 	templateFiles = append(templateFiles, "template/cmd/vm/vm.tmpl")
 

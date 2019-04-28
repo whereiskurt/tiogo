@@ -1,0 +1,6 @@
+{{define "ScannersListCSV" }}
+{{ printf "Name,Type,ID,UUID\n" }}
+{{- range $k, $v := .Scanners -}}
+    {{ printf "\"%s\",\"%s\",\"%s\",%s,%s\n" .Name .Status .Type .ID .UUID }}
+{{- end -}}
+{{end}}

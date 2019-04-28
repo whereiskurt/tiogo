@@ -3,8 +3,8 @@ package metrics
 type EndPointType string
 
 var EndPoints = endPointTypes{
-	Scanners:          EndPointType("Scanners"),
-	Agents:            EndPointType("Agents"),
+	ScannersList:          EndPointType("ScannersList"),
+	AgentsList:            EndPointType("AgentsList"),
 	AgentGroups:       EndPointType("AgentGroups"),
 	VulnsExportStart:  EndPointType("VulnsExportStart"),
 	VulnsExportStatus: EndPointType("VulnsExportStatus"),
@@ -13,8 +13,8 @@ var EndPoints = endPointTypes{
 }
 
 type endPointTypes struct {
-	Scanners          EndPointType
-	Agents            EndPointType
+	ScannersList          EndPointType
+	AgentsList            EndPointType
 	AgentGroups       EndPointType
 	VulnsExportStart  EndPointType
 	VulnsExportStatus EndPointType

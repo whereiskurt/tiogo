@@ -1,6 +1,7 @@
 package tenable
 
 import (
+	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/whereiskurt/tiogo/pkg/cache"
@@ -11,21 +12,34 @@ import (
 )
 
 var EndPoints = endPointTypes{
-	Scanners:          EndPointType("Scanners"),
 	VulnsExportStart:  EndPointType("VulnsExportStart"),
 	VulnsExportStatus: EndPointType("VulnsExportStatus"),
 	VulnsExportGet:    EndPointType("VulnsExportGet"),
+	ScannersList:    EndPointType("ScannersList"),
+	AgentsList:    EndPointType("AgentsList"),
+
 }
 
 type endPointTypes struct {
-	Scanners          EndPointType
 	VulnsExportStart  EndPointType
 	VulnsExportStatus EndPointType
 	VulnsExportGet    EndPointType
+	ScannersList			 EndPointType
+	AgentsList				 EndPointType
+
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
 var ServiceMap = map[EndPointType]ServiceTransport{
+
+	EndPoints.ScannersList: {
+		URL:           "/scanners",
+		CacheFilename: "/scanners.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
+		},
+	},
+
 	EndPoints.VulnsExportStart: {
 		URL:           "/vulns/export",
 		CacheFilename: "/export/vulns/request.json",
@@ -52,7 +66,7 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 			HTTP.Get: {},
 		},
 	},
-	EndPoints.Scanners: {
+	EndPoints.ScannersList: {
 		URL:           "/scanners",
 		CacheFilename: "/scanners.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
@@ -122,6 +136,32 @@ func ToCacheFilename(name EndPointType, p map[string]string) (string, error) {
 	return toTemplate(name, p, sMap.CacheFilename)
 }
 
+
+func (s *Service) ScannersList() ([]byte, error) {
+	var raw []byte
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.get(EndPoints.ScannersList, nil)
+		if err != nil {
+			s.Log.Infof("failed to scanners list: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
+		return false, nil
+	})
+
+	return raw, err
+}
+
+
 func (s *Service) VulnsExportStatus(exportUUID string) ([]byte, error) {
 	var raw []byte
 
@@ -141,6 +181,7 @@ func (s *Service) VulnsExportStatus(exportUUID string) ([]byte, error) {
 
 	return raw, err
 }
+
 func (s *Service) VulnsExportStart() ([]byte, error) {
 	var raw []byte
 
