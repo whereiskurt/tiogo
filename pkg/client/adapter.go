@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -64,11 +65,95 @@ func (a *Adapter) Scanners() ([]Scanner, error) {
 	return scanners, err
 }
 
+var MagicAgentScanner = "00000000-0000-0000-0000-00000000000000000000000000001"
+
 func (a *Adapter) Agents() ([]ScannerAgent, error) {
-	return nil, nil
+	a.Metrics.ClientInc(metrics.EndPoints.AgentsList, metrics.Methods.Service.Get)
+
+	scanners, err := a.Scanners()
+	if err != nil {
+		a.Config.Log.Errorf("error: failed to get the scanners list for agents list: %v", err)
+		return nil, err
+	}
+
+	u := NewUnmarshal(a.Config, a.Metrics)
+	convert := NewConvert()
+
+	var agents []ScannerAgent
+
+	limit := 5000
+	for i := range scanners {
+		if scanners[i].UUID != MagicAgentScanner {
+			continue
+		}
+
+		// Using the MagicalScanner ;-)
+		totalAgents, err := strconv.Atoi(scanners[i].License.AgentsUsed)
+		if err != nil {
+			log.Fatalf("error: invalid agents_used:%s:%s", scanners[i].License.AgentsUsed,err)
+		}
+
+		offset, loops := 0, 0
+		for {
+			// The API doc says to use ID but in practice WebGUI uses UUID...
+			// NOTE: ANY VALUE WILL WORK!!! LITERALLY!
+			uuid := scanners[i].ID
+
+			raw, err := u.Agents(uuid, fmt.Sprintf("%d", offset), fmt.Sprintf("%d", limit))
+			if err != nil {
+				a.Config.Log.Errorf("error: failed to get the agents: uuid: %s: %v", uuid, err)
+			}
+
+			agents, err := convert.ToAgents(raw)
+			if err != nil {
+				a.Config.Log.Errorf("error: failed to convert agents: uuid: %s: %v", uuid, err)
+			}
+
+			scanners[i].Agents = append(scanners[i].Agents, agents...)
+
+			if limit * (loops + 1) >= totalAgents { break }
+
+			loops = loops + 1
+			offset = loops * limit
+		}
+		agents = scanners[i].Agents
+		break
+	}
+
+	return agents, err
 }
-func (a *Adapter) AgentGroups() ([]ScannerAgentGroup, error) {
-	return nil, nil
+
+func (a *Adapter) AgentGroups() ([]AgentGroup, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.AgentGroups, metrics.Methods.Service.Get)
+	u := NewUnmarshal(a.Config, a.Metrics)
+
+	scanners, err := a.Scanners()
+	if err != nil {
+		a.Config.Log.Errorf("error: failed to get the agent scanners list : %v", err)
+		return nil, err
+	}
+
+	var agentGroups []AgentGroup
+	for i := range scanners {
+		if scanners[i].UUID != MagicAgentScanner {
+			continue
+		}
+
+		id := scanners[i].ID
+		raw, err := u.AgentGroups(id)
+
+		if err != nil {
+			a.Config.Log.Errorf("error: failed to get the scanners agent groups: %v", err)
+			return agentGroups, err
+		}
+
+		convert := NewConvert()
+		agentGroups, err = convert.ToAgentGroups(raw)
+
+		break
+	}
+
+	return agentGroups, err
 }
 
 func (a *Adapter) ExportVulnsStart() (string, error) {

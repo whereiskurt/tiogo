@@ -59,6 +59,16 @@ func ExportUUID(r *http.Request) string {
 	return ContextMap(r)["ExportUUID"]
 }
 
+func ScannerUUID(r *http.Request) string {
+	return ContextMap(r)["ScannerUUID"]
+}
+func Offset(r *http.Request) string {
+	return ContextMap(r)["Offset"]
+}
+func Limit(r *http.Request) string {
+	return ContextMap(r)["Limit"]
+}
+
 // CHunkID ...
 func ChunkID(r *http.Request) string {
 	return ContextMap(r)["ChunkID"]
@@ -77,6 +87,25 @@ func ExportChunkCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
 		ctxMap["ChunkID"] = chi.URLParam(r, "ChunkID")
+		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func ScannersCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
+		ctxMap["ScannerUUID"] = chi.URLParam(r, "ScannerUUID")
+		ctxMap["Offset"] = r.URL.Query().Get("offset")
+		ctxMap["Limit"] = r.URL.Query().Get("limit")
+
+		if ctxMap["Offset"] == "" {
+			ctxMap["Offset"] = "0"
+		}
+		if ctxMap["Limit"] == "" {
+			ctxMap["Limit"] = "5000"
+		}
+
 		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

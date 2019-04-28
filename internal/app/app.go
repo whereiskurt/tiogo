@@ -91,6 +91,14 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	_ = makeCommand("list", vmApp.ScannersList, sListCmd)
 	_ = makeCommand("help", vmApp.ScannersHelp, sListCmd)
 
+
+	aListCmd := makeCommand("agents", vmApp.AgentsList, vmCmd)
+	_ = makeCommand("list", vmApp.AgentsList, aListCmd)
+
+	aGroupsCmd := makeCommand("agent-groups", vmApp.AgentGroupsList, vmCmd)
+	_ = makeCommand("list", vmApp.AgentGroupsList, aGroupsCmd)
+
+
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
 

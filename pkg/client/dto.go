@@ -28,7 +28,7 @@ type ScanHistoryDetail struct {
 	HistoryID           string
 	PolicyName          string
 	Targets             string
-	AgentGroup          []ScannerAgentGroup
+	AgentGroup          []AgentGroup
 	ScannerName         string
 	Owner               string
 	HistoryIndex        string
@@ -276,10 +276,12 @@ type Scanner struct {
 	Agents           []ScannerAgent
 }
 type ScannerLicense struct {
-	Type     string
-	IPS      string
-	Agents   string
-	Scanners string
+	Type         string
+	IPS          string
+	Agents       string
+	Scanners     string
+	AgentsUsed   string
+	ScannersUsed string
 }
 type ScannerAgent struct {
 	ID          string
@@ -295,13 +297,14 @@ type ScannerAgent struct {
 	CoreBuild   string
 	CoreVersion string
 	Status      string
-	Groups      map[string]ScannerAgentGroup
+	Groups      map[string]AgentGroup
 }
-type ScannerAgentGroup struct {
-	ID     string
-	Name   string
-	UUID   string
-	Agents []ScannerAgent
+type AgentGroup struct {
+	ID          string
+	Name        string
+	UUID        string
+	AgentsCount string
+	Agents      []ScannerAgent
 }
 
 type AssetExportStatus struct {

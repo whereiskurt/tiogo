@@ -33,9 +33,21 @@ func (u *Unmarshal) service() (s tenable.Service) {
 	return
 }
 
+func (u *Unmarshal) AgentGroups(uuid string) ([]byte, error) {
+	s := u.service()
+	raw, err := s.ScannerAgentGroups(uuid)
+	return raw, err
+}
+
 func (u *Unmarshal) Scanners() ([]byte, error) {
 	s := u.service()
 	raw, err := s.ScannersList()
+	return raw, err
+}
+
+func (u *Unmarshal) Agents(uuid string, offset string, limit string) ([]byte, error) {
+	s := u.service()
+	raw, err := s.AgentList(uuid,offset, limit)
 	return raw, err
 }
 

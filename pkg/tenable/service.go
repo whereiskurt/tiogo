@@ -12,25 +12,41 @@ import (
 )
 
 var EndPoints = endPointTypes{
-	VulnsExportStart:  EndPointType("VulnsExportStart"),
-	VulnsExportStatus: EndPointType("VulnsExportStatus"),
-	VulnsExportGet:    EndPointType("VulnsExportGet"),
-	ScannersList:    EndPointType("ScannersList"),
-	AgentsList:    EndPointType("AgentsList"),
-
+	VulnsExportStart:   EndPointType("VulnsExportStart"),
+	VulnsExportStatus:  EndPointType("VulnsExportStatus"),
+	VulnsExportGet:     EndPointType("VulnsExportGet"),
+	ScannersList:       EndPointType("ScannersList"),
+	AgentsList:         EndPointType("AgentsList"),
+	ScannerAgentGroups: EndPointType("ScannerAgentGroups"),
 }
 
 type endPointTypes struct {
-	VulnsExportStart  EndPointType
-	VulnsExportStatus EndPointType
-	VulnsExportGet    EndPointType
-	ScannersList			 EndPointType
-	AgentsList				 EndPointType
-
+	VulnsExportStart   EndPointType
+	VulnsExportStatus  EndPointType
+	VulnsExportGet     EndPointType
+	ScannersList       EndPointType
+	AgentsList         EndPointType
+	ScannerAgentGroups EndPointType
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
 var ServiceMap = map[EndPointType]ServiceTransport{
+
+	EndPoints.ScannerAgentGroups: {
+		URL:           "/scanners/{{.ScannerUUID}}/agent-groups",
+		CacheFilename: "/scanners/{{.ScannerUUID}}/agent.groups.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
+		},
+	},
+
+	EndPoints.AgentsList: {
+		URL:           "/scanners/{{.ScannerUUID}}/agents?offset={{.Offset}}&limit={{.Limit}}",
+		CacheFilename: "/scanners/{{.ScannerUUID}}/agents.{{.Offset}}.{{.Limit}}.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
+		},
+	},
 
 	EndPoints.ScannersList: {
 		URL:           "/scanners",
@@ -136,7 +152,53 @@ func ToCacheFilename(name EndPointType, p map[string]string) (string, error) {
 	return toTemplate(name, p, sMap.CacheFilename)
 }
 
+func (s *Service) AgentList(uuid string, offset string, limit string) ([]byte, error) {
+	var raw []byte
 
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.get(EndPoints.AgentsList, map[string]string{"ScannerUUID": uuid, "Offset": offset, "Limit": limit})
+		if err != nil {
+			s.Log.Infof("failed to agent list: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
+		return false, nil
+	})
+
+	return raw, err
+}
+
+func (s *Service) ScannerAgentGroups(uuid string) ([]byte, error) {
+	var raw []byte
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.get(EndPoints.ScannerAgentGroups, map[string]string{"ScannerUUID": uuid})
+		if err != nil {
+			s.Log.Infof("failed to agent groups list: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
+		return false, nil
+	})
+
+	return raw, err
+}
 func (s *Service) ScannersList() ([]byte, error) {
 	var raw []byte
 
@@ -160,7 +222,6 @@ func (s *Service) ScannersList() ([]byte, error) {
 
 	return raw, err
 }
-
 
 func (s *Service) VulnsExportStatus(exportUUID string) ([]byte, error) {
 	var raw []byte

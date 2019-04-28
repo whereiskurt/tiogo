@@ -4,3 +4,32 @@
     {{ printf "\"%s\",\"%s\",\"%s\",%s,%s\n" .Name .Status .Type .ID .UUID }}
 {{- end -}}
 {{end}}
+
+{{define "AgentGroupsListCSV" }}
+{{ printf "ID,Name,AgentsCount\n" }}
+{{- range $k, $v := .AgentGroups -}}
+    {{ printf "%s,\"%s\",%s\n" .ID .Name .AgentsCount }}
+{{- end -}}
+{{end}}
+
+{{define "AgentsListCSV"}}
+Name,IP1,IP2,IP3,IP4,IP,LastScan,LastConnect,{{AgentGroupsHeader .AgentGroups}},Feed,UUID
+{{ $groups := .AgentGroups -}}
+{{- range $k, $v := .Agents -}}
+    {{$v.Name}},{{template "IPSegments" $v.IP }},"{{$v.LastScanned}}","{{$v.LastConnect}}",{{CSVString (GroupMembership $groups $v.Groups)}},{{$v.Feed}},{{$v.UUID}}
+{{end}}
+{{end}}
+
+
+{{define "IPSegments" -}}
+{{- if Contains . "." -}}
+{{- $ip:= StringsSplit . "."}}
+{{- $ip1:=index $ip 0 -}}
+{{- $ip2:=index $ip 1 -}}
+{{- $ip3:=index $ip 2 -}}
+{{- $ip4:=index $ip 3 -}}
+{{$ip1}},{{$ip2}},{{$ip3}},{{$ip4}},{{ . }}
+{{- else -}}
+,,,,{{.}}
+{{- end}}
+{{- end}}

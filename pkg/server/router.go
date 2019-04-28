@@ -38,7 +38,10 @@ func (s *Server) EnableDefaultRouter() {
 		r.Route("/scanners", func(r chi.Router) {
 			r.Get("/", s.ScannersList)
 			r.Route("/{ScannerUUID}", func(r chi.Router) {
+				r.Use(middleware.ScannersCtx)
 				r.Get("/agents", s.AgentsList)
+				r.Get("/agent-groups", s.AgentGroups)
+
 			})
 		})
 

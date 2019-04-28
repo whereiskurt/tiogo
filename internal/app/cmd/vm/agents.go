@@ -20,11 +20,17 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	agentGroups, err := a.AgentGroups()
+	if err != nil {
+		log.Errorf("error: couldn't agent groups list: %v", err)
+		return
+	}
+
 	// Outputs
 	if a.Config.VM.OutputJSON {
 	}
 	if a.Config.VM.OutputCSV || !a.Config.VM.OutputJSON {
-		fmt.Println(cli.Render("AgentsListCSV", map[string]interface{}{"Agents": agents}))
+		fmt.Println(cli.Render("AgentsListCSV", map[string]interface{}{"Agents": agents, "AgentGroups": agentGroups}))
 	}
 
 	return

@@ -110,7 +110,6 @@ func (s *Server) VulnsExportGet(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
 func (s *Server) ScannersList(w http.ResponseWriter, r *http.Request) {
 	endPoint := tenable.EndPoints.ScannersList
 	metricType := metrics.EndPoints.ScannersList
@@ -140,6 +139,37 @@ func (s *Server) ScannersList(w http.ResponseWriter, r *http.Request) {
 
 	return
 }
+func (s *Server) AgentGroups(w http.ResponseWriter, r *http.Request) {
+	endPoint := tenable.EndPoints.ScannerAgentGroups
+	metricType := metrics.EndPoints.AgentGroups
+
+	s.Metrics.ServerInc(metricType, metrics.Methods.Service.Get)
+
+	// Check for a cache hit! :- )
+	bb, err := s.cacheFetch(r, endPoint, metricType)
+	if err == nil && len(bb) > 0 {
+		_, _ = w.Write(bb)
+		return
+	}
+
+	// Take the AccessKeys and SecretKeys from context
+	ak := middleware.AccessKey(r)
+	sk := middleware.SecretKey(r)
+
+	t := tenable.NewService(s.ServiceBaseURL, sk, ak)
+
+	scanner := middleware.ScannerUUID(r)
+
+	json, err := t.ScannerAgentGroups(scanner)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	}
+
+	s.cacheStore(w, r, json, endPoint, metricType)
+	_, _ = w.Write(json)
+
+	return
+}
 func (s *Server) AgentsList(w http.ResponseWriter, r *http.Request) {
 	endPoint := tenable.EndPoints.AgentsList
 	metricType := metrics.EndPoints.AgentsList
@@ -159,7 +189,11 @@ func (s *Server) AgentsList(w http.ResponseWriter, r *http.Request) {
 
 	t := tenable.NewService(s.ServiceBaseURL, sk, ak)
 
-	json, err := t.ScannersList()
+	scanner := middleware.ScannerUUID(r)
+	offset := middleware.Offset(r)
+	limit := middleware.Limit(r)
+
+	json, err := t.AgentList(scanner, offset, limit)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
