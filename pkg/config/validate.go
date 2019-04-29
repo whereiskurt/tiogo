@@ -63,6 +63,8 @@ func (c *Config) validateChunks() {
 
 }
 
+var DateLayout = "2006-01-_2 15:04:05 -0700 MST"
+
 func (c *Config) validateDateBounds() {
 	now := time.Now()
 
@@ -79,8 +81,8 @@ func (c *Config) validateDateBounds() {
 		if c.VM.Days == "" {
 			days = 365
 		}
-		c.VM.BeforeDate = now.Format("2006-01-02")
-		c.VM.AfterDate = now.AddDate(0, 0, -1*days).Format("2006-01-02")
+		c.VM.BeforeDate = now.Format(DateLayout)
+		c.VM.AfterDate = now.AddDate(0, 0, -1*days).Format(DateLayout)
 		return
 	}
 
@@ -95,11 +97,11 @@ func (c *Config) validateDateBounds() {
 		if c.VM.Days != "" {
 			log.Fatalf("Must set --days with --before ")
 		}
-		after, err := time.Parse("2006-01-02", c.VM.AfterDate)
+		after, err := time.Parse(DateLayout, c.VM.AfterDate)
 		if err != nil {
 			log.Fatalf("error: invalid after date: %s: %s", after, err)
 		}
-		c.VM.BeforeDate = after.AddDate(0, 0, 1*days).Format("2006-01-02")
+		c.VM.BeforeDate = after.AddDate(0, 0, 1*days).Format(DateLayout)
 		return
 	}
 
@@ -108,11 +110,11 @@ func (c *Config) validateDateBounds() {
 		if c.VM.Days != "" {
 			log.Fatalf("Must set --days with --after")
 		}
-		before, err := time.Parse("2006-01-02", c.VM.BeforeDate)
+		before, err := time.Parse(DateLayout, c.VM.BeforeDate)
 		if err != nil {
 			log.Fatalf("error: invalid before date: %s: %s", before, err)
 		}
-		c.VM.AfterDate = before.AddDate(0, 0, -1*days).Format("2006-01-02")
+		c.VM.AfterDate = before.AddDate(0, 0, -1*days).Format(DateLayout)
 		return
 	}
 

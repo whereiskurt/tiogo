@@ -1,10 +1,12 @@
 package client
 
 import (
+	"fmt"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"github.com/whereiskurt/tiogo/pkg/tenable"
 	"path/filepath"
+	"time"
 )
 
 // Unmarshal holds the config - needed for Service.... TODO: Remove config and take Service
@@ -53,12 +55,25 @@ func (u *Unmarshal) Agents(uuid string, offset string, limit string) ([]byte, er
 
 func (u *Unmarshal) VulnsExportStart() ([]byte, error) {
 	s := u.service()
-	raw, err := s.VulnsExportStart()
+
+	// Convert Human dates into Unix()
+	since := u.Config.VM.AfterDate
+	tt, err := time.Parse(config.DateLayout, since)
+	if err != nil {
+		s.Log.Error("failed to export-vulns start: invalid since value: %s: %s", since, err)
+		return nil, err
+	}
+	sinceUnix := fmt.Sprintf("%d", tt.Unix())
+
+
+
+	raw, err := s.VulnsExportStart(sinceUnix)
+
 	return raw, err
 }
-func (u *Unmarshal) VulnsExportStatus(uuid string) ([]byte, error) {
+func (u *Unmarshal) VulnsExportStatus(uuid string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
 	s := u.service()
-	raw, err := s.VulnsExportStatus(uuid)
+	raw, err := s.VulnsExportStatus(uuid, skipOnHit, writeOnReturn )
 	return raw, err
 }
 func (u *Unmarshal) VulnsExportGet(uuid string, chunk string) ([]byte, error) {

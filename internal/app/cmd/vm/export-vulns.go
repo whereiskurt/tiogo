@@ -7,11 +7,14 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
 	"github.com/whereiskurt/tiogo/pkg/ui"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
 func (vm *VM) ExportVulnsStart(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
+	since := vm.Config.VM.AfterDate
 
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 
@@ -21,10 +24,17 @@ func (vm *VM) ExportVulnsStart(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	log.Infof("successfully started export-vulns: %s", uuid)
+	log.Infof("successfully started export-vulns: %s with since date '%s' ", uuid, since)
 
 	cli := ui.NewCLI(vm.Config)
-	fmt.Println(cli.Render("ExportVulnsStart", map[string]string{"ExportUUID": uuid}))
+	fmt.Println(cli.Render("ExportVulnsStart", map[string]string{"ExportUUID": uuid, "Since": since}))
+
+	folder := filepath.Join(a.Config.VM.CacheFolder, "service", "export", "vulns", uuid)
+	log.Infof("Creating folder: %s", folder)
+	err = os.MkdirAll(folder, 0777)
+	if err != nil {
+		log.Errorf("Could't make cache folder for future status lookup: %s", err)
+	}
 
 	return
 }
@@ -45,10 +55,19 @@ func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	status, err := a.ExportVulnsStatus(uuid)
+	// Check the cached response first
+	status, err := a.ExportVulnsStatus(uuid, true,true)
 	if err != nil {
 		log.Errorf("error: couldn't status export-vulns: %v", err)
 		return
+	}
+	// If the status isn't FINISHED, ask for another from the server
+	if status.Status != "FINISHED" {
+		status, err = a.ExportVulnsStatus(uuid, false,true)
+		if err != nil {
+			log.Errorf("error: couldn't status export-vulns: %v", err)
+			return
+		}
 	}
 
 	log.Infof("successfully got status export-vulns UUID='%s' status='%s' ", uuid, status)

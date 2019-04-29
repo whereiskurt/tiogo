@@ -16,7 +16,23 @@ func (c EndPointType) String() string {
 	return "pkg.tenable.endpoints." + string(c)
 }
 
-func (s *Service) get(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
+func (s *Service) get(endPoint EndPointType, p map[string]string, skipOnHit bool, writeOnReturn bool) ([]byte, int, error) {
+
+	if skipOnHit {
+		// Check for a cache hit
+		if s.DiskCache != nil {
+			// We have initialized a cache then write to it.
+			filename, err := ToCacheFilename(endPoint, p)
+			if err != nil {
+				return nil, 0, err
+			}
+
+			body, err := s.DiskCache.Fetch(filename)
+			if err == nil && len(body) > 0 {
+				return body, 200, nil
+			}
+		}
+	}
 
 	url, err := toURL(s.BaseURL, endPoint, p)
 	if err != nil {
@@ -30,17 +46,19 @@ func (s *Service) get(endPoint EndPointType, p map[string]string) ([]byte, int, 
 		return nil, status, err
 	}
 
-	// If we have a DiskCache it means we will write out responses to disk.
-	if s.DiskCache != nil {
-		// We have initialized a cache then write to it.
-		filename, err := ToCacheFilename(endPoint, p)
-		if err != nil {
-			return nil, status, err
-		}
+	if writeOnReturn {
+		// If we have a DiskCache it means we will write out responses to disk.
+		if s.DiskCache != nil {
+			// We have initialized a cache then write to it.
+			filename, err := ToCacheFilename(endPoint, p)
+			if err != nil {
+				return nil, status, err
+			}
 
-		err = s.DiskCache.Store(filename, body)
-		if err != nil {
-			return nil, status, err
+			err = s.DiskCache.Store(filename, body)
+			if err != nil {
+				return nil, status, err
+			}
 		}
 	}
 

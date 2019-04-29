@@ -26,86 +26,86 @@ func (c EndPointType) String() string {
 	return "api." + string(c)
 }
 
-var Methods = methodTypes{
-	Service: serviceTypes{
-		Get:    serviceMethodType("Get"),
-		Update: serviceMethodType("Update"),
-		Add:    serviceMethodType("Add"),
-		Delete: serviceMethodType("Delete"),
+var Methods = MethodTypes{
+	Service: ServiceTypes{
+		Get:    ServiceMethodType("Get"),
+		Update: ServiceMethodType("Update"),
+		Add:    ServiceMethodType("Add"),
+		Delete: ServiceMethodType("Delete"),
 	},
-	DB: dbTypes{
-		Delete: dbMethodType("Delete"),
-		Update: dbMethodType("Update"),
-		Read:   dbMethodType("Read"),
-		Insert: dbMethodType("Insert"),
+	DB: DbTypes{
+		Delete: DbMethodType("Delete"),
+		Update: DbMethodType("Update"),
+		Read:   DbMethodType("Read"),
+		Insert: DbMethodType("Insert"),
 	},
-	Cache: cacheTypes{
-		Hit:        cacheMethodType("Hit"),
-		Miss:       cacheMethodType("Miss"),
-		Invalidate: cacheMethodType("Invalidate"),
-		Store:      cacheMethodType("Store"),
+	Cache: CacheTypes{
+		Hit:        CacheMethodType("Hit"),
+		Miss:       CacheMethodType("Miss"),
+		Invalidate: CacheMethodType("Invalidate"),
+		Store:      CacheMethodType("Store"),
 	},
-	Transport: transportTypes{
-		Put:    transportMethodType("Put"),
-		Delete: transportMethodType("Delete"),
-		Post:   transportMethodType("Post"),
-		Get:    transportMethodType("Get"),
-		Head:   transportMethodType("Head"),
+	Transport: TransportTypes{
+		Put:    TransportMethodType("Put"),
+		Delete: TransportMethodType("Delete"),
+		Post:   TransportMethodType("Post"),
+		Get:    TransportMethodType("Get"),
+		Head:   TransportMethodType("Head"),
 	},
 }
 
-type methodTypes struct {
-	Service   serviceTypes
-	DB        dbTypes
-	Cache     cacheTypes
-	Transport transportTypes
+type MethodTypes struct {
+	Service   ServiceTypes
+	DB        DbTypes
+	Cache     CacheTypes
+	Transport TransportTypes
 }
 
-type serviceMethodType string
-type serviceTypes struct {
-	Get    serviceMethodType
-	Update serviceMethodType
-	Add    serviceMethodType
-	Delete serviceMethodType
+type ServiceMethodType string
+type ServiceTypes struct {
+	Get    ServiceMethodType
+	Update ServiceMethodType
+	Add    ServiceMethodType
+	Delete ServiceMethodType
 }
 
-func (c serviceMethodType) String() string {
+func (c ServiceMethodType) String() string {
 	return "service." + string(c)
 }
 
-type dbMethodType string
-type dbTypes struct {
-	Read   dbMethodType
-	Update dbMethodType
-	Insert dbMethodType
-	Delete dbMethodType
+type DbMethodType string
+type DbTypes struct {
+	Read   DbMethodType
+	Update DbMethodType
+	Insert DbMethodType
+	Delete DbMethodType
 }
 
-func (c dbMethodType) String() string {
+func (c DbMethodType) String() string {
 	return "db." + string(c)
 }
 
-type cacheMethodType string
-type cacheTypes struct {
-	Hit        cacheMethodType
-	Miss       cacheMethodType
-	Store      cacheMethodType
-	Invalidate cacheMethodType
+type CacheMethodType string
+type CacheTypes struct {
+	Hit        CacheMethodType
+	Miss       CacheMethodType
+	Store      CacheMethodType
+	Invalidate CacheMethodType
 }
 
-func (c cacheMethodType) String() string {
+func (c CacheMethodType) String() string {
 	return "cache." + string(c)
 }
 
-type transportMethodType string
-type transportTypes struct {
-	Get    transportMethodType
-	Put    transportMethodType
-	Post   transportMethodType
-	Delete transportMethodType
-	Head   transportMethodType
+type TransportMethodType string
+type TransportTypes struct {
+	Get    TransportMethodType
+	Put    TransportMethodType
+	Post   TransportMethodType
+	Delete TransportMethodType
+	Head   TransportMethodType
 }
 
-func (c transportMethodType) String() string {
+func (c TransportMethodType) String() string {
 	return "http." + string(c)
 }

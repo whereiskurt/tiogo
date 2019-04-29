@@ -74,35 +74,35 @@ func (m *Metrics) clientInit() {
 	)
 }
 
-func (m *Metrics) ServerInc(endPoint EndPointType, method serviceMethodType) {
+func (m *Metrics) ServerInc(endPoint EndPointType, method ServiceMethodType) {
 	if m.server.endPoint == nil {
 		return
 	}
 	labels := prometheus.Labels{"endpoint": endPoint.String(), "method": method.String()}
 	m.server.endPoint.With(labels).Inc()
 }
-func (m *Metrics) DBInc(endPoint EndPointType, method dbMethodType) {
+func (m *Metrics) DBInc(endPoint EndPointType, method DbMethodType) {
 	if m.server.db == nil {
 		return
 	}
 	labels := prometheus.Labels{"endpoint": endPoint.String(), "method": method.String()}
 	m.server.db.With(labels).Inc()
 }
-func (m *Metrics) CacheInc(endPoint EndPointType, method cacheMethodType) {
+func (m *Metrics) CacheInc(endPoint EndPointType, method CacheMethodType) {
 	if m.server.cache == nil {
 		return
 	}
 	labels := prometheus.Labels{"endpoint": endPoint.String(), "method": method.String()}
 	m.server.cache.With(labels).Inc()
 }
-func (m *Metrics) TransportInc(endPoint EndPointType, method transportMethodType, status int) {
+func (m *Metrics) TransportInc(endPoint EndPointType, method TransportMethodType, status int) {
 	if m.service.transport == nil {
 		return
 	}
 	labels := prometheus.Labels{"endpoint": endPoint.String(), "method": method.String(), "status": fmt.Sprintf("%d", status)}
 	m.service.transport.With(labels).Inc()
 }
-func (m *Metrics) ClientInc(endPoint EndPointType, method serviceMethodType) {
+func (m *Metrics) ClientInc(endPoint EndPointType, method ServiceMethodType) {
 	if m.client.command == nil {
 		return
 	}

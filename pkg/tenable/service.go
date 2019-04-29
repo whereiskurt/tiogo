@@ -60,11 +60,11 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 		URL:           "/vulns/export",
 		CacheFilename: "/export/vulns/request.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
-			HTTP.Post: {`
+			HTTP.Post: {`{
 			"export-request": "export-request",
 			"filters": {
-				"since": "2019-01-01T00:00:00Z"
-			}`},
+				"since": {{.Since}}
+			}}`},
 		},
 	},
 	EndPoints.VulnsExportStatus: {
@@ -156,7 +156,7 @@ func (s *Service) AgentList(uuid string, offset string, limit string) ([]byte, e
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.get(EndPoints.AgentsList, map[string]string{"ScannerUUID": uuid, "Offset": offset, "Limit": limit})
+		body, status, err := s.get(EndPoints.AgentsList, map[string]string{"ScannerUUID": uuid, "Offset": offset, "Limit": limit},true,true)
 		if err != nil {
 			s.Log.Infof("failed to agent list: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -180,7 +180,7 @@ func (s *Service) ScannerAgentGroups(uuid string) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.get(EndPoints.ScannerAgentGroups, map[string]string{"ScannerUUID": uuid})
+		body, status, err := s.get(EndPoints.ScannerAgentGroups, map[string]string{"ScannerUUID": uuid},true,true)
 		if err != nil {
 			s.Log.Infof("failed to agent groups list: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -203,7 +203,7 @@ func (s *Service) ScannersList() ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.get(EndPoints.ScannersList, nil)
+		body, status, err := s.get(EndPoints.ScannersList, nil, true,true)
 		if err != nil {
 			s.Log.Infof("failed to scanners list: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -223,11 +223,11 @@ func (s *Service) ScannersList() ([]byte, error) {
 	return raw, err
 }
 
-func (s *Service) VulnsExportStatus(exportUUID string) ([]byte, error) {
+func (s *Service) VulnsExportStatus(exportUUID string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.get(EndPoints.VulnsExportStatus, map[string]string{"ExportUUID": exportUUID})
+		body, status, err := s.get(EndPoints.VulnsExportStatus, map[string]string{"ExportUUID": exportUUID}, skipOnHit,writeOnReturn)
 		if err != nil {
 			s.Log.Infof("failed to get export-vulns status: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -243,11 +243,11 @@ func (s *Service) VulnsExportStatus(exportUUID string) ([]byte, error) {
 	return raw, err
 }
 
-func (s *Service) VulnsExportStart() ([]byte, error) {
+func (s *Service) VulnsExportStart(sinceUnix string) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.update(EndPoints.VulnsExportStart, nil)
+		body, status, err := s.update(EndPoints.VulnsExportStart, map[string]string{"Since": sinceUnix})
 		if err != nil {
 			s.Log.Infof("failed to export-vulns start: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -266,7 +266,7 @@ func (s *Service) VulnsExportGet(exportUUID string, chunk string) ([]byte, error
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.get(EndPoints.VulnsExportGet, map[string]string{"ExportUUID": exportUUID, "ChunkID": chunk})
+		body, status, err := s.get(EndPoints.VulnsExportGet, map[string]string{"ExportUUID": exportUUID, "ChunkID": chunk}, true,true)
 		if err != nil {
 			s.Log.Infof("failed to get export-vulns status: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)

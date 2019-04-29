@@ -56,10 +56,10 @@ Output Modes:
 
 Examples:
     $ tio vm export-vulns start
-    $ tio vm export-vulns start --after=2019-01-01
-    $ tio vm export-vulns start --after=2019-01-01 --critical
-    $ tio vm export-vulns start --after=2019-01-01 --before=2019-01-31
-    $ tio vm export-vulns start --before=2019-01-31 --days=31 --critical --high
+    $ tio vm export-vulns start --after="2019-01-01 00:00:00 -0400 EDT"
+    $ tio vm export-vulns start --after="2019-01-01 00:00:00 -0400 EDT" --critical
+    $ tio vm export-vulns start --after=="2019-01-01 00:00:00 -0400 EDT" --before=="2019-01-31 23:59:59 -0400 EDT"
+    $ tio vm export-vulns start --before="2019-01-31 23:59:59 -0400 EDT" --days=31 --critical --high
     $ tio vm export-vulns start --after=2019-01-01 --days=31
 
     $ tio vm export-vulns status
@@ -71,9 +71,10 @@ Examples:
 {{define "ExportVulnsStart" -}}
 Successfully started vulnerability export uuid='{{.ExportUUID}}'
 
-To review the 'status' for 'FINISHED' and then 'get' the export:
+Retrieving vulnerabilities since date of '{{.Since}}'
 
-Examples:
+To review the status for 'FINISHED' and then get the export chunks:
+
     ## Check the status of the chunk file creation:
     $ tio vm export-vulns status --uuid={{.ExportUUID}}
 
@@ -83,11 +84,12 @@ Examples:
 {{- end}}
 
 {{define "ExportVulnsStatus" -}}
-Successfully requested status for uuid='{{.ExportUUID}}'.
-
-Once the current of '{{.Status}}' becomes 'FINISHED' you can get the exported vulnerabilities:
-
-Examples:
+Requested status for uuid='{{.ExportUUID}}'.
+{{if eq .Status "FINISHED"}}
+Finished! You can retrieve the chunks:
+{{else}}
+Once the current status of '{{.Status}}' becomes 'FINISHED' you can get the chunks:
+{{- end}}
     ## Retrieve all of the chunks. NOTE: Fails unless status is 'FINISHED'
     $ tio vm export-vulns get --uuid={{.ExportUUID}}
 

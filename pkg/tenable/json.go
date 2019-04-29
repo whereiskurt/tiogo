@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+type ExportFilter struct {
+	ExportRequest string `json:"export-request"`
+	Filters struct {
+		Since json.Number `json:"since"`
+	} `json:"filters"`
+}
+
 // GET /scanners
 type ScannerList struct {
 	Scanners []Scanner

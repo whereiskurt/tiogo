@@ -176,13 +176,13 @@ func (a *Adapter) ExportVulnsStart() (string, error) {
 
 	return export.UUID, nil
 }
-func (a *Adapter) ExportVulnsStatus(uuid string) (VulnExportStatus, error) {
+func (a *Adapter) ExportVulnsStatus(uuid string, skipOnHit bool, writeOnReturn bool) (VulnExportStatus, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Get)
 
 	u := NewUnmarshal(a.Config, a.Metrics)
 
 	var status VulnExportStatus
-	raw, err := u.VulnsExportStatus(uuid)
+	raw, err := u.VulnsExportStatus(uuid, skipOnHit,writeOnReturn)
 	if err != nil {
 		a.Config.Log.Errorf("error: failed to get the export-vulns: %v", err)
 		return status, err
