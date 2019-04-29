@@ -231,15 +231,15 @@ func (c *Config) userInputConfiguration(filename string) bool {
 	tzDefault := fmt.Sprintf("%s %s", z[2], z[3])
 
 	fmt.Println()
-	fmt.Println(fmt.Sprintf("WARN: "+"No configuration file '%s' found", filename))
+	fmt.Println(fmt.Sprintf("WARN: "+"User configuration file '%s' not found.", filename))
 	fmt.Println()
-	fmt.Print(fmt.Sprintf("Need Tenable.IO access keys and secret keys for API usage."))
+	fmt.Print(fmt.Sprintf("Tenable.io access keys and secret keys are required for all endpoints."))
 	fmt.Println()
-	fmt.Println(fmt.Sprintf("You must provide the X-ApiKeys '" + "accessKey" + "' and '" + "secretKey" + "' to the Tenable.IO API."))
-	fmt.Println(fmt.Sprintf("For complete details see: https://cloud.tenable.com/api#/authorization"))
+	fmt.Println(fmt.Sprintf("You must provide X-ApiKeys header '" + "accessKey" + "' and '" + "secretKey" + "' values."))
+	fmt.Println(fmt.Sprintf("For complete details see: https://developer.tenable.com/"))
 	fmt.Println()
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print(fmt.Sprintf("Enter required Tenable.io" + "'AccessKey'" + ": "))
+	fmt.Print(fmt.Sprintf("Enter Tenable.io" + "'AccessKey'" + ": "))
 	c.VM.AccessKey, _ = reader.ReadString('\n')
 	c.VM.AccessKey = strings.TrimSpace(c.VM.AccessKey)
 	if len(c.VM.AccessKey) != 64 {
@@ -247,7 +247,7 @@ func (c *Config) userInputConfiguration(filename string) bool {
 		return false
 	}
 
-	fmt.Print(fmt.Sprintf("Enter required Tenable.io" + "'SecretKey'" + ": "))
+	fmt.Print(fmt.Sprintf("Enter Tenable.io" + "'SecretKey'" + ": "))
 	c.VM.SecretKey, _ = reader.ReadString('\n')
 	c.VM.SecretKey = strings.TrimSpace(c.VM.SecretKey)
 	if len(c.VM.SecretKey) != 64 {
@@ -290,7 +290,7 @@ func (c *Config) userInputConfiguration(filename string) bool {
 		fmt.Fprintf(file, "  CacheFolder: %s\n", c.Server.CacheFolder)
 		fmt.Fprintf(file, "  ListenPort: %s\n", c.Server.ListenPort)
 		fmt.Fprintf(file, "\n")
-		fmt.Println(fmt.Sprintf("\n\nDone! \nSuccessfully created '%s'", filename))
+		fmt.Println(fmt.Sprintf("\n\nDone! \nSuccessfully wrote user configuration file '%s'.", filename))
 		fmt.Println()
 
 		return true

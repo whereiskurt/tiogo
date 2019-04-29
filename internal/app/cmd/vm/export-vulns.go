@@ -55,6 +55,7 @@ func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	// We will use the cache hit to check for "FINISHED"
 	// Check the cached response first
 	status, err := a.ExportVulnsStatus(uuid, true,true)
 	if err != nil {
@@ -118,14 +119,14 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 	jqex := vm.Config.VM.JQex
 
 	if jqex == "" {
-		jqex = "."
+		jqex = ".[]"
 		a.Config.Log.Infof("query --jqex was not specified - will use default '%s", jqex)
 	}
 
 	before := vm.Config.VM.BeforeDate
 	after := vm.Config.VM.AfterDate
 
-	lastfound := fmt.Sprintf(`select( .last_found >= "%s" and .last_found <= "%s" )`, after, before)
+	between := fmt.Sprintf(`select( .last_found >= "%s" and .last_found <= "%s" )`, after, before)
 
 	var sevs []string
 	if vm.Config.VM.Critical == true {
@@ -142,10 +143,10 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 	}
 	if len(sevs) > 0 {
 		sev := strings.Join(sevs, " or ")
-		lastfound = fmt.Sprintf("select( (%s) and (%s) )", lastfound, sev)
+		between = fmt.Sprintf("select( (%s) and (%s) )", between, sev)
 	}
 
-	jqex = ".[]|" + lastfound + "|" + jqex
+	jqex = ".[]|" + between + "|" + jqex
 
 	if uuid == "" {
 		a.Config.Log.Infof("export uuid was not specified - will use attempt to lookup from last 'start' call")

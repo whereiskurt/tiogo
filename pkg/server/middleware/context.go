@@ -44,12 +44,12 @@ func InitialCtx(next http.Handler) http.Handler {
 	})
 }
 
-// AccessKey is the Tenable.IO access key required in the header
+// AccessKey is the Tenable.io access key required in the header
 func AccessKey(r *http.Request) string {
 	return ContextMap(r)["AccessKey"]
 }
 
-// SecretKey is the Tenable.IO secret key required in the header
+// SecretKey is the Tenable.io secret key required in the header
 func SecretKey(r *http.Request) string {
 	return ContextMap(r)["SecretKey"]
 }

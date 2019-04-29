@@ -408,7 +408,7 @@ func (a *Adapter) JSONQuery(json []byte, jqex string) []byte {
 	cmd.Stdout = &stdout
 	err = cmd.Run()
 	if err != nil {
-		log.Warnf("couldn't parse 'jq' command: %s: %v", jqex, err)
+		log.Warnf("couldn't parse 'jq' command: %s: %+v: %v", jqex, cmd, err)
 		return []byte("")
 	}
 
