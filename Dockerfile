@@ -1,9 +1,30 @@
-FROM golang:1.11-alpine as golang
+FROM golang
 
-# FROM will allow us to run a docker container interactive
-#docker run -it --rm golang:1.11-alpine
+ARG releaseVersion="v0.1.0"
+ENV VERSION=$releaseVersion
 
-## Could add this, but not sure we need it.
-## RUN apk add git
-## RUN apk --no-cache add ca-certificates
+ARG hash="0xABCD1234"
+ENV HASH=$hash
 
+ARG goos="linux"
+ENV GOOS=$goos
+
+## NOTE: GOFLAGS won't be needed in go1.12
+ARG goflags="-mod=vendor"
+ENV GOFLAGS=$goflags
+
+RUN mkdir /tiogo
+
+ADD . /tiogo/
+
+WORKDIR /tiogo
+
+RUN go test -v ./...
+
+RUN go build \
+    -tags release \
+    --ldflags \
+    "-X internal/app/cmd/vm.ReleaseVersion=$VERSION \
+     -X internal/app/cmd/vm.GitHash=$HASH" \
+    -o ./tio \
+    cmd/tio.go
