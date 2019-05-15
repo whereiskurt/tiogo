@@ -1,0 +1,40 @@
+{{define "tioUsage" -}}
+An interface into the Tenable.io API using Go!
+
+Version {{.ReleaseVersion}} {{.GitHash}}
+
+{{- Gopher }}
+Find more information at:
+    https://github.com/whereiskurt/tiogo/
+
+Usage:
+    tio [COMMAND] [SUBCOMMAND] [ACTION ...] [OPTIONS]
+
+Commands:
+    vm       Commands for Tenable.io Vulnerability Management [default, can be omitted]
+    proxy    Commands for local proxy and HTTP server instance
+
+Sub-command:
+    vm:
+      help, scanners, agents, agent-groups, scans, export-vulns
+
+    proxy:
+      start, stop
+
+Global Options:
+    Verbosity:
+      --silent,  -s     Set logging/output level [level1]
+      --quiet,   -q     Set logging/output level [level2]
+      --info,    -v     Set logging/output level [level3-default]
+      --debug,          Set logging/output level [level4]
+      --trace,          Output to STDOUT and to log file [level5]
+      --level=3         Sets the output verbosity level numerically [default]
+
+For more help:
+    $ tio help scanners
+    $ tio help agents
+    $ tio help agent-groups
+    $ tio help export-vulns
+    $ tio help scans
+
+{{end}}

@@ -1,0 +1,19 @@
+######################################################################
+##
+## WARNING: DEFAULT CONFIGURATION
+##
+## MUST SET: AccessKey and SecretKey must be set to access Tenable.io!
+#########################################################################
+DefaultServerStart: true
+
+VM:
+  BaseURL: http://localhost:10101
+  AccessKey: ak1,ak2
+  SecretKey: sk1,sk2
+  CacheFolder: .cache/client/
+  DefaultTimezone: -0500 EST
+
+Server:
+  BaseURL: https://cloud.tenable.com
+  CacheFolder: .cache/server/
+  ListenPort: 10101
