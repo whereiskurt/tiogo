@@ -60,7 +60,7 @@ Sub-command:
     vm:
       help, scanners, agents, agent-groups, scans, export-vulns
 
-    server:
+    proxy:
       start, stop
 
 Global Options:
