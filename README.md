@@ -5,14 +5,14 @@
 ![alt text](https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tiogopher")
 
 ## A **C**ommand **L**ine **I**nterface to Tenable.io API 
-`tiogo` is a command line tool for interacting with the Tenable.io API, written in golang. It currently only supports a small set of the [Tenable.io vulnerability API](https://developer.tenable.com/reference) around agents, agent-groups, export-vuls and export-assets. 
+`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. It currently only supports a small set of the [Tenable.io vulnerability API](https://developer.tenable.com/reference) around agents, agent-groups, export-vuls and export-assets. 
 
 The tool is written by KPH (@whereiskurt) and **is not supported or endorsed by Tenable in anyway.**
 
 ## Overview 
 [Tenable.io](https://cloud.tenable.com) is a modern webapp rendered in web browser - aka **G**raphical **U**ser **I**nterfaces (**GUI**).
 
-Alternatively, `tiogo` is a **C**ommand **L**ine **I**nterface (**CLI**) to interact with Tenable.io. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform. The binary contains all of the necessary libraries and dependencies included and provides a write-once run-anywhere approach.
+Alternatively, `tiogo` is a **C**ommand **L**ine **I**nterface (**CLI**) to interact with Tenable.io. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform. The binary contains all of the necessary libraries and dependencies and provides a write-once run-anywhere approach.
 
 ## `Dockerfile`
 Using the Dockerfile is a fast way to get 'up and running' if you already have Docker installed and working:
@@ -54,7 +54,7 @@ Usage:
 
 Commands:
     vm       Commands for Tenable.io Vulnerability Management [default, can be omitted]
-    server   Commands for local proxy and HTTP server instance
+    proxy   Commands for local proxy and HTTP server instance
 
 Sub-command:
     vm:
