@@ -74,44 +74,44 @@ func (c *Converter) ToAgents(scanner Scanner, raw []byte) ([]ScannerAgent, error
 	}
 
 	var agents []ScannerAgent
-	for _, agent := range src.Agents {
-		var tgt ScannerAgent
-		tgt.ID = string(agent.ID)
-		tgt.Name = agent.Name
-		tgt.UUID = agent.UUID
-		tgt.Platform = agent.Platform
-		tgt.Status = agent.Status
-		tgt.CoreBuild = agent.CoreBuild
-		tgt.CoreVersion = agent.CoreVersion
-		tgt.Feed = agent.Feed
-		tgt.Distro = agent.Distro
-		tgt.IP = agent.IP
+	for _, a := range src.Agents {
+		var agent ScannerAgent
+		agent.ID = string(a.ID)
+		agent.Name = a.Name
+		agent.UUID = a.UUID
+		agent.Platform = a.Platform
+		agent.Status = a.Status
+		agent.CoreBuild = a.CoreBuild
+		agent.CoreVersion = a.CoreVersion
+		agent.Feed = a.Feed
+		agent.Distro = a.Distro
+		agent.IP = a.IP
 
-		tgt.Scanner.ID = scanner.ID
-		tgt.Scanner.UUID = scanner.UUID
+		agent.Scanner.ID = scanner.ID
+		agent.Scanner.UUID = scanner.UUID
 
-		tgt.Groups = make(map[string]AgentGroup)
-		for _, group := range agent.Groups {
-			g := AgentGroup{ID: string(group.ID), Name: group.Name}
-			tgt.Groups[g.Name] = g
+		agent.Groups = make(map[string]AgentGroup)
+		for _, g := range a.Groups {
+			group := AgentGroup{ID: string(g.ID), Name: g.Name}
+			agent.Groups[group.Name] = group
 		}
 
-		lastConnect, err := strconv.ParseInt(string(agent.LastConnect), 10, 64)
+		lastConnect, err := strconv.ParseInt(string(a.LastConnect), 10, 64)
 		if err == nil {
-			tgt.LastConnect = time.Unix(lastConnect, 0)
+			agent.LastConnect = time.Unix(lastConnect, 0)
 		}
 
-		linkedOn, err := strconv.ParseInt(string(agent.LinkedOn), 10, 64)
+		linkedOn, err := strconv.ParseInt(string(a.LinkedOn), 10, 64)
 		if err == nil {
-			tgt.LinkedOn = time.Unix(linkedOn, 0)
+			agent.LinkedOn = time.Unix(linkedOn, 0)
 		}
 
-		lastScanned, err := strconv.ParseInt(string(agent.LastScanned), 10, 64)
+		lastScanned, err := strconv.ParseInt(string(a.LastScanned), 10, 64)
 		if err == nil {
-			tgt.LastScanned = time.Unix(lastScanned, 0)
+			agent.LastScanned = time.Unix(lastScanned, 0)
 		}
 
-		agents = append(agents, tgt)
+		agents = append(agents, agent)
 	}
 
 	return agents, err
@@ -150,26 +150,26 @@ func (c *Converter) ToScanners(raw []byte) ([]Scanner, error) {
 	}
 
 	for _, s := range src.Scanners {
-		var dst Scanner
-		dst.License.Agents = string(s.License.Agents)
-		dst.License.Scanners = string(s.License.Scanners)
-		dst.License.IPS = string(s.License.IPS)
-		dst.License.Type = string(s.License.Type)
-		dst.License.ScannersUsed = string(s.License.ScannersUsed)
-		dst.License.AgentsUsed = string(s.License.AgentsUsed)
-		dst.Type = s.Type
-		dst.Name = s.Name
-		dst.UUID = s.UUID
-		dst.Status = s.Status
-		dst.RegistrationCode = s.RegistrationCode
-		dst.Key = s.Key
-		dst.LoadedPluginSet = s.LoadedPluginSet
-		dst.ID = string(s.ID)
-		dst.EngineVersion = s.EngineVersion
-		dst.Owner = s.Owner
-		dst.ScanCount = string(s.ScanCount)
-		dst.Platform = s.Platform
-		scanners = append(scanners, dst)
+		var scanner Scanner
+		scanner.License.Agents = string(s.License.Agents)
+		scanner.License.Scanners = string(s.License.Scanners)
+		scanner.License.IPS = string(s.License.IPS)
+		scanner.License.Type = string(s.License.Type)
+		scanner.License.ScannersUsed = string(s.License.ScannersUsed)
+		scanner.License.AgentsUsed = string(s.License.AgentsUsed)
+		scanner.Type = s.Type
+		scanner.Name = s.Name
+		scanner.UUID = s.UUID
+		scanner.Status = s.Status
+		scanner.RegistrationCode = s.RegistrationCode
+		scanner.Key = s.Key
+		scanner.LoadedPluginSet = s.LoadedPluginSet
+		scanner.ID = string(s.ID)
+		scanner.EngineVersion = s.EngineVersion
+		scanner.Owner = s.Owner
+		scanner.ScanCount = string(s.ScanCount)
+		scanner.Platform = s.Platform
+		scanners = append(scanners, scanner)
 	}
 
 	return scanners, err
