@@ -1,6 +1,6 @@
 FROM golang
 
-ARG releaseVersion="v0.1.0"
+ARG releaseVersion="v0.1.1"
 ENV VERSION=$releaseVersion
 
 ## Go supports 'cross-complication' for many platforms - which is super hawt!
