@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+//TODO: Write a these TestCases ASAP.
+
 // Disk is a simple disk cache for responses that supports a crypto key and folder parameter
 type Disk struct {
 	UseCrypto   bool
@@ -15,16 +17,16 @@ type Disk struct {
 	CacheFolder string
 }
 
-// NewDisk creates an Disk for storing responses
-func NewDisk(folder string, key string, crypto bool) (d *Disk) {
+// NewDisk will Fetch/Store/Clear files from filesystem and encrypt/decrypt with AES if useCrypto
+func NewDisk(folder string, key string, useCrypto bool) (d *Disk) {
 	d = new(Disk)
-	d.UseCrypto = crypto
+	d.UseCrypto = useCrypto
 	d.CacheKey = []byte(key)
 	d.CacheFolder = strings.TrimSuffix(folder, "/")
 	return
 }
 
-// Fetch looks for the stored file and returns it.
+// Fetch looks for the stored file and returns it decrypted if useCryto
 func (d *Disk) Fetch(filename string) ([]byte, error) {
 	filename = filepath.Join(d.CacheFolder, filename)
 
@@ -51,7 +53,7 @@ func (d *Disk) Fetch(filename string) ([]byte, error) {
 	return bb, err
 }
 
-// Store will create a cache file with the bb bytes
+// Store will create a file with the bb bytes and encrypt if use Crypto
 func (d *Disk) Store(filename string, bb []byte) (err error) {
 
 	filename = filepath.Join(d.CacheFolder, filename)

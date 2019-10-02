@@ -6,10 +6,12 @@ import (
 	"time"
 )
 
-// GET /scanners
+//ScannerList is from the Tenable.io documentation
 type ScannerList struct {
 	Scanners []Scanner
 }
+
+//Scanner is from the Tenable.io documentation
 type Scanner struct {
 	ID               json.Number `json:"id"`
 	UUID             string      `json:"uuid"`
@@ -33,7 +35,8 @@ type Scanner struct {
 	}
 }
 
-// GET /scanners/{scanner_id}/agents
+// ScannerAgent is from the Tenable.io documentation - GET /scanners/{scanner_id}/agents
+// Pagination is for groups of 5000 maximum limit
 type ScannerAgent struct {
 	Agents []struct {
 		ID          json.Number `json:"id"`

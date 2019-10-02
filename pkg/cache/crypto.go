@@ -8,7 +8,9 @@ import (
 	"io"
 )
 
-// Encrypt wraps for AES
+//TODO: Write some use cases.
+
+// Encrypt takes the plaintext unencrypted and the key (byte arrays) and performs default AES encryption
 func Encrypt(plaintext []byte, key []byte) ([]byte, error) {
 	c, err := aes.NewCipher(key)
 	if err != nil {
@@ -28,7 +30,7 @@ func Encrypt(plaintext []byte, key []byte) ([]byte, error) {
 	return gcm.Seal(nonce, nonce, plaintext, nil), nil
 }
 
-// Decrypt is a wrapper for AES
+// Decrypt takes the cyphered text and the key (byte arrays) and performs default AES decryption
 func Decrypt(crypt []byte, key []byte) (out []byte, err error) {
 	c, err := aes.NewCipher(key)
 	if err != nil {

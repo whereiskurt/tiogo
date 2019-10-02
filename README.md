@@ -144,9 +144,9 @@ Examples:
     $ tio export-vulns get
     $ tio export-vulns query --jqex="[.asset.ipv4, .asset.operating_system[0]]"
 
-    $ tio export-compliance --name "Enterprise-ComplianceCheck"
-    $ tio export-compliance --name "Enterprise-ComplianceCheck" --before=today   
-    $ tio export-compliance --name "Enterprise-ComplianceCheck" --before=2019-09-27   
+    $ tio export-scans --name "Enterprise-ComplianceScan"
+    $ tio export-scans --name "Enterprise-ComplianceScan" --before=today   
+    $ tio export-scans --name "Enterprise-ComplianceScan" --before=2019-09-27   
 ```
 
 ## Some details about the code:
