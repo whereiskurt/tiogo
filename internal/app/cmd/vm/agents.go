@@ -4,22 +4,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/prometheus/common/log"
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
 	"github.com/whereiskurt/tiogo/pkg/ui"
 )
 
+//AgentsList outputs matching agents  by regex, agent name, and group name
 func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
-	log.Debugf("AgentsList started")
+	regex := vm.Config.VM.Regex
+	name := vm.Config.VM.Name
+	groupName := vm.Config.VM.GroupName
 
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 	cli := ui.NewCLI(vm.Config)
 
-	regex := vm.Config.VM.Regex
-	name := vm.Config.VM.Name
-	groupName := vm.Config.VM.GroupName
+	log.Debugf("AgentsList started")
 
 	agents, agentGroups, err := vm.Agents(cli, a)
 	if err != nil {
@@ -64,13 +66,8 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 
 	return
 }
-func (vm *VM) AgentsGroup(cmd *cobra.Command, args []string) {
-	vm.action(filterRemoveWithoutGroup, group)
-}
-func (vm *VM) AgentsUngroup(cmd *cobra.Command, args []string) {
-	vm.action(filterKeepWithGroup, ungroup)
-}
 
+//Agents
 func (vm *VM) Agents(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []client.AgentGroup, error) {
 	regex := vm.Config.VM.Regex
 	name := vm.Config.VM.Name
@@ -168,7 +165,11 @@ func ungroup(a *client.Adapter, cli ui.CLI, agent client.ScannerAgent, group *cl
 		cli.Errorf("%s", err)
 	}
 }
-func filterKeepWithGroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerAgent, groupName string) []client.ScannerAgent {
+
+func (vm *VM) AgentsUngroup(cmd *cobra.Command, args []string) {
+	vm.action(filterUngroup, ungroup)
+}
+func filterUngroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerAgent, groupName string) []client.ScannerAgent {
 	// 3) Filter Agents
 	// Filter agent that are to non-group members - don't reassign if assigned
 	agents = a.Filter.KeepOnlyGroupMembers(agents, groupName)
@@ -179,7 +180,14 @@ func filterKeepWithGroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerA
 	}
 	return agents
 }
-func filterRemoveWithoutGroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerAgent, groupName string) []client.ScannerAgent {
+
+//AgentsGroup
+func (vm *VM) AgentsGroup(cmd *cobra.Command, args []string) {
+	vm.action(filterForAgentsGroup, group)
+}
+
+//filterForAgentsGroup will only keep agents not already in the agent group.
+func filterForAgentsGroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerAgent, groupName string) []client.ScannerAgent {
 	// 3) Filter Agents
 	// Filter agent that are to non-group members - don't reassign if assigned
 	agents = a.Filter.SkipGroupMembers(agents, groupName)
