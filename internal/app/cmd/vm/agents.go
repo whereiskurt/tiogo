@@ -67,7 +67,7 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	return
 }
 
-//Agents
+//Agents 
 func (vm *VM) Agents(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []client.AgentGroup, error) {
 	regex := vm.Config.VM.Regex
 	name := vm.Config.VM.Name
@@ -78,13 +78,13 @@ func (vm *VM) Agents(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []cl
 
 	agents, err := a.Agents(true, true)
 	if err != nil {
-		err := errors.New(fmt.Sprintf("error: couldn't agents list: %v", err))
+		err := fmt.Errorf("error: couldn't agents list: %v", err)
 		return nil, nil, err
 	}
 
 	agentGroups, err := a.AgentGroups()
 	if err != nil {
-		err := errors.New(fmt.Sprintf("error: couldn't agent groups list: %v", err))
+		err := fmt.Errorf("error: couldn't agent groups list: %v", err)
 		return nil, nil, err
 	}
 
@@ -136,24 +136,27 @@ func (vm *VM) action(filterFunc func(*client.Adapter, ui.CLI, []client.ScannerAg
 	return
 }
 
-func lookupGroup(cli ui.CLI, agentGroups []client.AgentGroup, groupName string) *client.AgentGroup {
+func lookupGroup(cli ui.CLI, agentGroups []client.AgentGroup, lkpName string) *client.AgentGroup {
+
 	// 3) Check the Group Name passed is an actual agent group
 	var group *client.AgentGroup = nil
 	for g := range agentGroups {
-		if agentGroups[g].Name == groupName {
+		if agentGroups[g].Name == lkpName {
 			group = &agentGroups[g]
-			return group
+			break
 		}
 	}
-	cli.Fatalf(`error: no group name matching: "%s"`, groupName)
-	return nil // Fatal never gets here
+	if group == nil {
+		cli.Fatalf(`error: no group name matching: "%s"`, lkpName)
+	}
+	return group
 }
 
 func group(a *client.Adapter, cli ui.CLI, agent client.ScannerAgent, group *client.AgentGroup) {
 	cli.Println(fmt.Sprintf("Adding '%s'(ID:%s) to group '%s'(ID: %s) ...", agent.Name, agent.ID, group.Name, group.ID))
 	err := a.AgentAssignGroup(agent.ID, group.ID, agent.Scanner.ID)
 	if err != nil {
-		err := errors.New(fmt.Sprintf("  error: failed to add agent to group: %s", err))
+		err := fmt.Errorf("  error: failed to add agent to group: %s", err)
 		cli.Errorf("%s", err)
 	}
 }
@@ -161,11 +164,12 @@ func ungroup(a *client.Adapter, cli ui.CLI, agent client.ScannerAgent, group *cl
 	cli.Println(fmt.Sprintf("Removing '%s'(ID:%s) from group '%s'(ID: %s) ...", agent.Name, agent.ID, group.Name, group.ID))
 	err := a.AgentUnassignGroup(agent.ID, group.ID, agent.Scanner.ID)
 	if err != nil {
-		err := errors.New(fmt.Sprintf("  error: failed to remove agent to group: %s", err))
+		err := fmt.Errorf("  error: failed to remove agent to group: %s", err)
 		cli.Errorf("%s", err)
 	}
 }
 
+//AgentsUngroup
 func (vm *VM) AgentsUngroup(cmd *cobra.Command, args []string) {
 	vm.action(filterUngroup, ungroup)
 }
