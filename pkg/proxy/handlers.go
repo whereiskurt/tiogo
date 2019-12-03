@@ -27,12 +27,14 @@ func (s *Server) CachedTenableCall(pp CachedTenableCallParams) {
 	skip, _ := strconv.ParseBool(middleware.SkipOnHit(pp.r))
 	write, _ := strconv.ParseBool(middleware.WriteOnReturn(pp.r))
 
-	s.CachedTenableCallSkipSave(pp, skip, write)
+	s.CallSkipSave(pp, skip, write)
 }
 
-// Check for the server cache file and serve it, otherwise create a Tenable.io service and make the call.
-// Cache the results so another immediately call would use the server cache. aka caching proxy server
-func (s *Server) CachedTenableCallSkipSave(pp CachedTenableCallParams, skipOnHit bool, writeOnReturn bool) {
+// CallSkipSave checks for the server cache file and serve it,
+// otherwise create a Tenable.io Service and make the remote call.
+// Cache the
+// results so another immediately call would use the server cache.
+func (s *Server) CallSkipSave(pp CachedTenableCallParams, skipOnHit bool, writeOnReturn bool) {
 	s.Metrics.ServerInc(pp.metricType, metrics.Methods.Service.Get)
 
 	if skipOnHit {
@@ -40,31 +42,34 @@ func (s *Server) CachedTenableCallSkipSave(pp CachedTenableCallParams, skipOnHit
 		bb, err := s.cacheFetch(pp.r, pp.endPoint, pp.metricType)
 
 		if err == nil && len(bb) > 0 {
-			_, _ = pp.w.Write(bb)
+			// Cache hit, write to wesponsewriter.
+			_, _ = pp.w.Write(bb) // TODO: Check the return values
 			return
 		}
 	}
 
-	// Take the AccessKeys and SecretKeys from context
+	// Unpack the AccessKeys and SecretKeys from middleware context
 	ak := middleware.AccessKey(pp.r)
 	sk := middleware.SecretKey(pp.r)
 
 	t := tenable.NewService(s.ServiceBaseURL, sk, ak, s.Log)
 
+	// Invoke func f to deal with Tenable service call return
 	json, err := pp.f(t)
 	if err != nil {
 		http.Error(pp.w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
 
+	// Save the response to the lookup
 	if writeOnReturn {
 		s.cacheStore(pp.w, pp.r, json, pp.endPoint, pp.metricType)
-
-		_, _ = pp.w.Write(json)
+		_, _ = pp.w.Write(json) // TODO: Check the return values
 	}
 
 	return
 }
 
+// Shutdown is called to terminate proxy server
 func (s *Server) Shutdown(w http.ResponseWriter, r *http.Request) {
 	s.Log.Infof("/Shutdown called - beginning shutdown")
 
@@ -100,6 +105,7 @@ func (s *Server) VulnsExportStart(w http.ResponseWriter, r *http.Request) {
 	}
 	s.CachedTenableCall(pp)
 }
+
 func (s *Server) VulnsExportStatus(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.VulnsExportStatus
@@ -107,22 +113,29 @@ func (s *Server) VulnsExportStatus(w http.ResponseWriter, r *http.Request) {
 	pp.metricMethod = metrics.Methods.Service.Get
 	pp.f = func(t tenable.Service) ([]byte, error) {
 		exportUUID := middleware.ExportUUID(r)
-		return t.VulnsExportStatus(exportUUID, true, true)
+		return t.VulnsExportStatus(exportUUID)
 	}
 
-	s.CachedTenableCallSkipSave(pp, false, true)
-
+	s.CallSkipSave(pp, false, true)
 }
+
+// VulnsExportGet is a handler that brokers a cacheable proxied call
+// for a specific chunkID (1..n) and the export UUID (universially unique identifier)
 func (s *Server) VulnsExportGet(w http.ResponseWriter, r *http.Request) {
-	var pp = CachedTenableCallParams{w: w, r: r}
-	pp.f = func(t tenable.Service) ([]byte, error) {
-		exportUUID := middleware.ExportUUID(r)
-		chunkID := middleware.ChunkID(r)
-		return t.VulnsExportGet(exportUUID, chunkID)
+	var pp = CachedTenableCallParams{
+		w:            w,
+		r:            r,
+		endPoint:     tenable.EndPoints.VulnsExportGet,
+		metricType:   metrics.EndPoints.VulnsExportGet,
+		metricMethod: metrics.Methods.Service.Get,
+
+		f: func(t tenable.Service) ([]byte, error) {
+			exportUUID := middleware.ExportUUID(r)
+			chunkID := middleware.ChunkID(r)
+			return t.VulnsExportGet(exportUUID, chunkID)
+		},
 	}
-	pp.endPoint = tenable.EndPoints.VulnsExportGet
-	pp.metricType = metrics.EndPoints.VulnsExportGet
-	pp.metricMethod = metrics.Methods.Service.Get
+
 	s.CachedTenableCall(pp)
 }
 
@@ -145,6 +158,7 @@ func (s *Server) AssetsExportStart(w http.ResponseWriter, r *http.Request) {
 	}
 	s.CachedTenableCall(pp)
 }
+
 func (s *Server) AssetsExportStatus(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.AssetsExportStatus
@@ -155,9 +169,10 @@ func (s *Server) AssetsExportStatus(w http.ResponseWriter, r *http.Request) {
 		return t.AssetsExportStatus(exportUUID, true, true)
 	}
 
-	s.CachedTenableCallSkipSave(pp, false, true)
+	s.CallSkipSave(pp, false, true)
 
 }
+
 func (s *Server) AssetsExportGet(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.f = func(t tenable.Service) ([]byte, error) {
@@ -181,6 +196,7 @@ func (s *Server) ScannersList(w http.ResponseWriter, r *http.Request) {
 	}
 	s.CachedTenableCall(pp)
 }
+
 func (s *Server) AgentGroups(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.ScannerAgentGroups

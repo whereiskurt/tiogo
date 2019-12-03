@@ -3,12 +3,13 @@ package tenable
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"sync"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/whereiskurt/tiogo/pkg/cache"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"gopkg.in/matryer/try.v1"
-	"strings"
-	"sync"
 )
 
 var EndPoints = endPointTypes{
@@ -320,7 +321,7 @@ func (s *Service) AgentUngroup(agentId string, groupId string, scannerId string)
 	return raw, err
 }
 
-func (s *Service) VulnsExportStatus(exportUUID string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+func (s *Service) VulnsExportStatus(exportUUID string) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {

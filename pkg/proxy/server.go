@@ -2,6 +2,13 @@ package proxy
 
 import (
 	"context"
+	"net/http"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"syscall"
+	"time"
+
 	"github.com/go-chi/chi"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -10,12 +17,6 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"github.com/whereiskurt/tiogo/pkg/proxy/middleware"
 	"github.com/whereiskurt/tiogo/pkg/tenable"
-	"net/http"
-	"os"
-	"os/signal"
-	"path/filepath"
-	"syscall"
-	"time"
 )
 
 // Server is built on go-chi

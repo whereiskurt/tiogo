@@ -2,13 +2,14 @@ package vm
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
 	"github.com/whereiskurt/tiogo/pkg/ui"
-	"os"
-	"path/filepath"
 )
 
 func (vm *VM) ExportAssetsStart(cmd *cobra.Command, args []string) {
@@ -44,12 +45,12 @@ func (vm *VM) ExportAssetsStatus(cmd *cobra.Command, args []string) {
 	uuid := vm.Config.VM.UUID
 
 	if uuid == "" {
-		a.Config.VM.Log.Infof("export uuid was not specified - will use attempt to lookup from last 'start' call")
+		log.Infof("export uuid was not specified - will use attempt to lookup from last 'start' call")
 
 		var err error
 		uuid, err = a.LastCachedExportAssetUUID()
 		if err != nil {
-			vm.Config.VM.Log.Errorf("error: cannot get export uuid: %v", err)
+			log.Errorf("error: cannot get export uuid: %v", err)
 			return
 		}
 	}

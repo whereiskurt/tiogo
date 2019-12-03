@@ -72,5 +72,15 @@ func (s *Server) EnableDefaultRouter() {
 			})
 		})
 
+		// //Adding /scans endpoints
+		// r.Route("/scans", func(r chi.Router) {
+		// 	r.Get("/", s.Scans)
+		// 	r.Route("/{ScanID}", func(r chi.Router) {
+		// 		r.Use(middleware.ScansCtx)
+		// 		r.Get("/", s.ScansList)
+		// 		r.Get("/export", s.ScanExport)
+		// 	})
+		// })
+
 	})
 }
