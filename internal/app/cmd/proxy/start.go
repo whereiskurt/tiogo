@@ -6,8 +6,8 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/proxy"
 )
 
+// Start will bind a proxy server to handle Tenable.io request
 func Start(config *config.Config, metrics *metrics.Metrics) {
-
 	serverLog := config.Server.EnableLogging()
 	clientLog := config.VM.EnableLogging()
 
