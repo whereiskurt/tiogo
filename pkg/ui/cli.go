@@ -81,6 +81,19 @@ func CSVString(ss []string) (s string) {
 	return
 }
 
+func StringsJoin(agent map[string]client.AgentGroup, sep string) string {
+
+	if agent == nil || len(agent) == 0 {
+		return ""
+	}
+
+	var ss []string
+	for k := range agent {
+		ss = append(ss, k)
+	}
+	return strings.Join(ss, sep)
+}
+
 func Base64(raw string) (encoded string) {
 	encoded = string(base64.StdEncoding.EncodeToString([]byte(raw)))
 	return
@@ -126,8 +139,10 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 				"Gopher":            Gopher,
 				"AgentGroupsHeader": AgentGroupsHeader,
 				"GroupMembership":   GroupMembership,
-				"StringsJoin":       strings.Join,
+				"StringsJoin":       StringsJoin,
 				"StringsSplit":      strings.Split,
+				"ToUpper":           strings.ToUpper,
+				"ToLower":           strings.ToLower,
 				"Contains":          strings.Contains,
 				"CSVString":         CSVString,
 				"Base64":            Base64,
