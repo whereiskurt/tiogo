@@ -27,25 +27,30 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// Reduce our agents to only ones matching a REGEX or name.
+	filter := a.Filter
 	if regex != "" {
-		agents = a.Filter.AgentsByRegex(agents, regex)
+		agents = filter.AgentsByRegex(agents, regex)
 	} else if name != "" {
-		agents = a.Filter.AgentsByName(agents, name)
+		agents = filter.AgentsByName(agents, name)
 	}
 
+	// Reduce agents to just ones matching group membership
 	if groupName != "" {
-		agents = a.Filter.KeepOnlyGroupMembers(agents, groupName)
+		agents = filter.KeepOnlyGroupMembers(agents, groupName)
 	}
 
 	// TODO: Add a switch to override this. :-)
 	// Rewrite the agentGroups for groups just found in agents[]
 	if regex != "" {
+		// Collect unique AgentGroups in map, indexed by name
 		var ag = make(map[string]client.AgentGroup)
 		for _, a := range agents {
 			for _, g := range a.Groups {
 				ag[g.Name] = g
 			}
 		}
+		// Convert map to a list agentGroup list
 		agentGroups = make([]client.AgentGroup, 0)
 		for k := range ag {
 			agentGroups = append(agentGroups, ag[k])
