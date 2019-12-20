@@ -31,7 +31,11 @@ func (vm *VM) CacheClear(cmd *cobra.Command, args []string) {
 // CacheClearAll will empty ALL cache folders
 func (vm *VM) CacheClearAll(cmd *cobra.Command, args []string) {
 	log := vm.setupLog()
-	log.Debugf("CacheClear Requested started...")
+	log.Debugf("Clear ALL cache entries...")
+
+	vm.CacheClearAgents(cmd, args)
+	vm.CacheClearScans(cmd, args)
+
 	return
 }
 
