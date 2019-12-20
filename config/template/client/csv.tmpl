@@ -12,10 +12,10 @@
 {{- end}}
 
 {{define "AgentsListCSV"}}
-Name,IP1,IP2,IP3,IP4,IP,LastScan,LastConnect,{{AgentGroupsHeader .AgentGroups}},Groups,GroupCount,LinkedOn,Feed,UUID
+Name,IP1,IP2,IP3,IP4,IP,LastScan,LastConnect,{{AgentGroupsHeader .AgentGroups}},Groups,GroupCount,LinkedOn,Feed,UUID,Status
 {{ $groups := .AgentGroups -}}
 {{- range $k, $v := .Agents -}}
-    {{$v.Name | ToLower }},{{template "IPSegments" $v.IP }},"{{$v.LastScanned}}","{{$v.LastConnect}}",{{CSVString (GroupMembership $v.Groups $groups)}},"{{StringsJoin $v.Groups ";"}}",{{len $v.Groups}},{{$v.LinkedOn}},{{$v.Feed}},{{$v.UUID}}
+    {{$v.Name | ToLower }},{{template "IPSegments" $v.IP }},"{{$v.LastScanned}}","{{$v.LastConnect}}",{{CSVString (GroupMembership $v.Groups $groups)}},"{{StringsJoin $v.Groups ";"}}",{{len $v.Groups}},{{$v.LinkedOn}},{{$v.Feed}},{{$v.UUID}},{{$v.Status}}
 {{end}}
 {{end}}
 
