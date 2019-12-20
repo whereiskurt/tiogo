@@ -7,6 +7,7 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/ui"
 )
 
+// AgentGroupsList outputs all the Agents Groups
 func (vm *VM) AgentGroupsList(cmd *cobra.Command, args []string) {
 	log := vm.Config.Server.EnableLogging()
 	log.Debugf("AgentsGroupsList started")

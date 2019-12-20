@@ -98,7 +98,7 @@ type Plugin struct {
 	PluginID   string
 	Name       string
 	FamilyName string
-	FamilyId   string
+	FamilyID   string
 	Count      string
 	Severity   string
 	Detail     PluginDetail
@@ -272,6 +272,7 @@ type Scanner struct {
 	RegistrationCode string
 	Owner            string
 	Key              string
+	IP               string
 	License          ScannerLicense
 	Agents           []ScannerAgent
 }

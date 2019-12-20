@@ -20,9 +20,9 @@ Name,IP1,IP2,IP3,IP4,IP,LastScan,LastConnect,{{AgentGroupsHeader .AgentGroups}},
 {{end}}
 
 {{define "ScannersListCSV" }}
-{{ printf "Name,Type,ID,UUID\n" }}
+{{ printf "Name,Type,ID,UUID,IP\n" }}
 {{- range $k, $v := .Scanners -}}
-    {{ printf "\"%s\",\"%s\",\"%s\",%s,%s\n" .Name .Status .Type .ID .UUID }}
+    {{ printf "\"%s\",\"%s\",\"%s\",%s,%s,%s\n" .Name .Status .Type .ID .UUID .IP }}
 {{- end -}}
 {{end}}
 

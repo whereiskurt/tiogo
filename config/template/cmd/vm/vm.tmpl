@@ -11,7 +11,7 @@ Usage:
     tio [SUBCOMMAND] [ACTION ...] [OPTIONS]
 
 Sub-commands:
-    help, scanners, agents, agent-groups, export-vulns
+    help, scanners, agents, agent-groups, export-vulns, (#TODO: scans)
 
 VM Options:
     Selection modifiers:
@@ -25,14 +25,15 @@ Output Modes:
       --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
 VM Actions and Examples:
-    $ tio vm help scanners
     $ tio vm help agents
     $ tio vm help agent-groups
+    $ tio vm help scanners
     $ tio vm help export-vulns
+    $ tio vm help export-assets
 
 {{end}}
 
-{{define "ExportVulnsHelp"}}
+{{define "exportVulnsUsage"}}
 Bulk Exports of Vulnerabilities
 https://developer.tenable.com/reference#exports
 
@@ -47,20 +48,18 @@ Export Vulns Options:
     --uuid=[unique id]
     --jqex=[jq expression]
     --chunk=[chunk to get, defaults: ALL]
-    --critical, --high, --medium, --info  [severity to match for vulnerability]
-    --before=[YYYY-MM-DD HH:MM:SS +/-0000 TZ], --after=[YYYY-MM-DD HH:MM:SS +/-0000 TZ] [date boundaries]
-    --days=[number of days to bound query to]
+    --critical, --high, --med[ium], --info  [severity to match for vulnerability]
+    --after=[YYYY-MM-DD HH:MM:SS +/-0000 TZ] [date boundaries, or set 'days']
+    --days=[number of days to go back to, instead of defining 'after']
 
 Output Modes:
     --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
 Examples:
     $ tio vm export-vulns start
-    $ tio vm export-vulns start --after="2019-01-01" --critical
-    $ tio vm export-vulns start --after="2019-01-01 00:00:00 -0400 EDT"
-    $ tio vm export-vulns start --before=="2019-01-31" --critical --high
-    $ tio vm export-vulns start --before="2019-01-31" --days=31 --critical --high
-    $ tio vm export-vulns start --after=2019-01-01 --days=31
+    $ tio vm export-vulns start --after="2019-01-01" --crit
+    $ tio vm export-vulns start --after="2019-01-01 00:00:00 -0400 EDT" --high,med,info
+    $ tio vm export-vulns start --days=31 --critical --high
 
     $ tio vm export-vulns status
     $ tio vm export-vulns get
@@ -134,7 +133,7 @@ Options modifiers:
 
     --critical, --high, --medium, --info [severity to match for vulnerability]
     --before,--after=[YYYY-MM-DD of date boundaries]
-    --days=[number of days to bound query to]
+    --days=[number of days to bound query to, can be used with either 'before' or 'after']
 
 Examples:
     ## Query
@@ -148,9 +147,10 @@ Examples:
     $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --days=30
 
     ## These three examples all produce the same results -- 15 day time boxes
-    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --after 2019-01-01 --days=15
-    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --before 2019-01-15 --days=15
+    ## Everything after 2019-01-01 and before 2019-01-15
     $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --after 2019-01-01 --before 2019-01-15
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --after 2019-01-01 --days=15
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --before 2019-01-15 --days=15   
 
 {{end}}
 {{define "ExportAssetsGet"}}
@@ -226,6 +226,7 @@ Agents Options:
       $ tio agents
       $ tio agents list --without-group
       $ tio agents list --group "New Group Name"
+      $ tio agents list --regex "New Group .+"
 
       ## Group and Ungroup Agents into Agent Groups
       $ tio agents group --group "New Group Name" --regex "10\.0\.2\"
@@ -240,7 +241,7 @@ Usage:
     tio vm agent-groups [ACTION ...] [OPTIONS]
 
 Action:
-    list, create, delete, sync
+    list, (TODO: create, delete)
 
 Agents Options:
     Selection modifiers:
@@ -257,10 +258,10 @@ Agents Options:
       $ tio vm agent-groups list
       $ tio agent-groups
 
+      ## TODO: Implement create, delete, and --as-target-groups
       $ tio vm agent-groups create --name "Agent Group #Y"
       $ tio vm agent-groups delete --name "Agent Group #Y"
 
       ## Output IP addresses of Agents to so we can create Target Groups
       $ tio vm agent-groups list --as-target-groups --size=16
-      $ tio vm agent-groups sync --as-target-groups --size=16
 {{end}}

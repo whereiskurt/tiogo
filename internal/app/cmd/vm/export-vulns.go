@@ -174,7 +174,7 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 	return
 }
 
-//ExportVulnsHelp out the template for the vm around vulns
+//exportVulnsUsage out the template for the vm around vulns
 func (vm *VM) ExportVulnsHelp(cmd *cobra.Command, args []string) {
 	fmt.Printf("tiogo version %s (%s)", ReleaseVersion, GitHash)
 	if vm.Config.VM.Log.IsLevelEnabled(log.DebugLevel) {
@@ -182,7 +182,7 @@ func (vm *VM) ExportVulnsHelp(cmd *cobra.Command, args []string) {
 	}
 
 	cli := ui.NewCLI(vm.Config)
-	fmt.Println(cli.Render("ExportVulnsHelp", nil))
+	fmt.Println(cli.Render("exportVulnsUsage", nil))
 
 	return
 }

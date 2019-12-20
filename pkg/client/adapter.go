@@ -138,10 +138,13 @@ func (a *Adapter) AgentGroups() ([]AgentGroup, error) {
 
 	var agentGroups []AgentGroup
 	for i := range scanners {
+		// We only want the MagicAgentScanner ... can probably replay w/ 00000-000 hardcoded
+		// If this scanner in our collection isnt the Agent Scanner
 		if scanners[i].UUID != MagicAgentScanner {
-			continue
+			continue // Try the next one!
 		}
 
+		// Use thie ID to get all our Agent Groups
 		id := scanners[i].ID
 		raw, err := u.ScannerAgentGroups(id)
 
@@ -153,7 +156,7 @@ func (a *Adapter) AgentGroups() ([]AgentGroup, error) {
 		convert := NewConvert()
 		agentGroups, err = convert.ToAgentGroups(raw)
 
-		break
+		break // DONE!
 	}
 
 	return agentGroups, err

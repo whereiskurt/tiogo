@@ -35,7 +35,6 @@ func (f *Filter) AgentsByRegex(agents []ScannerAgent, regex string) (filtered []
 		s := fmt.Sprintf("%+v", a)
 		if r.MatchString(s) == true {
 			filtered = append(filtered, a)
-			// f.Config.Log.Debugf("AgentString:%s", s)
 		}
 	}
 

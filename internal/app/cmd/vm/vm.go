@@ -16,13 +16,13 @@ var (
 	GitHash = "0xhashhash"
 )
 
-// Version holds the config and CLI references.
+// VM holds the config and CLI references.
 type VM struct {
 	Config  *config.Config
 	Metrics *metrics.Metrics
 }
 
-// NewVersion holds a configuration and command line interface reference (for log out, etc.)
+// NewVM holds a configuration and command line interface reference (for log out, etc.)
 func NewVM(c *config.Config, m *metrics.Metrics) (v VM) {
 	v.Config = c
 	v.Metrics = m
@@ -50,7 +50,7 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 	case "agents":
 		fmt.Print(cli.Render("agentsUsage", versionMap))
 	case "export-vulns":
-		fmt.Print(cli.Render("ExportVulnsHelp", versionMap))
+		fmt.Print(cli.Render("exportVulnsUsage", versionMap))
 
 	default:
 		fmt.Println(cli.Render("vmUsage", versionMap))

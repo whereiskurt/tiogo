@@ -67,7 +67,7 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	return
 }
 
-//Agents 
+//Agents
 func (vm *VM) Agents(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []client.AgentGroup, error) {
 	regex := vm.Config.VM.Regex
 	name := vm.Config.VM.Name
@@ -76,6 +76,7 @@ func (vm *VM) Agents(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []cl
 		cli.Fatalf("%s", err)
 	}
 
+	//TODO: Make this from
 	agents, err := a.Agents(true, true)
 	if err != nil {
 		err := fmt.Errorf("error: couldn't agents list: %v", err)

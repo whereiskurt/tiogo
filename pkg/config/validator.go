@@ -18,11 +18,6 @@ func (c *Config) ValidateOrFatal() {
 	return
 }
 
-func (c *Config) validateServerRunning() {
-
-	return
-}
-
 func (c *Config) validateChunks() {
 	if c.VM.Chunk == "" {
 		c.VM.Chunk = "ALL"
@@ -54,10 +49,12 @@ func (c *Config) validateChunks() {
 
 }
 
+// DateLayout is the default date expected generally anywhere a date is requested
 var DateLayout = "2006-01-02 15:04:05 -0700 MST"
 
 func (c *Config) validateDateBounds() {
-	now := time.Now()
+
+	var defaultDays = 365
 
 	var days = 0
 	if c.VM.Days != "" {
@@ -70,8 +67,9 @@ func (c *Config) validateDateBounds() {
 
 	if c.VM.BeforeDate == "" && c.VM.AfterDate == "" {
 		if c.VM.Days == "" {
-			days = 365
+			days = defaultDays
 		}
+		now := time.Now()
 		c.VM.BeforeDate = now.Format(DateLayout)
 		c.VM.AfterDate = now.AddDate(0, 0, -1*days).Format(DateLayout)
 		return
@@ -83,6 +81,7 @@ func (c *Config) validateDateBounds() {
 		}
 	}
 
+	//TODO: This check is insufficient and is only used add 00:00:00 to the begin, and the only adds 23:59:59 to the end...
 	if len(c.VM.AfterDate) < 11 {
 		c.VM.AfterDate = fmt.Sprintf("%s 00:00:00 %s", c.VM.AfterDate, c.VM.DefaultTimezone)
 		log.Debugf("Update AfterDate: %s", c.VM.AfterDate)

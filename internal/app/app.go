@@ -111,6 +111,14 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	aGroupsCmd := makeCommand("agent-groups", app.AgentGroupsList, appCmd)
 	_ = makeCommand("list", app.AgentGroupsList, aGroupsCmd)
 
+	//
+	cacheCmd := makeCommand("cache", app.CacheInfo, appCmd)
+	_ = makeCommand("list", app.CacheInfo, cacheCmd)
+	cacheClearCmd := makeCommand("clear", app.CacheClear, cacheCmd)
+	_ = makeCommand("all", app.CacheClearAll, cacheClearCmd)
+	_ = makeCommand("agents", app.CacheClearAgents, cacheClearCmd)
+	_ = makeCommand("scans", app.CacheClearScans, cacheClearCmd)
+
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
 
@@ -123,8 +131,9 @@ func (a *App) InvokeCLI() {
 	clientLog := a.Config.VM.EnableLogging()
 	serverLog := a.Config.Server.EnableLogging()
 
+	//a.Config.IsServerPortAvailable()
 	port := a.Config.Server.ListenPort
-	shouldServer := (a.Config.DefaultServerStart == true) && !isProxyServerCmd() && cmdproxy.PortAvailable(port)
+	shouldServer := (a.Config.DefaultServerStart == true) && !isProxyServerCmd() && cmdproxy.IsPortAvailable(port)
 
 	setDefaultRootCmd()
 
@@ -139,7 +148,7 @@ func (a *App) InvokeCLI() {
 	_ = a.RootCmd.Execute()
 
 	if shouldServer {
-		cmdproxy.Stop(a.Config, a.Metrics)
+		defer cmdproxy.Stop(a.Config, a.Metrics)
 	}
 
 	return

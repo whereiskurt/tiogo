@@ -75,7 +75,7 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 
 	EndPoints.ScannersList: {
 		URL:           "/scanners",
-		CacheFilename: "/scanners.json",
+		CacheFilename: "/scanners/scanners.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Get: {},
 		},
@@ -85,11 +85,13 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 		URL:           "/vulns/export",
 		CacheFilename: "/export/vulns/request.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
-			HTTP.Post: {`{
-			"export-request": "export-request",
-			"filters": {
-				"since": {{.Since}}
-			}}`},
+			HTTP.Post: {`
+{
+	"export-request": "export-request",
+	"filters": {
+		"since": {{.Since}}
+	}
+}`},
 		},
 	},
 	EndPoints.VulnsExportStatus: {
@@ -111,10 +113,10 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 		CacheFilename: "/export/assets/request.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Post: {`
-      {
-			  "export-request": "export-request",
-			  "chunk_size": {{.Limit}} 
-      }`},
+{
+	"export-request": "export-request",
+	"chunk_size": {{.Limit}} 
+}`},
 		},
 	},
 	EndPoints.AssetsExportStatus: {
@@ -127,14 +129,6 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 	EndPoints.AssetsExportGet: {
 		URL:           "/assets/export/{{.ExportUUID}}/chunks/{{.ChunkID}}",
 		CacheFilename: "/export/assets/{{.ExportUUID}}/chunk.{{.ChunkID}}.json",
-		MethodTemplate: map[httpMethodType]MethodTemplate{
-			HTTP.Get: {},
-		},
-	},
-
-	EndPoints.ScannersList: {
-		URL:           "/scanners",
-		CacheFilename: "/scanners.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Get: {},
 		},

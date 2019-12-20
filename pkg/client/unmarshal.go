@@ -10,6 +10,10 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/tenable"
 )
 
+// Unmarshal is responsible for constructing Tenable.io service, with or without cache,
+// to make calls against Tenable.io and potential retrieve raw data. Raw data is converted
+// by the Coverter
+// it is the process
 type Unmarshal struct {
 	Config  *config.Config
 	Metrics *metrics.Metrics
@@ -22,18 +26,26 @@ func NewUnmarshal(config *config.Config, metrics *metrics.Metrics) (u Unmarshal)
 	return
 }
 
-// ServiceFullCache uses defaults of true for SkipOnHit and WriteOnReturn
-func (u *Unmarshal) ServiceFullCache() (s tenable.Service) {
-	return u.Service(true, true)
+// NewService checks for previous cache hits, and if not present, calls and writes-cache
+func (u *Unmarshal) NewService() (s tenable.Service) {
+	return u.service(u.Config.VM.CacheResponse, u.Config.VM.CacheResponse)
 }
 
-// Service takes params to
-func (u *Unmarshal) Service(writeOnReturn bool, skipOnHit bool) (s tenable.Service) {
+// NewServiceSaveOnly does not check for previous cache hits, and makes a fresh call everytime
+func (u *Unmarshal) NewServiceSaveOnly() (s tenable.Service) {
+	return u.service(true, false)
+}
+
+// DefaultServiceFolder is appended to the cache to allow for many cache types in the cache folder
+var DefaultServiceFolder = "service"
+
+// service wraps the Tenable service calls in
+func (u *Unmarshal) service(writeOnReturn bool, skipOnHit bool) (s tenable.Service) {
 	s = tenable.NewService(u.Config.VM.BaseURL, u.Config.VM.SecretKey, u.Config.VM.AccessKey, u.Config.VM.Log)
 	s.EnableMetrics(u.Metrics)
 
 	if u.Config.VM.CacheResponse {
-		serviceCacheFolder := filepath.Join(u.Config.VM.CacheFolder, "service/")
+		serviceCacheFolder := filepath.Join(u.Config.VM.CacheFolder, DefaultServiceFolder)
 		s.EnableCache(serviceCacheFolder, u.Config.VM.CacheKey)
 	}
 	s.Log = u.Config.VM.Log
@@ -42,40 +54,44 @@ func (u *Unmarshal) Service(writeOnReturn bool, skipOnHit bool) (s tenable.Servi
 	return
 }
 
-func (u *Unmarshal) ScannerAgentGroups(scannerId string) ([]byte, error) {
-	s := u.ServiceFullCache()
-	raw, err := s.ScannerAgentGroups(scannerId)
+// ScannerAgentGroups outputs all Agent Groups associated with scanner
+func (u *Unmarshal) ScannerAgentGroups(scannerID string) ([]byte, error) {
+	s := u.NewServiceSaveOnly()
+	raw, err := s.ScannerAgentGroups(scannerID)
 	return raw, err
 }
 
-func (u *Unmarshal) AgentGroup(agentId string, groupId string, scannerId string) ([]byte, error) {
-	s := u.ServiceFullCache()
-	raw, err := s.AgentGroup(agentId, groupId, scannerId)
-	return raw, err
-}
-func (u *Unmarshal) AgentUngroup(agentId string, groupId string, scannerId string) ([]byte, error) {
-	s := u.ServiceFullCache()
-	raw, err := s.AgentUngroup(agentId, groupId, scannerId)
+// AgentGroup assigns an AgentID a GroupID given a ScannerID. [The opposite of AgentUngroup.]
+func (u *Unmarshal) AgentGroup(agentID string, groupID string, scannerID string) ([]byte, error) {
+	s := u.NewService()
+	raw, err := s.AgentGroup(agentID, groupID, scannerID)
 	return raw, err
 }
 
+// AgentUngroup unassigns an AgentID a GroupID given a ScannerID. [The opposite of AgentGroup.]
+func (u *Unmarshal) AgentUngroup(agentID string, groupID string, scannerID string) ([]byte, error) {
+	s := u.NewService()
+	raw, err := s.AgentUngroup(agentID, groupID, scannerID)
+	return raw, err
+}
+
+// Scanners returns all scanners registered in Tenable.io
 func (u *Unmarshal) Scanners() ([]byte, error) {
-	s := u.ServiceFullCache()
+	s := u.NewService()
 	raw, err := s.ScannersList()
 	return raw, err
 }
 
-func (u *Unmarshal) Agents(scannerId string, offset string, limit string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
-	s := u.ServiceFullCache()
-
-	s.WriteOnReturn = writeOnReturn
-	s.SkipOnHit = skipOnHit
-	raw, err := s.AgentList(scannerId, offset, limit)
+// Agents returns raw Agents from a givent offset and limit
+func (u *Unmarshal) Agents(scannerID string, offset string, limit string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+	s := u.service(writeOnReturn, skipOnHit)
+	raw, err := s.AgentList(scannerID, offset, limit)
 	return raw, err
 }
 
+// VulnsExportStart start vuln export, if not already started (i.e. cached)
 func (u *Unmarshal) VulnsExportStart() ([]byte, error) {
-	s := u.ServiceFullCache()
+	s := u.NewService()
 
 	// Convert Human dates into Unix()
 	since := u.Config.VM.AfterDate
@@ -90,32 +106,34 @@ func (u *Unmarshal) VulnsExportStart() ([]byte, error) {
 
 	return raw, err
 }
-func (u *Unmarshal) VulnsExportStatus(uuid string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
-	s := u.Service(skipOnHit, writeOnReturn)
 
+// VulnsExportStatus will return the raw status of the vuln export
+func (u *Unmarshal) VulnsExportStatus(uuid string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+	s := u.service(skipOnHit, writeOnReturn)
 	raw, err := s.VulnsExportStatus(uuid)
 	return raw, err
 }
+
 func (u *Unmarshal) VulnsExportGet(uuid string, chunk string) ([]byte, error) {
-	s := u.ServiceFullCache()
+	s := u.NewService()
 	raw, err := s.VulnsExportGet(uuid, chunk)
 	return raw, err
 }
 
 func (u *Unmarshal) AssetsExportStart(limit string) ([]byte, error) {
-	s := u.ServiceFullCache()
+	s := u.NewService()
 
 	raw, err := s.AssetsExportStart(limit)
 
 	return raw, err
 }
 func (u *Unmarshal) AssetsExportStatus(uuid string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
-	s := u.Service(skipOnHit, writeOnReturn)
+	s := u.service(skipOnHit, writeOnReturn)
 	raw, err := s.AssetsExportStatus(uuid, skipOnHit, writeOnReturn)
 	return raw, err
 }
 func (u *Unmarshal) AssetsExportGet(uuid string, chunk string) ([]byte, error) {
-	s := u.ServiceFullCache()
+	s := u.NewService()
 	raw, err := s.AssetsExportGet(uuid, chunk)
 	return raw, err
 }

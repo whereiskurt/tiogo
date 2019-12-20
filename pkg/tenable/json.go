@@ -25,6 +25,7 @@ type Scanner struct {
 	RegistrationCode string      `json:"registration_code"`
 	Owner            string      `json:"owner"`
 	Key              string      `json:"key"`
+	Addresses        []string    `json:"ip_addresses"`
 	License          struct {
 		Type         string      `json:"type"`
 		IPS          json.Number `json:"ips"`
@@ -72,6 +73,7 @@ type ScannerAgentGroup struct {
 	Created      json.Number `json:"creation_date"`
 }
 type Pagination struct {
+	ScanDetailHistory
 	Total  json.Number `json:"total"`
 	Offset json.Number `json:"offset"`
 	Limit  json.Number `json:"limit"`
@@ -152,7 +154,6 @@ type ScanDetailHosts struct {
 	ChecksConsidered json.Number `json:"numchecksconsidered"`
 	ChecksTotal      json.Number `json:"totalchecksconsidered"`
 }
-
 type ScanDetailVulnerabilities struct {
 	ID       json.Number `json:"vuln_index"`
 	PluginID json.Number `json:"plugin_id"`

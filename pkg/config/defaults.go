@@ -29,6 +29,7 @@ const DefaultServerBaseURL = "https://cloud.tenable.com"
 // DefaultClientCacheFolder stores default client cache file location
 const DefaultClientCacheFolder = ".tiogo/cache/client/"
 const DefaultClientCacheResponse = true
+const DefaultClientCacheLookup = true
 
 const DefaultLogFolder = "log/"
 const DefaultServerMetricsFolder = "log/metrics/server/"
@@ -37,6 +38,7 @@ const DefaultClientMetricsFolder = "log/metrics/client/"
 // DefaultServerCacheFolder  stores default server cache file location
 const DefaultServerCacheFolder = ".tiogo/cache/server/"
 const DefaultServerCacheResponse = true
+const DefaultServerCacheLookup = true
 
 func (c *Config) SetToDefaults() {
 	// Find the User's home folder

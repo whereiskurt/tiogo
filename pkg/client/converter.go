@@ -9,10 +9,10 @@ import (
 	"time"
 )
 
-// Converter does not need any other objects or references
+// Converter translates Tenable.io raw JSONs responses into DTO objects
 type Converter struct{}
 
-// NewConvert returns a converter, used by the adapter
+// NewConvert exposes methods to take raw JSON from Unmarshal and transform it
 func NewConvert() (convert Converter) { return }
 
 // ToVulnExportStatus takes a raw byte array of JSON from Tenable.io,
@@ -40,6 +40,7 @@ func (c *Converter) ToVulnExportStatus(raw []byte) (converted VulnExportStatus, 
 	return converted, nil
 }
 
+// ToAssetExportStatus converst raw unmarshaled Tenable.io ExportStatus and converts to a DTO.
 func (c *Converter) ToAssetExportStatus(raw []byte) (converted AssetExportStatus, err error) {
 	var tenableStatus tenable.AssetExportStatus
 
@@ -60,11 +61,14 @@ func (c *Converter) ToAssetExportStatus(raw []byte) (converted AssetExportStatus
 	}
 	converted.Status = tenableStatus.Status
 
-	return converted, nil
+	return
 }
 
+// ToAgents converts raw Tenable Agents from Scanner to DTO ScannerAgents
 func (c *Converter) ToAgents(scanner Scanner, raw []byte) ([]ScannerAgent, error) {
 	var src tenable.ScannerAgent
+	var scannerID = scanner.ID // We enrich the DTO Agent with the scanner ID. DNE in the Tenable.ScannerAgent object.
+	var scannerUUID = scanner.UUID
 
 	log.Debug(fmt.Sprintf("%s", raw))
 
@@ -87,8 +91,8 @@ func (c *Converter) ToAgents(scanner Scanner, raw []byte) ([]ScannerAgent, error
 		agent.Distro = a.Distro
 		agent.IP = a.IP
 
-		agent.Scanner.ID = scanner.ID
-		agent.Scanner.UUID = scanner.UUID
+		agent.Scanner.ID = scannerID
+		agent.Scanner.UUID = scannerUUID
 
 		agent.Groups = make(map[string]AgentGroup)
 		for _, g := range a.Groups {
@@ -117,6 +121,7 @@ func (c *Converter) ToAgents(scanner Scanner, raw []byte) ([]ScannerAgent, error
 	return agents, err
 }
 
+// ToAgentGroups converts raw Tenable AgentsGroups to DTO AgentGroup
 func (c *Converter) ToAgentGroups(raw []byte) ([]AgentGroup, error) {
 	var src tenable.ScannerAgentGroups
 	var groups []AgentGroup
@@ -140,6 +145,7 @@ func (c *Converter) ToAgentGroups(raw []byte) ([]AgentGroup, error) {
 	return groups, err
 }
 
+// ToScanners converts raw Tenable AgentsGroups to DTO AgentGroup
 func (c *Converter) ToScanners(raw []byte) ([]Scanner, error) {
 	var src tenable.ScannerList
 	var scanners []Scanner
@@ -169,6 +175,12 @@ func (c *Converter) ToScanners(raw []byte) ([]Scanner, error) {
 		scanner.Owner = s.Owner
 		scanner.ScanCount = string(s.ScanCount)
 		scanner.Platform = s.Platform
+		if len(s.Addresses) > 0 {
+			scanner.IP = s.Addresses[0]
+		} else {
+			scanner.IP = "Unknown"
+		}
+
 		scanners = append(scanners, scanner)
 	}
 
