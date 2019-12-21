@@ -27,7 +27,6 @@ $ docker build --tag tiogo:v0.1 .
 ... [tiogo builds and verbosely outputs]
 
 $ docker run --tty --interactive --rm tiogo:v0.1
-
 root@4f51ab2342123:/tiogo# ./tio help
 ```
 
