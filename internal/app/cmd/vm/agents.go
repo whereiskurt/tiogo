@@ -88,8 +88,7 @@ func (vm *VM) Agents(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []cl
 		return nil, nil, err
 	}
 
-	// Always get the latest agent groups and update the cache
-	agentGroups, err := a.AgentGroups(false, true)
+	agentGroups, err := a.AgentGroups(true, true)
 	if err != nil {
 		err := fmt.Errorf("error: couldn't agent groups list: %v", err)
 		return nil, nil, err
