@@ -78,7 +78,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 
 	_ = makeCommand("help", app.Help, appCmd)
 
-	exportVulnsCmd := makeCommand("export-vulns", app.ExportVulnsHelp, appCmd)
+	exportVulnsCmd := makeCommand("export-vuln", app.ExportVulnsHelp, appCmd)
 	makeString("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportVulnsCmd)
 	_ = makeCommand("start", app.ExportVulnsStart, exportVulnsCmd)
 	_ = makeCommand("status", app.ExportVulnsStatus, exportVulnsCmd)
@@ -89,7 +89,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportVulnsCmd)
 	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportVulnsCmd)
 
-	exportAssetsCmd := makeCommand("export-assets", app.ExportAssetsHelp, appCmd)
+	exportAssetsCmd := makeCommand("export-asset", app.ExportAssetsHelp, appCmd)
 	makeString("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportAssetsCmd)
 	_ = makeCommand("start", app.ExportAssetsStart, exportAssetsCmd)
 	_ = makeCommand("status", app.ExportAssetsStatus, exportAssetsCmd)
@@ -99,10 +99,10 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportAssetsCmd)
 	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportAssetsCmd)
 
-	scannersCmd := makeCommand("scanners", app.ScannersList, appCmd)
+	scannersCmd := makeCommand("scanner", app.ScannersList, appCmd)
 	_ = makeCommand("list", app.ScannersList, scannersCmd)
 
-	agentsCmd := makeCommand("agents", app.AgentsList, appCmd)
+	agentsCmd := makeCommand("agent", app.AgentsList, appCmd)
 	_ = makeCommand("list", app.AgentsList, agentsCmd)
 	_ = makeCommand("group", app.AgentsGroup, agentsCmd)
 	_ = makeCommand("ungroup", app.AgentsUngroup, agentsCmd)
@@ -110,7 +110,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	makeBool("WithoutGroupName", &a.Config.VM.WithoutGroupName, []string{"without-group", "no-groups"}, agentsCmd)
 	makeString("GroupName", &a.Config.VM.GroupName, []string{"group", "groupname", "group-name"}, agentsCmd)
 
-	aGroupsCmd := makeCommand("agent-groups", app.AgentGroupsList, appCmd)
+	aGroupsCmd := makeCommand("agent-group", app.AgentGroupsList, appCmd)
 	_ = makeCommand("list", app.AgentGroupsList, aGroupsCmd)
 
 	cacheCmd := makeCommand("cache", app.CacheInfo, appCmd)
@@ -121,10 +121,12 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	_ = makeCommand("scans", app.CacheClearScans, cacheClearCmd)
 	_ = makeCommand("exports", app.CacheClearExports, cacheClearCmd)
 
-	scansCmd := makeCommand("scans", app.ScansList, appCmd)
+	scansCmd := makeCommand("scan", app.ScansList, appCmd)
 	_ = makeCommand("list", app.ScansList, scansCmd)
 	_ = makeCommand("detail", app.ScansDetail, scansCmd)
-	_ = makeCommand("history", app.ScansHistory, scansCmd)
+	_ = makeCommand("host", app.ScansHosts, scansCmd)
+	_ = makeCommand("plugin", app.ScansPlugins, scansCmd)
+	_ = makeCommand("query", app.ScansQuery, scansCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
