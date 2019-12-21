@@ -146,11 +146,10 @@ func (c *Converter) ToAgentGroups(raw []byte) ([]AgentGroup, error) {
 }
 
 // ToScanners converts raw Tenable AgentsGroups to DTO AgentGroup
-func (c *Converter) ToScanners(raw []byte) ([]Scanner, error) {
+func (c *Converter) ToScanners(raw []byte) (scanners []Scanner, err error) {
 	var src tenable.ScannerList
-	var scanners []Scanner
 
-	err := json.Unmarshal(raw, &src)
+	err = json.Unmarshal(raw, &src)
 	if err != nil {
 		return scanners, err
 	}
@@ -185,4 +184,31 @@ func (c *Converter) ToScanners(raw []byte) ([]Scanner, error) {
 	}
 
 	return scanners, err
+}
+
+// ToScans convert the /scans to DTO
+func (c *Converter) ToScans(raw []byte) (converted []Scan, err error) {
+	var src tenable.ScansList
+
+	err = json.Unmarshal(raw, &src)
+	if err != nil {
+		return converted, err
+	}
+
+	for _, s := range src.Scans {
+		var scan Scan
+		scan.Name = s.Name
+		scan.UUID = s.UUID
+		scan.ScheduleUUID = s.ScheduleUUID
+		scan.ScanID = s.ID.String()
+		scan.Type = s.Type
+		scan.StartTime = s.StartTime
+		scan.RRules = s.RRules
+		scan.Enabled = fmt.Sprintf("%v", s.Enabled)
+		scan.CreationDate = s.CreationDate.String()
+		scan.LastModifiedDate = s.LastModifiedDate.String()
+		converted = append(converted, scan)
+	}
+
+	return
 }

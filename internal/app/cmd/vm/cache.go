@@ -110,6 +110,18 @@ func (vm *VM) CacheClearScans(cmd *cobra.Command, args []string) {
 	log := vm.setupLog()
 
 	log.Debugf("Clearing Scanners cache...")
-	//TODO: Implement this....
+
+	scannerEndPoint := tenable.ServiceMap[tenable.EndPoints.ScansList].CacheFilename
+
+	cpath := filepath.Join(vm.Config.VM.CacheFolder, client.DefaultServiceFolder, scannerEndPoint)
+	cdir := filepath.Dir(cpath)
+	log.Debugf("Delete cache folder: os.RemoveAll(%s)", cdir)
+	os.RemoveAll(cdir)
+
+	cpath = filepath.Join(vm.Config.Server.CacheFolder, scannerEndPoint)
+	cdir = filepath.Dir(cpath)
+	log.Debugf("Delete cache folder: os.RemoveAll(%s)", cdir)
+	os.RemoveAll(cdir)
+
 	return
 }

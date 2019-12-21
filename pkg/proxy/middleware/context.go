@@ -8,6 +8,14 @@ import (
 	"strings"
 )
 
+// DefaultCacheSkipOnHit determines whether to try for a cache hit - when 'true' then return the cached results
+// else don't do a cache lookup at all.
+var DefaultCacheSkipOnHit = true
+
+// DefaultWriteOnReturn determines whether to write a fresh cache entry - when 'true' then the result is written to cache
+// else don't write the result.
+var DefaultWriteOnReturn = true
+
 // Contexts extract all of the params related to their route
 type contextMapKey string
 
@@ -22,9 +30,6 @@ var ContextMapKey = contextMapKey("ctxMap")
 func ContextMap(r *http.Request) map[string]string {
 	return (r.Context().Value(ContextMapKey)).(map[string]string)
 }
-
-var DefaultCacheSkipOnHit = true
-var DefaultWriteOnReturn = true
 
 // InitialCtx runs for every route, sets the response to JSON for all responses and unpacks AccessKey&SecretKey
 func InitialCtx(next http.Handler) http.Handler {
@@ -64,10 +69,12 @@ func AccessKey(r *http.Request) string {
 	return ContextMap(r)["AccessKey"]
 }
 
+// SkipOnHit pulls the param from the request/contextmap
 func SkipOnHit(r *http.Request) string {
 	return ContextMap(r)["SkipOnHit"]
 }
 
+// WriteOnReturn is the Tenable.io secret key required in the header
 func WriteOnReturn(r *http.Request) string {
 	return ContextMap(r)["WriteOnReturn"]
 }
@@ -82,28 +89,42 @@ func ExportUUID(r *http.Request) string {
 	return ContextMap(r)["ExportUUID"]
 }
 
+// ScannerID pulls the param from the request/contextmap
 func ScannerID(r *http.Request) string {
 	return ContextMap(r)["ScannerID"]
 }
+
+// ScanID pulls the param from the request/contextmap
+func ScanID(r *http.Request) string {
+	return ContextMap(r)["ScanID"]
+}
+
+// GroupID pulls the param from the request/contextmap
 func GroupID(r *http.Request) string {
 	return ContextMap(r)["GroupID"]
 }
+
+// AgentID pulls the param from the request/contextmap
 func AgentID(r *http.Request) string {
 	return ContextMap(r)["AgentID"]
 }
 
+// Offset pulls the param from the request/contextmap
 func Offset(r *http.Request) string {
 	return ContextMap(r)["Offset"]
 }
+
+// Limit pulls the param from the request/contextmap
 func Limit(r *http.Request) string {
 	return ContextMap(r)["Limit"]
 }
 
-// CHunkID ...
+// ChunkID pulls the param from the request/contextmap
 func ChunkID(r *http.Request) string {
 	return ContextMap(r)["ChunkID"]
 }
 
+// ExportCtx pulls the param from the request/contextmap
 func ExportCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
@@ -113,6 +134,7 @@ func ExportCtx(next http.Handler) http.Handler {
 	})
 }
 
+// ExportChunkCtx pulls the param from the request/contextmap
 func ExportChunkCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
@@ -122,6 +144,7 @@ func ExportChunkCtx(next http.Handler) http.Handler {
 	})
 }
 
+// ScannersCtx pulls the param from the request/contextmap
 func ScannersCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
@@ -139,6 +162,8 @@ func ScannersCtx(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+// AgentGroupCtx pulls the param from the request/contextmap
 func AgentGroupCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
@@ -147,10 +172,22 @@ func AgentGroupCtx(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+// AgentCtx extracts AgentID from the parameters
 func AgentCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
 		ctxMap["AgentID"] = chi.URLParam(r, "AgentID")
+		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// ScanCtx extracts ScanID from the parameters
+func ScanCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
+		ctxMap["ScanID"] = chi.URLParam(r, "ScanID")
 		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

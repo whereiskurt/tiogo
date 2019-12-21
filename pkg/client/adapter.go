@@ -48,12 +48,13 @@ func NewAdapter(config *config.Config, metrics *metrics.Metrics) (a *Adapter) {
 	return
 }
 
-func (a *Adapter) Scanners() ([]Scanner, error) {
+// Scanners returns all the Tenable.io scanners
+func (a *Adapter) Scanners(skipOnHit bool, writeOnReturn bool) ([]Scanner, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Get)
 
 	u := NewUnmarshal(a.Config, a.Metrics)
 	var scanners []Scanner
-	raw, err := u.Scanners()
+	raw, err := u.Scanners(skipOnHit, writeOnReturn)
 	if err != nil {
 		a.Config.VM.Log.Errorf("error: failed to get the scanners list: %v", err)
 		return scanners, err
@@ -65,6 +66,24 @@ func (a *Adapter) Scanners() ([]Scanner, error) {
 	return scanners, err
 }
 
+// Scans will list all the scans matching --name or --regex
+func (a *Adapter) Scans(skipOnHit bool, writeOnReturn bool) ([]Scan, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.ScansList, metrics.Methods.Service.Get)
+
+	u := NewUnmarshal(a.Config, a.Metrics)
+	var scans []Scan
+	raw, err := u.ScansList(skipOnHit, writeOnReturn)
+	if err != nil {
+		a.Config.VM.Log.Errorf("error: failed to get the scan list: %v", err)
+		return scans, err
+	}
+
+	convert := NewConvert()
+	scans, err = convert.ToScans(raw)
+
+	return scans, err
+}
+
 var MagicAgentScanner = "00000000-0000-0000-0000-00000000000000000000000000001"
 
 // Agents uses an Unmarshaler and Converter to return DTO or error
@@ -73,7 +92,7 @@ func (a *Adapter) Agents(skipOnHit bool, writeOnReturn bool) ([]ScannerAgent, er
 
 	AgentsPerRequest, _ := strconv.Atoi(a.Config.VM.ExportLimit)
 
-	scanners, err := a.Scanners()
+	scanners, err := a.Scanners(skipOnHit, writeOnReturn)
 	if err != nil {
 		a.Config.VM.Log.Errorf("error: failed to get the scanners list for agents list: %v", err)
 		return nil, err
@@ -132,7 +151,7 @@ func (a *Adapter) AgentGroups(skipOnHit bool, writeOnReturn bool) ([]AgentGroup,
 	a.Metrics.ClientInc(metrics.EndPoints.AgentGroups, metrics.Methods.Service.Get)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	scanners, err := a.Scanners()
+	scanners, err := a.Scanners(skipOnHit, writeOnReturn)
 	if err != nil {
 		a.Config.VM.Log.Errorf("error: failed to get the agent scanners list : %v", err)
 		return nil, err

@@ -16,8 +16,7 @@ func (vm *VM) AgentGroupsList(cmd *cobra.Command, args []string) {
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 	cli := ui.NewCLI(vm.Config)
 
-	log.Debugf("AgentsGroupsList client won't use cache and will fetch fresh results from server")
-	groups, err := a.AgentGroups(false, true)
+	groups, err := a.AgentGroups(true, true)
 	if err != nil {
 		log.Errorf("error: couldn't agents list: %v", err)
 		return

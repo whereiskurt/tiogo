@@ -28,7 +28,7 @@ func NewUnmarshal(config *config.Config, metrics *metrics.Metrics) (u Unmarshal)
 
 // NewService checks for previous cache hits, and if not present, calls and writes-cache
 func (u *Unmarshal) NewService() (s tenable.Service) {
-	return u.service(u.Config.VM.CacheResponse, u.Config.VM.CacheResponse)
+	return u.service(true, true)
 }
 
 // NewServiceSaveOnly does not check for previous cache hits, and makes a fresh call everytime
@@ -77,8 +77,8 @@ func (u *Unmarshal) AgentUngroup(agentID string, groupID string, scannerID strin
 }
 
 // Scanners returns all scanners registered in Tenable.io
-func (u *Unmarshal) Scanners() ([]byte, error) {
-	s := u.NewService()
+func (u *Unmarshal) Scanners(skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+	s := u.service(skipOnHit, writeOnReturn)
 	raw, err := s.ScannersList()
 	return raw, err
 }
@@ -87,6 +87,13 @@ func (u *Unmarshal) Scanners() ([]byte, error) {
 func (u *Unmarshal) Agents(scannerID string, offset string, limit string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
 	s := u.service(skipOnHit, writeOnReturn)
 	raw, err := s.AgentList(scannerID, offset, limit)
+	return raw, err
+}
+
+// ScansList will retrieve all scans
+func (u *Unmarshal) ScansList(skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+	s := u.service(skipOnHit, writeOnReturn)
+	raw, err := s.ScansList()
 	return raw, err
 }
 
@@ -116,6 +123,7 @@ func (u *Unmarshal) VulnsExportStatus(uuid string, skipOnHit bool, writeOnReturn
 	return raw, err
 }
 
+// VulnsExportGet will return the raw chunk file for the vuln export uuid
 func (u *Unmarshal) VulnsExportGet(uuid string, chunk string) ([]byte, error) {
 	s := u.NewService()
 	raw, err := s.VulnsExportGet(uuid, chunk)
@@ -140,11 +148,14 @@ func (u *Unmarshal) AssetsExportStart() ([]byte, error) {
 	return raw, err
 }
 
+// AssetsExportStatus will return the raw status of the assets export
 func (u *Unmarshal) AssetsExportStatus(uuid string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
 	s := u.service(skipOnHit, writeOnReturn)
 	raw, err := s.AssetsExportStatus(uuid)
 	return raw, err
 }
+
+// AssetsExportGet will return the raw chunk file for the asset export uuid
 func (u *Unmarshal) AssetsExportGet(uuid string, chunk string) ([]byte, error) {
 	s := u.NewService()
 	raw, err := s.AssetsExportGet(uuid, chunk)

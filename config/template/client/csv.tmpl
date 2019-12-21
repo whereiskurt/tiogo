@@ -33,3 +33,9 @@ Name,IP1,IP2,IP3,IP4,IP,LastScan,LastConnect,{{AgentGroupsHeader .AgentGroups}},
 {{- end -}}
 {{end}}
 
+{{define "ScansListCSV" }}
+{{ printf "ID, Name, Type, Enabled, ScheduleStart,ScheduleRules,LastRunDate\n"  }}
+{{- range $k, $v := .Scans -}}
+    {{ printf "%s,%s,%s,%s,%s,%s,%s\n" .ScanID .Name .Type .Enabled .StartTime .RRules .LastModifiedDate}}
+{{- end -}}
+{{end}}

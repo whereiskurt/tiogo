@@ -16,7 +16,7 @@ func (vm *VM) ScannersList(cmd *cobra.Command, args []string) {
 
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 
-	scanners, err := a.Scanners()
+	scanners, err := a.Scanners(true, true)
 	if err != nil {
 		log.Errorf("error: couldn't scanners list: %v", err)
 		return

@@ -84,7 +84,7 @@ type Pagination struct {
 }
 
 // https://cloud.tenable.com/api#/resources/scans/
-type ScanList struct {
+type ScansList struct {
 	Folders []struct {
 		Id json.Number `json:"id"`
 	}
@@ -92,14 +92,22 @@ type ScanList struct {
 	Timestamp json.Number    `json:"timestamp"`
 }
 
+// ScanListItem is returned for each scan
 type ScanListItem struct {
-	Id               json.Number `json:"id"`
+	ID               json.Number `json:"id"`
 	UUID             string      `json:"uuid"`
+	ScheduleUUID     string      `json:"schedule_uuid"`
 	Name             string      `json:"name"`
 	Status           string      `json:"status"`
+	Type             string      `json:"type"` //eg. agent
 	Owner            string      `json:"owner"`
 	UserPermissions  json.Number `json:"user_permissions"`
+	Permissions      json.Number `json:"permissions"`
 	Enabled          bool        `json:"enabled"`
+	Legacy           bool        `json:"legacy"`
+	Read             bool        `json:"read"`
+	Shared           bool        `json:"shared"`
+	Control          bool        `json:"control"`
 	RRules           string      `json:"rrules"`
 	Timezone         string      `json:"timezone"`
 	StartTime        string      `json:"startTime"`

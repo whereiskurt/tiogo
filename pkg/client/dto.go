@@ -8,7 +8,9 @@ import (
 type Scan struct {
 	ScanID           string
 	UUID             string
+	ScheduleUUID     string
 	Name             string
+	Type             string
 	Status           string
 	Owner            string
 	UserPermissions  string

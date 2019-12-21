@@ -6,6 +6,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
+// Metrics are kept for server,client and service calls
 type Metrics struct {
 	server  serverMetric
 	client  clientMetric
@@ -26,6 +27,7 @@ type serviceMetric struct {
 	transport *prometheus.CounterVec
 }
 
+// NewMetrics return Metrics ready for server/client/service
 func NewMetrics() (m *Metrics) {
 	m = new(Metrics)
 
@@ -74,6 +76,7 @@ func (m *Metrics) clientInit() {
 	)
 }
 
+// ServerInc increments a server metric for a given endPoint and method
 func (m *Metrics) ServerInc(endPoint EndPointType, method ServiceMethodType) {
 	if m.server.endPoint == nil {
 		return
@@ -81,6 +84,8 @@ func (m *Metrics) ServerInc(endPoint EndPointType, method ServiceMethodType) {
 	labels := prometheus.Labels{"endpoint": endPoint.String(), "method": method.String()}
 	m.server.endPoint.With(labels).Inc()
 }
+
+// DBInc increments a database metric for a given endPoint and method
 func (m *Metrics) DBInc(endPoint EndPointType, method DbMethodType) {
 	if m.server.db == nil {
 		return
@@ -88,6 +93,8 @@ func (m *Metrics) DBInc(endPoint EndPointType, method DbMethodType) {
 	labels := prometheus.Labels{"endpoint": endPoint.String(), "method": method.String()}
 	m.server.db.With(labels).Inc()
 }
+
+// CacheInc increments a cache metric for a given endPoint and method
 func (m *Metrics) CacheInc(endPoint EndPointType, method CacheMethodType) {
 	if m.server.cache == nil {
 		return
@@ -95,6 +102,8 @@ func (m *Metrics) CacheInc(endPoint EndPointType, method CacheMethodType) {
 	labels := prometheus.Labels{"endpoint": endPoint.String(), "method": method.String()}
 	m.server.cache.With(labels).Inc()
 }
+
+// TransportInc increments a transport metric for a given endPoint and method
 func (m *Metrics) TransportInc(endPoint EndPointType, method TransportMethodType, status int) {
 	if m.service.transport == nil {
 		return
@@ -102,6 +111,8 @@ func (m *Metrics) TransportInc(endPoint EndPointType, method TransportMethodType
 	labels := prometheus.Labels{"endpoint": endPoint.String(), "method": method.String(), "status": fmt.Sprintf("%d", status)}
 	m.service.transport.With(labels).Inc()
 }
+
+// ClientInc increments a client metric for a given endPoint and method
 func (m *Metrics) ClientInc(endPoint EndPointType, method ServiceMethodType) {
 	if m.client.command == nil {
 		return
@@ -110,6 +121,7 @@ func (m *Metrics) ClientInc(endPoint EndPointType, method ServiceMethodType) {
 	m.client.command.With(labels).Inc()
 }
 
+// DumpMetricsToFile outputs the metrics captured for the run
 func DumpMetricsToFile(file string) {
 	_ = prometheus.WriteToTextfile(file, prometheus.DefaultGatherer)
 }

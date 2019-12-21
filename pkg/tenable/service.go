@@ -23,6 +23,7 @@ var EndPoints = endPointTypes{
 	AgentsList:         EndPointType("AgentsList"),
 	ScannerAgentGroups: EndPointType("ScannerAgentGroups"),
 	AgentsGroup:        EndPointType("AgentsGroup"),
+	ScansList:          EndPointType("ScansLIst"),
 }
 
 type endPointTypes struct {
@@ -39,6 +40,7 @@ type endPointTypes struct {
 	ScannerAgentGroups EndPointType
 	AgentsGroup        EndPointType
 	AgentsUngroup      EndPointType
+	ScansList          EndPointType
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
@@ -133,6 +135,14 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 	EndPoints.AssetsExportGet: {
 		URL:           "/assets/export/{{.ExportUUID}}/chunks/{{.ChunkID}}",
 		CacheFilename: "/export/assets/{{.ExportUUID}}/chunk.{{.ChunkID}}.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
+		},
+	},
+
+	EndPoints.ScansList: {
+		URL:           "/scans/",
+		CacheFilename: "/scans/scans.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Get: {},
 		},
@@ -254,6 +264,31 @@ func (s *Service) AgentList(scannerId string, offset string, limit string) ([]by
 
 	err := try.Do(func(attempt int) (bool, error) {
 		body, status, err := s.get(EndPoints.AgentsList, map[string]string{"ScannerID": scannerId, "Offset": offset, "Limit": limit})
+		if err != nil {
+			s.Log.Infof("failed to agent list: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
+		return false, nil
+	})
+
+	return raw, err
+}
+
+// ScanList will call '/scans' from the Server (Tenable.io or proxy)
+func (s *Service) ScansList() ([]byte, error) {
+	var raw []byte
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.get(EndPoints.ScansList, map[string]string{})
 		if err != nil {
 			s.Log.Infof("failed to agent list: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)

@@ -266,3 +266,25 @@ func (s *Server) AgentsList(w http.ResponseWriter, r *http.Request) {
 	}
 	s.CachedTenableCall(pp)
 }
+
+// Scans will call /scans
+func (s *Server) Scans(w http.ResponseWriter, r *http.Request) {
+	var pp = CachedTenableCallParams{w: w, r: r}
+	pp.endPoint = tenable.EndPoints.ScansList
+	pp.metricType = metrics.EndPoints.AgentsGroup
+	pp.metricMethod = metrics.Methods.Service.Get
+	pp.f = func(t tenable.Service) ([]byte, error) {
+		return t.ScansList()
+	}
+	s.CachedTenableCall(pp)
+}
+
+// ScanDetail handler for outputting scan details for ScanID
+func (s *Server) ScanDetail(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// ScanHistory handler for outputting scan details for ScanID
+func (s *Server) ScanHistory(w http.ResponseWriter, r *http.Request) {
+	return
+}
