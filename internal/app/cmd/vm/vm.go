@@ -51,6 +51,8 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 		fmt.Print(cli.Render("agentGroupsUsage", versionMap))
 	case "agents":
 		fmt.Print(cli.Render("agentsUsage", versionMap))
+	case "scans":
+		fmt.Print(cli.Render("scansUsage", versionMap))
 	case "export-vulns":
 		fmt.Print(cli.Render("exportVulnsUsage", versionMap))
 	case "export-assets":

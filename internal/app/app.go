@@ -99,16 +99,16 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportAssetsCmd)
 	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportAssetsCmd)
 
-	sListCmd := makeCommand("scanners", app.ScannersList, appCmd)
-	_ = makeCommand("list", app.ScannersList, sListCmd)
+	scannersCmd := makeCommand("scanners", app.ScannersList, appCmd)
+	_ = makeCommand("list", app.ScannersList, scannersCmd)
 
-	aListCmd := makeCommand("agents", app.AgentsList, appCmd)
-	_ = makeCommand("list", app.AgentsList, aListCmd)
-	_ = makeCommand("group", app.AgentsGroup, aListCmd)
-	_ = makeCommand("ungroup", app.AgentsUngroup, aListCmd)
+	agentsCmd := makeCommand("agents", app.AgentsList, appCmd)
+	_ = makeCommand("list", app.AgentsList, agentsCmd)
+	_ = makeCommand("group", app.AgentsGroup, agentsCmd)
+	_ = makeCommand("ungroup", app.AgentsUngroup, agentsCmd)
 
-	makeBool("WithoutGroupName", &a.Config.VM.WithoutGroupName, []string{"without-group", "no-groups"}, aListCmd)
-	makeString("GroupName", &a.Config.VM.GroupName, []string{"group", "groupname", "group-name"}, aListCmd)
+	makeBool("WithoutGroupName", &a.Config.VM.WithoutGroupName, []string{"without-group", "no-groups"}, agentsCmd)
+	makeString("GroupName", &a.Config.VM.GroupName, []string{"group", "groupname", "group-name"}, agentsCmd)
 
 	aGroupsCmd := makeCommand("agent-groups", app.AgentGroupsList, appCmd)
 	_ = makeCommand("list", app.AgentGroupsList, aGroupsCmd)
@@ -120,6 +120,11 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	_ = makeCommand("agents", app.CacheClearAgents, cacheClearCmd)
 	_ = makeCommand("scans", app.CacheClearScans, cacheClearCmd)
 	_ = makeCommand("exports", app.CacheClearExports, cacheClearCmd)
+
+	scansCmd := makeCommand("scans", app.ScansList, appCmd)
+	_ = makeCommand("list", app.ScansList, scansCmd)
+	_ = makeCommand("detail", app.ScansDetail, scansCmd)
+	_ = makeCommand("history", app.ScansHistory, scansCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
