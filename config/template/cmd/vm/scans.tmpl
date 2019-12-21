@@ -1,0 +1,29 @@
+
+{{define "scansUsage" -}}
+Agents are software installed on hosts that execute local host scans and report back to Tenable.io
+    https://developer.tenable.com/reference#scans
+
+Usage:
+    tio vm scans [ACTION ...] [OPTIONS]
+
+Action:
+    list, details, history
+
+Agents Options:
+    Selection modifiers:
+      --id=[unique id]
+      --name=[string]
+      --regex=[regular expression]
+      --jqex=[jq expression]
+
+    Output Modes:
+      --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+      --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+    Examples:
+      $ tio scans
+      $ tio scans list
+      $ tio scans details
+      $ tio scans history
+
+{{end}}
