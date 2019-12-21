@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// CachedTenableCallParams strucuture to hold handler that will/won't be cached on call
 type CachedTenableCallParams struct {
 	w            http.ResponseWriter
 	r            *http.Request
@@ -22,11 +23,10 @@ type CachedTenableCallParams struct {
 	metricMethod metrics.ServiceMethodType
 }
 
+// CachedTenableCall takes a full-hanlder and checks X-Cache-SkipOnHit and X-Cache-WriteOnReturn
 func (s *Server) CachedTenableCall(pp CachedTenableCallParams) {
-
 	skip, _ := strconv.ParseBool(middleware.SkipOnHit(pp.r))
 	write, _ := strconv.ParseBool(middleware.WriteOnReturn(pp.r))
-
 	s.CallSkipSave(pp, skip, write)
 }
 
@@ -86,6 +86,7 @@ func (s *Server) Shutdown(w http.ResponseWriter, r *http.Request) {
 	cancel()
 }
 
+// VulnsExportStart handler for starting a export-vulns
 func (s *Server) VulnsExportStart(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.VulnsExportStart
@@ -106,6 +107,7 @@ func (s *Server) VulnsExportStart(w http.ResponseWriter, r *http.Request) {
 	s.CachedTenableCall(pp)
 }
 
+// VulnsExportStatus handler for getting the status of an export-vulns
 func (s *Server) VulnsExportStatus(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.VulnsExportStatus
@@ -139,6 +141,7 @@ func (s *Server) VulnsExportGet(w http.ResponseWriter, r *http.Request) {
 	s.CachedTenableCall(pp)
 }
 
+// AssetsExportStart handler for starting exports-assets
 func (s *Server) AssetsExportStart(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.AssetsExportStart
@@ -159,6 +162,7 @@ func (s *Server) AssetsExportStart(w http.ResponseWriter, r *http.Request) {
 	s.CachedTenableCall(pp)
 }
 
+// AssetsExportStatus handler for get the status of an exports-assets
 func (s *Server) AssetsExportStatus(w http.ResponseWriter, r *http.Request) {
 	var skipOnHit = false
 	var writeOnReturn = true
@@ -176,9 +180,9 @@ func (s *Server) AssetsExportStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.CallSkipSave(pp, skipOnHit, writeOnReturn)
-
 }
 
+// AssetsExportGet handler for get chunks to complete a started exports-assets
 func (s *Server) AssetsExportGet(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.f = func(t tenable.Service) ([]byte, error) {
@@ -192,6 +196,7 @@ func (s *Server) AssetsExportGet(w http.ResponseWriter, r *http.Request) {
 	s.CachedTenableCall(pp)
 }
 
+// ScannersList handler for outputting all the known scanners
 func (s *Server) ScannersList(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.ScannersList
@@ -203,6 +208,7 @@ func (s *Server) ScannersList(w http.ResponseWriter, r *http.Request) {
 	s.CachedTenableCall(pp)
 }
 
+// AgentGroups handler for outputting all the known agent groups
 func (s *Server) AgentGroups(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.ScannerAgentGroups
@@ -215,35 +221,38 @@ func (s *Server) AgentGroups(w http.ResponseWriter, r *http.Request) {
 	s.CachedTenableCall(pp)
 }
 
+// AgentsGroup handler to group agents
 func (s *Server) AgentsGroup(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.AgentsGroup
 	pp.metricType = metrics.EndPoints.AgentsGroup
 	pp.metricMethod = metrics.Methods.Service.Update
 	pp.f = func(t tenable.Service) ([]byte, error) {
-		scannerId := middleware.ScannerID(r)
-		agentId := middleware.AgentID(r)
-		groupId := middleware.GroupID(r)
+		scannerID := middleware.ScannerID(r)
+		agentID := middleware.AgentID(r)
+		groupID := middleware.GroupID(r)
 
-		return t.AgentGroup(agentId, groupId, scannerId)
+		return t.AgentGroup(agentID, groupID, scannerID)
 	}
 	s.CachedTenableCall(pp)
 }
 
+// AgentsUngroup handler for ungroup agents
 func (s *Server) AgentsUngroup(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.AgentsUngroup
 	pp.metricType = metrics.EndPoints.AgentsUngroup
 	pp.metricMethod = metrics.Methods.Service.Update
 	pp.f = func(t tenable.Service) ([]byte, error) {
-		scannerId := middleware.ScannerID(r)
-		agentId := middleware.AgentID(r)
-		groupId := middleware.GroupID(r)
-		return t.AgentUngroup(agentId, groupId, scannerId)
+		scannerID := middleware.ScannerID(r)
+		agentID := middleware.AgentID(r)
+		groupID := middleware.GroupID(r)
+		return t.AgentUngroup(agentID, groupID, scannerID)
 	}
 	s.CachedTenableCall(pp)
 }
 
+// AgentsList handler for outputting all the known agents
 func (s *Server) AgentsList(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.AgentsList

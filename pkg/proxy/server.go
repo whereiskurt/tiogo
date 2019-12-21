@@ -66,8 +66,9 @@ func NewServer(config *config.Config, metrics *metrics.Metrics, serverLog *log.L
 	server.Metrics = metrics
 	return
 }
-func (s *Server) ListenAndServeMetrics() {
 
+// ListenAndServeMetrics starts the default promethues metric server
+func (s *Server) ListenAndServeMetrics() {
 	s.Log.Infof("Starting metrics server...")
 	// Start the /metrics server
 	go func() {
