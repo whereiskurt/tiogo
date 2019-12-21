@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -44,6 +45,7 @@ func NewServer(config *config.Config, metrics *metrics.Metrics, serverLog *log.L
 	server.Log = serverLog
 	server.ListenPort = config.Server.ListenPort
 	server.CacheFolder = config.Server.CacheFolder
+
 	server.MetricsListenPort = config.Server.MetricsListenPort
 
 	if config.Server.CacheResponse {
@@ -122,6 +124,8 @@ func (s *Server) EnableCache(cacheFolder string, cryptoKey string) {
 	if cryptoKey != "" {
 		useCrypto = true
 	}
+	s.Log.Debugf(fmt.Sprintf("111111111111Using server side folder: %s", cacheFolder))
+
 	s.DiskCache = cache.NewDisk(cacheFolder, cryptoKey, useCrypto)
 	return
 }

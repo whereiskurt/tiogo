@@ -40,7 +40,7 @@ func (u *Unmarshal) NewServiceSaveOnly() (s tenable.Service) {
 var DefaultServiceFolder = "service"
 
 // service wraps the Tenable service calls in
-func (u *Unmarshal) service(writeOnReturn bool, skipOnHit bool) (s tenable.Service) {
+func (u *Unmarshal) service(skipOnHit bool, writeOnReturn bool) (s tenable.Service) {
 	s = tenable.NewService(u.Config.VM.BaseURL, u.Config.VM.SecretKey, u.Config.VM.AccessKey, u.Config.VM.Log)
 	s.EnableMetrics(u.Metrics)
 
@@ -49,14 +49,15 @@ func (u *Unmarshal) service(writeOnReturn bool, skipOnHit bool) (s tenable.Servi
 		s.EnableCache(serviceCacheFolder, u.Config.VM.CacheKey)
 	}
 	s.Log = u.Config.VM.Log
-	s.WriteOnReturn = writeOnReturn
 	s.SkipOnHit = skipOnHit
+	s.WriteOnReturn = writeOnReturn
+
 	return
 }
 
 // ScannerAgentGroups outputs all Agent Groups associated with scanner
-func (u *Unmarshal) ScannerAgentGroups(scannerID string) ([]byte, error) {
-	s := u.NewServiceSaveOnly()
+func (u *Unmarshal) ScannerAgentGroups(scannerID string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+	s := u.service(skipOnHit, writeOnReturn)
 	raw, err := s.ScannerAgentGroups(scannerID)
 	return raw, err
 }
@@ -84,7 +85,7 @@ func (u *Unmarshal) Scanners() ([]byte, error) {
 
 // Agents returns raw Agents from a givent offset and limit
 func (u *Unmarshal) Agents(scannerID string, offset string, limit string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
-	s := u.service(writeOnReturn, skipOnHit)
+	s := u.service(skipOnHit, writeOnReturn)
 	raw, err := s.AgentList(scannerID, offset, limit)
 	return raw, err
 }
@@ -92,6 +93,7 @@ func (u *Unmarshal) Agents(scannerID string, offset string, limit string, skipOn
 // VulnsExportStart start vuln export, if not already started (i.e. cached)
 func (u *Unmarshal) VulnsExportStart() ([]byte, error) {
 	s := u.NewService()
+	limit := u.Config.VM.ExportLimit
 
 	// Convert Human dates into Unix()
 	since := u.Config.VM.AfterDate
@@ -102,7 +104,7 @@ func (u *Unmarshal) VulnsExportStart() ([]byte, error) {
 	}
 	sinceUnix := fmt.Sprintf("%d", tt.Unix())
 
-	raw, err := s.VulnsExportStart(sinceUnix)
+	raw, err := s.VulnsExportStart(limit, sinceUnix)
 
 	return raw, err
 }
@@ -120,16 +122,27 @@ func (u *Unmarshal) VulnsExportGet(uuid string, chunk string) ([]byte, error) {
 	return raw, err
 }
 
-func (u *Unmarshal) AssetsExportStart(limit string) ([]byte, error) {
+// AssetsExportStart creates request with limit and lastAssessed based on Config
+func (u *Unmarshal) AssetsExportStart() ([]byte, error) {
+	limit := u.Config.VM.ExportLimit
+	lastAssessed := u.Config.VM.AfterDate
+
 	s := u.NewService()
 
-	raw, err := s.AssetsExportStart(limit)
+	tt, err := time.Parse(config.DateLayout, lastAssessed)
+	if err != nil {
+		s.Log.Errorf("failed to export-vulns start: invalid since value: %s: %s", lastAssessed, err)
+		return nil, err
+	}
+	lastAssessedUnix := fmt.Sprintf("%d", tt.Unix())
+	raw, err := s.AssetsExportStart(limit, lastAssessedUnix)
 
 	return raw, err
 }
+
 func (u *Unmarshal) AssetsExportStatus(uuid string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
 	s := u.service(skipOnHit, writeOnReturn)
-	raw, err := s.AssetsExportStatus(uuid, skipOnHit, writeOnReturn)
+	raw, err := s.AssetsExportStatus(uuid)
 	return raw, err
 }
 func (u *Unmarshal) AssetsExportGet(uuid string, chunk string) ([]byte, error) {

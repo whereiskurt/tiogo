@@ -67,6 +67,7 @@ func (a *Adapter) Scanners() ([]Scanner, error) {
 
 var MagicAgentScanner = "00000000-0000-0000-0000-00000000000000000000000000001"
 
+// Agents uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) Agents(skipOnHit bool, writeOnReturn bool) ([]ScannerAgent, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.AgentsList, metrics.Methods.Service.Get)
 
@@ -126,7 +127,8 @@ func (a *Adapter) Agents(skipOnHit bool, writeOnReturn bool) ([]ScannerAgent, er
 	return agents, err
 }
 
-func (a *Adapter) AgentGroups() ([]AgentGroup, error) {
+// AgentGroups uses an Unmarshaler and Converter to return DTO or error
+func (a *Adapter) AgentGroups(skipOnHit bool, writeOnReturn bool) ([]AgentGroup, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.AgentGroups, metrics.Methods.Service.Get)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
@@ -146,7 +148,7 @@ func (a *Adapter) AgentGroups() ([]AgentGroup, error) {
 
 		// Use thie ID to get all our Agent Groups
 		id := scanners[i].ID
-		raw, err := u.ScannerAgentGroups(id)
+		raw, err := u.ScannerAgentGroups(id, skipOnHit, writeOnReturn)
 
 		if err != nil {
 			a.Config.VM.Log.Errorf("error: failed to get the scanners agent groups: %v", err)
@@ -162,23 +164,27 @@ func (a *Adapter) AgentGroups() ([]AgentGroup, error) {
 	return agentGroups, err
 }
 
-func (a *Adapter) AgentAssignGroup(agentId string, groupId string, scannerId string) error {
+// AgentAssignGroup uses an Unmarshaler and Converter to return DTO or error
+func (a *Adapter) AgentAssignGroup(agentID string, groupID string, scannerID string) error {
 	a.Metrics.ClientInc(metrics.EndPoints.AgentsGroup, metrics.Methods.Service.Update)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	_, err := u.AgentGroup(agentId, groupId, scannerId)
+	_, err := u.AgentGroup(agentID, groupID, scannerID)
 
 	return err
 }
-func (a *Adapter) AgentUnassignGroup(agentId string, groupId string, scannerId string) error {
+
+// AgentUnassignGroup uses an Unmarshaler and Converter to return DTO or error
+func (a *Adapter) AgentUnassignGroup(agentID string, groupID string, scannerID string) error {
 	a.Metrics.ClientInc(metrics.EndPoints.AgentsUngroup, metrics.Methods.Service.Update)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	_, err := u.AgentUngroup(agentId, groupId, scannerId)
+	_, err := u.AgentUngroup(agentID, groupID, scannerID)
 
 	return err
 }
 
+// ExportVulnsStart uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportVulnsStart() (string, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStart, metrics.Methods.Service.Update)
 
@@ -199,6 +205,8 @@ func (a *Adapter) ExportVulnsStart() (string, error) {
 
 	return export.UUID, nil
 }
+
+// ExportVulnsStatus uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportVulnsStatus(uuid string, skipOnHit bool, writeOnReturn bool) (VulnExportStatus, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Get)
 
@@ -216,6 +224,8 @@ func (a *Adapter) ExportVulnsStatus(uuid string, skipOnHit bool, writeOnReturn b
 
 	return status, err
 }
+
+// ExportVulnsGet uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportVulnsGet(uuid string, chunks string) error {
 	ep := tenable.EndPoints.VulnsExportStatus
 
@@ -250,6 +260,8 @@ func (a *Adapter) ExportVulnsGet(uuid string, chunks string) error {
 
 	return nil
 }
+
+// ExportVulnsQuery uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportVulnsQuery(uuid string, chunks string, jqex string) error {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportQuery, metrics.Methods.Service.Get)
 	ep := tenable.EndPoints.VulnsExportStatus
@@ -289,12 +301,13 @@ func (a *Adapter) ExportVulnsQuery(uuid string, chunks string, jqex string) erro
 	return nil
 }
 
-func (a *Adapter) ExportAssetsStart(limit string) (string, error) {
+// ExportAssetsStart uses an Unmarshaler and Converter to return DTO or error
+func (a *Adapter) ExportAssetsStart() (string, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.AssetsExportStart, metrics.Methods.Service.Update)
 
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	raw, err := u.AssetsExportStart(limit)
+	raw, err := u.AssetsExportStart()
 	if err != nil {
 		a.Config.VM.Log.Errorf("error: failed to get the export-assets: %v", err)
 		return "", err
@@ -309,6 +322,8 @@ func (a *Adapter) ExportAssetsStart(limit string) (string, error) {
 
 	return export.UUID, nil
 }
+
+// ExportAssetsStatus uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportAssetsStatus(uuid string, skipOnHit bool, writeOnReturn bool) (AssetExportStatus, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.AssetsExportStatus, metrics.Methods.Service.Get)
 
@@ -326,6 +341,8 @@ func (a *Adapter) ExportAssetsStatus(uuid string, skipOnHit bool, writeOnReturn 
 
 	return status, err
 }
+
+// ExportAssetsGet uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportAssetsGet(uuid string, chunks string) error {
 	a.Metrics.ClientInc(metrics.EndPoints.AssetsExportGet, metrics.Methods.Service.Get)
 	ep := tenable.EndPoints.AssetsExportStatus
@@ -359,6 +376,8 @@ func (a *Adapter) ExportAssetsGet(uuid string, chunks string) error {
 
 	return nil
 }
+
+// ExportAssetsQuery uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportAssetsQuery(uuid string, chunks string, jqex string) error {
 	a.Metrics.ClientInc(metrics.EndPoints.AssetsExportQuery, metrics.Methods.Service.Get)
 	ep := tenable.EndPoints.AssetsExportStatus
@@ -412,7 +431,7 @@ func (a *Adapter) ExportCachedChunks(uuid string, chunks string, ep tenable.EndP
 
 	bb, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("error: cannot read cached file: '%s: %v", filename, err))
+		return "", fmt.Errorf("error: cannot read cached file: '%s: %v", filename, err)
 	}
 
 	var status tenable.VulnExportStatus

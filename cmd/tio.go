@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/whereiskurt/tiogo/internal/app"
+	internal "github.com/whereiskurt/tiogo/internal/app"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 )

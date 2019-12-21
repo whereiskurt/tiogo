@@ -36,6 +36,7 @@ func (s *Service) put(endPoint EndPointType, p map[string]string) ([]byte, int, 
 }
 func (s *Service) get(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
 	if s.SkipOnHit == true {
+
 		// Check for a cache hit
 		if s.DiskCache != nil {
 			// We have initialized a cache then write to it.

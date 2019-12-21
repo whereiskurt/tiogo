@@ -11,7 +11,7 @@ Usage:
     tio [SUBCOMMAND] [ACTION ...] [OPTIONS]
 
 Sub-commands:
-    help, scanners, agents, agent-groups, export-vulns, (#TODO: scans)
+    help, scanners, agents, agent-groups, export-vulns, cache (#TODO: scans)
 
 VM Options:
     Selection modifiers:
@@ -30,6 +30,50 @@ VM Actions and Examples:
     $ tio vm help scanners
     $ tio vm help export-vulns
     $ tio vm help export-assets
+
+{{end}}
+
+{{define "exportAssetsUsage"}}
+Bulk Exports of Assets
+https://developer.tenable.com/reference#exports
+
+Usage:
+    tio vm export-assets [ACTION ...] [OPTIONS]
+
+Action:
+    start, status, get, query
+
+Export Assets Options:
+    Selection modifiers:
+    --uuid=[unique id]
+    --jqex=[jq expression]
+    --chunk=[chunk to get, defaults: ALL]
+    --after=[YYYY-MM-DD HH:MM:SS +/-0000 TZ] [date boundaries, or set 'days']
+    --days=[number of days to go back to, instead of defining 'after']
+
+Output Modes:
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
+    ## Start an export for all asses since the last_assessed date 365 days ago 
+    $ tio vm export-assets start --days=365 
+
+    ## Start an export for all assets last_assessed after 2019-01-01
+    $ tio vm export-assets start --after="2019-01-01" 
+    $ tio vm export-assets start --after="2019-01-01 00:00:00 -0400 EDT"
+
+    ## Start an export for all assets last_assessed last 31 days
+    $ tio vm export-assets start --days=31  
+    
+    ## Check the status of the requeste export.
+    $ tio vm export-assets status
+
+    ## Get all of the chunk files with asset data
+    $ tio vm export-assets get
+    $ tio vm export-assets get --chunk=ALL
+
+    ## Use built-in 'jq' to query chunks files with JQ expression.
+    $ tio vm export-assets query --jqex="[.asset.ipv4s[0], .asset.operating_system[0]]"
 
 {{end}}
 
@@ -264,4 +308,30 @@ Agents Options:
 
       ## Output IP addresses of Agents to so we can create Target Groups
       $ tio vm agent-groups list --as-target-groups --size=16
+{{end}}
+
+
+
+{{define "cacheUsage"}}
+Bulk Exports of Assets
+https://developer.tenable.com/reference#exports
+
+Usage:
+    tio vm cache [ACTION ...] [OPTIONS]
+
+Action:
+    info, clear all, clear agents, clear scans, clear exports
+
+Examples:
+    ## Display cache folder locations that will be affected
+    $ tio cache info
+
+    ## Remove ALL cached entries including agents/scans/exports/
+    $ tio cache clear all 
+
+    ## Remove cached agents
+    $ tio cache clear agents
+    ## Remove cached scans
+    $ tio cache clear scans
+
 {{end}}

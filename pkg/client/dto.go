@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Scan DTO is an all string representation
 type Scan struct {
 	ScanID           string
 	UUID             string

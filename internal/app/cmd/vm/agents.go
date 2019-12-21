@@ -67,7 +67,7 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	return
 }
 
-//Agents
+//Agents is invoked by Cobra with commandline args passed.
 func (vm *VM) Agents(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []client.AgentGroup, error) {
 	regex := vm.Config.VM.Regex
 	name := vm.Config.VM.Name
@@ -83,7 +83,8 @@ func (vm *VM) Agents(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []cl
 		return nil, nil, err
 	}
 
-	agentGroups, err := a.AgentGroups()
+	// Always get the latest agent groups and update the cache
+	agentGroups, err := a.AgentGroups(false, true)
 	if err != nil {
 		err := fmt.Errorf("error: couldn't agent groups list: %v", err)
 		return nil, nil, err
@@ -140,7 +141,7 @@ func (vm *VM) action(filterFunc func(*client.Adapter, ui.CLI, []client.ScannerAg
 func lookupGroup(cli ui.CLI, agentGroups []client.AgentGroup, lkpName string) *client.AgentGroup {
 
 	// 3) Check the Group Name passed is an actual agent group
-	var group *client.AgentGroup = nil
+	var group *client.AgentGroup
 	for g := range agentGroups {
 		if agentGroups[g].Name == lkpName {
 			group = &agentGroups[g]
@@ -170,7 +171,7 @@ func ungroup(a *client.Adapter, cli ui.CLI, agent client.ScannerAgent, group *cl
 	}
 }
 
-//AgentsUngroup
+//AgentsUngroup is invoked by Cobra with commandline args passed.
 func (vm *VM) AgentsUngroup(cmd *cobra.Command, args []string) {
 	vm.action(filterUngroup, ungroup)
 }
@@ -186,7 +187,7 @@ func filterUngroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerAgent, 
 	return agents
 }
 
-//AgentsGroup
+//AgentsGroup is invoked by Cobra with commandline args passed.
 func (vm *VM) AgentsGroup(cmd *cobra.Command, args []string) {
 	vm.action(filterForAgentsGroup, group)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/ui"
 )
 
+// ScannersList is invoked by Cobra with commandline args passed.
 func (vm *VM) ScannersList(cmd *cobra.Command, args []string) {
 	log := vm.setupLog()
 	log.Infof("tiogo scanners list command:")

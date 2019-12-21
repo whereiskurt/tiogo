@@ -1,30 +1,38 @@
 # Welcome to tiogo!!
+
 ### A modern CLI for Tenable.io written in Go - v0.1 [20190515] :rocket:
 
 [logo]: https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tiogopher"
+
 ![alt text](https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tiogopher")
 
-## A **C**ommand **L**ine **I**nterface to Tenable.io API 
-`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. It currently only supports a small set of the [Tenable.io vulnerability API](https://developer.tenable.com/reference) around agents, agent-groups, export-vuls and export-assets. 
+## A **C**ommand **L**ine **I**nterface to Tenable.io API
+
+`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. It currently only supports a small set of the [Tenable.io vulnerability API](https://developer.tenable.com/reference) around agents, agent-groups, export-vuls and export-assets.
 
 The tool is written by KPH (@whereiskurt) and **is not supported or endorsed by Tenable in anyway.**
 
-## Overview 
+## Overview
+
 [Tenable.io](https://cloud.tenable.com) is a modern webapp rendered in web browser - aka **G**raphical **U**ser **I**nterfaces (**GUI**).
 
 Alternatively, `tiogo` is a **C**ommand **L**ine **I**nterface (**CLI**) to interact with Tenable.io. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform. The binary contains all of the necessary libraries and dependencies and provides a write-once run-anywhere approach.
 
 ## `Dockerfile`
+
 Using the Dockerfile is a fast way to get 'up and running' if you already have Docker installed and working:
+
 ```
 $ docker build --tag tiogo:v0.1 .
 ... [tiogo builds and verbosely outputs]
 
-$ docker run --it --rm tiogo:v0.1
-  
+$ docker run --tty --interactive --rm tiogo:v0.1
+
 root@4f51ab2342123:/tiogo# ./tio help
 ```
+
 ## `> go run cmd\tio.go help`
+
 `tiogo` currently only supports the Vulnerability Management APIs and the defaults to `vm`.
 
 ```
@@ -33,19 +41,19 @@ root@d173934e91b2:/tiogo# ./tio help
 An interface into the Tenable.io API using Go!
 
 Version v0.1.0 132471e4
-	         ,_---~~~~~----._         
-	  _,,_,*^____      _____''*g*\"*, 
-	 / __/ /'     ^.  /      \ ^@q   f 
-	[  @f | @))    |  | @))   l  0 _/  
-	 \'/   \~____ / __ \_____/    \   
-	  |           _l__l_           I   
-	  }          [______]           I  
-	  ]            | | |            |  
-	  ]             ~ ~             |  
-	  |                            |   
-	
+	         ,_---~~~~~----._
+	  _,,_,*^____      _____''*g*\"*,
+	 / __/ /'     ^.  /      \ ^@q   f
+	[  @f | @))    |  | @))   l  0 _/
+	 \'/   \~____ / __ \_____/    \
+	  |           _l__l_           I
+	  }          [______]           I
+	  ]            | | |            |
+	  ]             ~ ~             |
+	  |                            |
+
 	[[@https://gist.github.com/belbomemo]]
-	
+
 Find more information at:
     https://github.com/whereiskurt/tiogo/
 
@@ -81,12 +89,14 @@ For more help:
 ```
 
 ## UserHomeDir and `.tiogo/cache/`
+
 When you run `tiogo` for the first time it will ask you for your AccessKey and SecretKey:
+
 ```
   root@d173934e91b2:/tiogo# ./tio agent-groups
 
   WARN: User configuration file '/root/.tiogo.v1.yaml' not found.
-  
+
   Tenable.io access keys and secret keys are required for all endpoints.
   You must provide X-ApiKeys header 'accessKey' and 'secretKey' values.
   For complete details see: https://developer.tenable.com/
@@ -98,7 +108,7 @@ When you run `tiogo` for the first time it will ask you for your AccessKey and S
 
   Creating default configuration file '/root/.tiogo.v1.yaml' ...
   Done!
-  
+
   Successfully wrote user configuration file '/root/.tiogo.v1.yaml'.
 ```
 
@@ -107,7 +117,9 @@ Saving create configuration file in your user's homefolder `.tiogo.v1.yaml` and 
 **By default a 'CacheKey' is not set and the results are stored in plaintext.**
 
 ## > tio help export-vulns|export-assets
+
 Use `tiogo` you can easily extract all of the vulnerabilities and assets into a collection of files, and query them using built JSON query processor `jq`.
+
 ```
 root@d173934e91b2:/tiogo# ./tio help export-vulns
 
@@ -145,27 +157,28 @@ Examples:
     $ tio export-vulns query --jqex="[.asset.ipv4, .asset.operating_system[0]]"
 
     $ tio export-scans --name "Enterprise-ComplianceScan"
-    $ tio export-scans --name "Enterprise-ComplianceScan" --before=today   
-    $ tio export-scans --name "Enterprise-ComplianceScan" --before=2019-09-27   
+    $ tio export-scans --name "Enterprise-ComplianceScan" --before=today
+    $ tio export-scans --name "Enterprise-ComplianceScan" --before=2019-09-27
 ```
 
 ## Some details about the code:
-- [x] Fundamental Go features like tests, generate, templates, go routines, contexts, channels, OS signals, HTTP routing, build/tags, constraints, "ldflags", 
+
+- [x] Fundamental Go features like tests, generate, templates, go routines, contexts, channels, OS signals, HTTP routing, build/tags, constraints, "ldflags",
 - [x] Uses [`cobra`](https://github.com/spf13/cobra) and [`viper`](https://github.com/spf13/viper) (without func inits!!!)
   - Cleanly separated CLI/configuration invocation from client library calls - by calling `viper.Unmarshal` to transfer our `pkg.Config`
-  - **NOTE**: A lot of sample Cobra/Viper code rely on `func init()` making it more difficult to reuse. 
+  - **NOTE**: A lot of sample Cobra/Viper code rely on `func init()` making it more difficult to reuse.
 - [x] Using [`vfsgen`](https://github.com/shurcooL/vfsgen) in to embed templates into binary
-    - The `config\template\*` contain all text output and is compiled into a `templates_generate.go` via [`vfsgen`](https://github.com/shurcooL/vfsgen) for the binary build
-- [X] Logging from the [`logrus`](https://github.com/sirupsen/logrus) library and written to `log/`
+  - The `config\template\*` contain all text output and is compiled into a `templates_generate.go` via [`vfsgen`](https://github.com/shurcooL/vfsgen) for the binary build
+- [x] Logging from the [`logrus`](https://github.com/sirupsen/logrus) library and written to `log/`
 - [x] Cached response folder `.cache/` with entries from the Server, Client and Services
   - The server uses entries in `.cache/` instead of making Tenable.io calls (when present.)
 - [x] [Retry](https://github.com/matryer/try) using @matryer's idiomatic `try.Do(..)`
-- [X] Instrumentation with [`prometheus`](https://prometheus.io/) in the server and client library
+- [x] Instrumentation with [`prometheus`](https://prometheus.io/) in the server and client library
   - [Tutorials](https://pierrevincent.github.io/2017/12/prometheus-blog-series-part-4-instrumenting-code-in-go-and-java/)
-- [X] HTTP serving/routing with middleware from [`go-chi`](https://github.com/go-chi/chi)
-    - Using `NewStructuredLogger` middleware to decorate each route with log output
-    - `ResponseHandler` to pretty print JSON with [`jq`](https://stedolan.github.io/jq/)
-    - Custom middlewares (`InitialCtx`,`ExportCtx`) to handle creating Context from HTTP requests
+- [x] HTTP serving/routing with middleware from [`go-chi`](https://github.com/go-chi/chi)
+  - Using `NewStructuredLogger` middleware to decorate each route with log output
+  - `ResponseHandler` to pretty print JSON with [`jq`](https://stedolan.github.io/jq/)
+  - Custom middlewares (`InitialCtx`,`ExportCtx`) to handle creating Context from HTTP requests
 - [x] An example Dockerfile and build recipe `(docs/recipe/)` for a docker workflow
   - Use `docker build --tag tiogo:bulid .` to create a full golang image
   - Use `docker run -it --rm tiogo:build` to work from with the container

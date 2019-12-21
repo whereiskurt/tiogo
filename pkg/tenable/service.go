@@ -88,6 +88,7 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 			HTTP.Post: {`
 {
 	"export-request": "export-request",
+	"num_assets": {{.Limit}},
 	"filters": {
 		"since": {{.Since}}
 	}
@@ -115,7 +116,10 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 			HTTP.Post: {`
 {
 	"export-request": "export-request",
-	"chunk_size": {{.Limit}} 
+	"chunk_size": {{.Limit}},
+	"filters": {
+		"last_assessed": {{.LastAssessed}} 
+	}
 }`},
 		},
 	},
@@ -268,11 +272,14 @@ func (s *Service) AgentList(scannerId string, offset string, limit string) ([]by
 
 	return raw, err
 }
-func (s *Service) AgentGroup(agentId string, groupId string, scannerId string) ([]byte, error) {
+
+// AgentGroup calls Service (proxy or Tenable.io) and will assign an agentID to a groupID, givent the scannerID
+func (s *Service) AgentGroup(agentID string, groupID string, scannerID string) ([]byte, error) {
+	//TODO: Consider reording method sig. agent,scanner,group
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.put(EndPoints.AgentsGroup, map[string]string{"ScannerID": scannerId, "GroupID": groupId, "AgentID": agentId})
+		body, status, err := s.put(EndPoints.AgentsGroup, map[string]string{"ScannerID": scannerID, "GroupID": groupID, "AgentID": agentID})
 		if err != nil {
 			s.Log.Infof("failed to group agent: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -334,11 +341,11 @@ func (s *Service) VulnsExportStatus(exportUUID string) ([]byte, error) {
 
 	return raw, err
 }
-func (s *Service) VulnsExportStart(sinceUnix string) ([]byte, error) {
+func (s *Service) VulnsExportStart(limit string, sinceUnix string) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.update(EndPoints.VulnsExportStart, map[string]string{"Since": sinceUnix})
+		body, status, err := s.update(EndPoints.VulnsExportStart, map[string]string{"Since": sinceUnix, "Limit": limit})
 		if err != nil {
 			s.Log.Infof("failed to export-vulns start: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -373,7 +380,7 @@ func (s *Service) VulnsExportGet(exportUUID string, chunk string) ([]byte, error
 	return raw, err
 }
 
-func (s *Service) AssetsExportStatus(exportUUID string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+func (s *Service) AssetsExportStatus(exportUUID string) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
@@ -392,11 +399,11 @@ func (s *Service) AssetsExportStatus(exportUUID string, skipOnHit bool, writeOnR
 
 	return raw, err
 }
-func (s *Service) AssetsExportStart(limit string) ([]byte, error) {
+func (s *Service) AssetsExportStart(limit string, lastAssessedUnix string) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.update(EndPoints.AssetsExportStart, map[string]string{"Limit": limit})
+		body, status, err := s.update(EndPoints.AssetsExportStart, map[string]string{"Limit": limit, "LastAssessed": lastAssessedUnix})
 		if err != nil {
 			s.Log.Infof("failed to export-assets start: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)

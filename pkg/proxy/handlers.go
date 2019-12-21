@@ -101,7 +101,7 @@ func (s *Server) VulnsExportStart(w http.ResponseWriter, r *http.Request) {
 		var body tenable.ExportFilter
 		err = json.Unmarshal(bb, &body)
 
-		return t.VulnsExportStart(string(body.Filters.Since))
+		return t.VulnsExportStart(string(body.Limit), string(body.Filters.Since))
 	}
 	s.CachedTenableCall(pp)
 }
@@ -154,22 +154,28 @@ func (s *Server) AssetsExportStart(w http.ResponseWriter, r *http.Request) {
 		var body tenable.ExportFilter
 		err = json.Unmarshal(bb, &body)
 
-		return t.AssetsExportStart(string(body.Limit))
+		return t.AssetsExportStart(string(body.Limit), string(body.Filters.LastAssessed))
 	}
 	s.CachedTenableCall(pp)
 }
 
 func (s *Server) AssetsExportStatus(w http.ResponseWriter, r *http.Request) {
+	var skipOnHit = false
+	var writeOnReturn = true
+
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.AssetsExportStatus
 	pp.metricType = metrics.EndPoints.AssetsExportStatus
 	pp.metricMethod = metrics.Methods.Service.Get
 	pp.f = func(t tenable.Service) ([]byte, error) {
+		// Override the cache lookup, and make the call!
+		//t.SkipOnHit, _ = strconv.ParseBool(middleware.SkipOnHit(r))
+		//t.WriteOnReturn, _ = strconv.ParseBool(middleware.WriteOnReturn(r))
 		exportUUID := middleware.ExportUUID(r)
-		return t.AssetsExportStatus(exportUUID, true, true)
+		return t.AssetsExportStatus(exportUUID)
 	}
 
-	s.CallSkipSave(pp, false, true)
+	s.CallSkipSave(pp, skipOnHit, writeOnReturn)
 
 }
 

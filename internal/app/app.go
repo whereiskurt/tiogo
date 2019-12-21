@@ -78,16 +78,16 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 
 	_ = makeCommand("help", app.Help, appCmd)
 
-	exportVulns := makeCommand("export-vulns", app.ExportVulnsHelp, appCmd)
-	makeString("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportVulns)
-	_ = makeCommand("start", app.ExportVulnsStart, exportVulns)
-	_ = makeCommand("status", app.ExportVulnsStatus, exportVulns)
-	_ = makeCommand("get", app.ExportVulnsGet, exportVulns)
-	_ = makeCommand("query", app.ExportVulnsQuery, exportVulns)
-	makeString("Chunk", &a.Config.VM.Chunk, []string{"chunk", "chunks"}, exportVulns)
-	makeString("BeforeDate", &a.Config.VM.BeforeDate, []string{"before"}, exportVulns)
-	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportVulns)
-	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportVulns)
+	exportVulnsCmd := makeCommand("export-vulns", app.ExportVulnsHelp, appCmd)
+	makeString("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportVulnsCmd)
+	_ = makeCommand("start", app.ExportVulnsStart, exportVulnsCmd)
+	_ = makeCommand("status", app.ExportVulnsStatus, exportVulnsCmd)
+	_ = makeCommand("get", app.ExportVulnsGet, exportVulnsCmd)
+	_ = makeCommand("query", app.ExportVulnsQuery, exportVulnsCmd)
+	makeString("Chunk", &a.Config.VM.Chunk, []string{"chunk", "chunks"}, exportVulnsCmd)
+	makeString("BeforeDate", &a.Config.VM.BeforeDate, []string{"before"}, exportVulnsCmd)
+	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportVulnsCmd)
+	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportVulnsCmd)
 
 	exportAssetsCmd := makeCommand("export-assets", app.ExportAssetsHelp, appCmd)
 	makeString("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportAssetsCmd)
@@ -96,6 +96,8 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	_ = makeCommand("get", app.ExportAssetsGet, exportAssetsCmd)
 	_ = makeCommand("query", app.ExportAssetsQuery, exportAssetsCmd)
 	makeString("Chunk", &a.Config.VM.Chunk, []string{"chunk", "chunks"}, exportAssetsCmd)
+	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportAssetsCmd)
+	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportAssetsCmd)
 
 	sListCmd := makeCommand("scanners", app.ScannersList, appCmd)
 	_ = makeCommand("list", app.ScannersList, sListCmd)
@@ -111,13 +113,13 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	aGroupsCmd := makeCommand("agent-groups", app.AgentGroupsList, appCmd)
 	_ = makeCommand("list", app.AgentGroupsList, aGroupsCmd)
 
-	//
 	cacheCmd := makeCommand("cache", app.CacheInfo, appCmd)
 	_ = makeCommand("list", app.CacheInfo, cacheCmd)
 	cacheClearCmd := makeCommand("clear", app.CacheClear, cacheCmd)
 	_ = makeCommand("all", app.CacheClearAll, cacheClearCmd)
 	_ = makeCommand("agents", app.CacheClearAgents, cacheClearCmd)
 	_ = makeCommand("scans", app.CacheClearScans, cacheClearCmd)
+	_ = makeCommand("exports", app.CacheClearExports, cacheClearCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
@@ -128,7 +130,6 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 // InvokeCLI passes control over to the root cobra command.
 func (a *App) InvokeCLI() {
 	// Enable 'client' log file, since we are invoke the client.
-	clientLog := a.Config.VM.EnableLogging()
 	serverLog := a.Config.Server.EnableLogging()
 
 	//a.Config.IsServerPortAvailable()
@@ -138,8 +139,10 @@ func (a *App) InvokeCLI() {
 	setDefaultRootCmd()
 
 	if shouldServer {
-		clientLog.Infof("Starting a proxy server for the client...")
+		serverLog.Infof(fmt.Sprintf("Starting a proxy server for the client: %s:%s", a.Config.Server.CacheFolder, a.Config.Server.CacheKey))
+
 		proxy := pkgproxy.NewServer(a.Config, a.Metrics, serverLog)
+		proxy.EnableCache(a.Config.Server.CacheFolder, a.Config.Server.CacheKey)
 		proxy.EnableDefaultRouter()
 		go proxy.ListenAndServe()
 	}
@@ -154,6 +157,7 @@ func (a *App) InvokeCLI() {
 	return
 }
 
+// Usage outputs the help related to the usage of tio.go
 func (a *App) Usage() string {
 	versionMap := map[string]string{"ReleaseVersion": vm.ReleaseVersion, "GitHash": vm.GitHash}
 	return a.commandUsageTmpl("tioUsage", versionMap)

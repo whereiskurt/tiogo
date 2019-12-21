@@ -127,7 +127,7 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 	jqex := vm.Config.VM.JQex
 
 	if jqex == "" {
-		jqex = "."
+		jqex = ".[]"
 		a.Config.VM.Log.Infof("query --jqex was not specified - will use default '%s", jqex)
 	}
 
@@ -149,6 +149,8 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 	if vm.Config.VM.Info == true {
 		sevs = append(sevs, `.severity == "info"`)
 	}
+
+	// If we have severity limits, add them to the between clause
 	if len(sevs) > 0 {
 		sev := strings.Join(sevs, " or ")
 		between = fmt.Sprintf("select( (%s) and (%s) )", between, sev)
@@ -174,7 +176,7 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 	return
 }
 
-//exportVulnsUsage out the template for the vm around vulns
+// ExportVulnsHelp outputs the help template
 func (vm *VM) ExportVulnsHelp(cmd *cobra.Command, args []string) {
 	fmt.Printf("tiogo version %s (%s)", ReleaseVersion, GitHash)
 	if vm.Config.VM.Log.IsLevelEnabled(log.DebugLevel) {

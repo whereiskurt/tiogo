@@ -587,10 +587,12 @@ type VulnExportChunk struct {
 	State                string      `json:"state"`
 }
 
+// ExportFilter is shared and not the same for
 type ExportFilter struct {
 	ExportRequest string      `json:"export-request"`
 	Limit         json.Number `json:"chunk_size"`
 	Filters       struct {
-		Since json.Number `json:"since"`
+		Since        json.Number `json:"since"`
+		LastAssessed json.Number `json:"last_assessed"`
 	} `json:"filters"`
 }

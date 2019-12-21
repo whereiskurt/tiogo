@@ -12,18 +12,20 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/ui"
 )
 
+// ExportAssetsStart is invoked by Cobra with commandline args passed.
 func (vm *VM) ExportAssetsStart(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
 
-	size := vm.Config.VM.ExportLimit
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 
-	uuid, err := a.ExportAssetsStart(size)
+	uuid, err := a.ExportAssetsStart()
 	if err != nil || uuid == "" {
 		log.Errorf("error: couldn't start export-assets: %v", err)
 		return
 	}
 
+	// Size of the export limit for records
+	size := vm.Config.VM.ExportLimit
 	log.Infof("successfully started export-assets: %s with using chunk_size of '%s' ", uuid, size)
 
 	cli := ui.NewCLI(vm.Config)
@@ -38,6 +40,8 @@ func (vm *VM) ExportAssetsStart(cmd *cobra.Command, args []string) {
 
 	return
 }
+
+// ExportAssetsStatus is invoked by Cobra with commandline args passed.
 func (vm *VM) ExportAssetsStatus(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
 
@@ -62,8 +66,10 @@ func (vm *VM) ExportAssetsStatus(cmd *cobra.Command, args []string) {
 		log.Errorf("error: couldn't status export-assets: %v", err)
 		return
 	}
+
 	// If the status isn't FINISHED, ask for another from the server
 	if status.Status != "FINISHED" {
+		log.Infof("making export-assets call UUID='%s' status='%s' ", uuid, status.Status)
 		status, err = a.ExportAssetsStatus(uuid, false, true)
 		if err != nil {
 			log.Errorf("error: couldn't status export-assets: %v", err)
@@ -78,6 +84,8 @@ func (vm *VM) ExportAssetsStatus(cmd *cobra.Command, args []string) {
 
 	return
 }
+
+// ExportAssetsGet is invoked by Cobra with commandline args passed.
 func (vm *VM) ExportAssetsGet(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
 
@@ -110,6 +118,8 @@ func (vm *VM) ExportAssetsGet(cmd *cobra.Command, args []string) {
 
 	return
 }
+
+// ExportAssetsQuery is invoked by Cobra with commandline args passed.
 func (vm *VM) ExportAssetsQuery(cmd *cobra.Command, args []string) {
 	vm.Config.VM.EnableLogging()
 
@@ -166,6 +176,8 @@ func (vm *VM) ExportAssetsQuery(cmd *cobra.Command, args []string) {
 
 	return
 }
+
+// ExportAssetsHelp is invoked by Cobra with commandline args passed.
 func (vm *VM) ExportAssetsHelp(cmd *cobra.Command, args []string) {
 	fmt.Printf("tiogo version %s (%s)", ReleaseVersion, GitHash)
 	if vm.Config.VM.Log.IsLevelEnabled(log.DebugLevel) {
