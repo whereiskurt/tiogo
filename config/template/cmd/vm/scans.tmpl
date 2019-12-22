@@ -6,11 +6,12 @@ Usage:
     tio vm scans [ACTION ...] [OPTIONS]
 
 Action:
-    list, details, history
+    list, details, hosts, plugins, query
 
 Agents Options:
     Selection modifiers:
       --id=[unique id]
+      --uuid=[schedule_uuid]
       --name=[string]
       --regex=[regular expression]
       --jqex=[jq expression]
@@ -20,9 +21,22 @@ Agents Options:
       --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
     Examples:
+      ## All scans in the system
       $ tio scans
       $ tio scans list
-      $ tio scans details
-      $ tio scans history
+
+      ## Current scan details,hosts and plugins
+      $ tio scans details --id=1
+      $ tio scans hosts  --id=1
+      $ tio scans plugins --id=1
+
+      ##Historical scan details,hosts and plugins
+      ## Current[0], Previous[1], PreviousPrevious[2],...
+      $ tio scans details --id=1 --offset=3 --csv
+      $ tio scans hosts --id=1 --offset=3 --csv
+      $ tio scans plugins --id=1 --offset=3 --json
+
+      ## Query 
+      $ tio scans query --id=1 --offset=3 
 
 {{end}}

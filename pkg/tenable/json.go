@@ -99,7 +99,7 @@ type ScanListItem struct {
 	ScheduleUUID     string      `json:"schedule_uuid"`
 	Name             string      `json:"name"`
 	Status           string      `json:"status"`
-	Type             string      `json:"type"` //eg. agent
+	Type             string      `json:"type"` //eg. agent,remote
 	Owner            string      `json:"owner"`
 	UserPermissions  json.Number `json:"user_permissions"`
 	Permissions      json.Number `json:"permissions"`
@@ -125,6 +125,7 @@ type ScanDetail struct {
 type ScanDetailInfo struct {
 	ID           json.Number   `json:"object_id"`
 	UUID         string        `json:"uuid"`
+	ScheduleUUID string        `json:"schedule_uuid"`
 	Owner        string        `json:"owner"`
 	Start        json.Number   `json:"scan_start"`
 	End          json.Number   `json:"scan_end"`

@@ -8,7 +8,6 @@ import (
 
 // ScansList is invoked by Cobra with commandline args passed.
 func (vm *VM) ScansList(cmd *cobra.Command, args []string) {
-
 	log := vm.setupLog()
 	log.Infof("tiogo scanners list command:")
 
@@ -38,7 +37,17 @@ func (vm *VM) ScansDetail(cmd *cobra.Command, args []string) {
 	return
 }
 
-// ScansHistory is invoked by Cobra with commandline args passed.
-func (vm *VM) ScansHistory(cmd *cobra.Command, args []string) {
+// ScansHosts is invoked by Cobra with commandline args passed.
+func (vm *VM) ScansHosts(cmd *cobra.Command, args []string) {
+	return
+}
+
+// ScansPlugins is invoked by Cobra with commandline args passed.
+func (vm *VM) ScansPlugins(cmd *cobra.Command, args []string) {
+	return
+}
+
+// ScansQuery is invoked by Cobra with commandline args passed.
+func (vm *VM) ScansQuery(cmd *cobra.Command, args []string) {
 	return
 }
