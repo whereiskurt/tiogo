@@ -207,6 +207,11 @@ func (c *Converter) ToScans(raw []byte) (converted []Scan, err error) {
 		scan.Enabled = fmt.Sprintf("%v", s.Enabled)
 		scan.CreationDate = s.CreationDate.String()
 		scan.LastModifiedDate = s.LastModifiedDate.String()
+		scan.Status = s.Status
+		scan.Owner = s.Owner
+		scan.Timezone = s.Timezone
+		scan.UserPermissions = s.UserPermissions.String()
+
 		converted = append(converted, scan)
 	}
 

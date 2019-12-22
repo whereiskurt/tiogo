@@ -1,6 +1,9 @@
 package vm
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
 	"github.com/whereiskurt/tiogo/pkg/ui"
@@ -22,10 +25,14 @@ func (vm *VM) ScansList(cmd *cobra.Command, args []string) {
 	}
 
 	if a.Config.VM.OutputJSON {
-		// No JSON output yet...
-	}
+		// Convert structs to JSON.
+		data, err := json.Marshal(scans)
+		if err != nil {
+			log.Fatalf("error: couldn't marshal scan data to JSON: %v", err)
+		}
+		cli.Println(fmt.Sprintf("%s\n", data))
 
-	if a.Config.VM.OutputCSV || !a.Config.VM.OutputJSON {
+	} else if a.Config.VM.OutputCSV || !a.Config.VM.OutputJSON {
 		cli.Println(cli.Render("ScansListCSV", map[string]interface{}{"Scans": scans}))
 	}
 
