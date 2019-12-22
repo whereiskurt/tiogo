@@ -217,3 +217,25 @@ func (c *Converter) ToScans(raw []byte) (converted []Scan, err error) {
 
 	return
 }
+
+// ToScanDetails convert the /scans to DTO
+func (c *Converter) ToScanDetails(raw []byte) (converted ScanHistoryDetail, err error) {
+	var src tenable.ScanDetail
+
+	err = json.Unmarshal(raw, &src)
+	if err != nil {
+		return converted, err
+	}
+	converted.ScannerName = src.Info.ScannerName
+	converted.HistoryID = src.History[0].HistoryID.String()
+
+	for _, h := range src.Hosts {
+		var sd HostScanSummary
+		sd.HostID = h.ID.String()
+		sd.AssetID = h.AssetID.String()
+		sd.HostnameOrIP = h.HostnameOrIP
+		sd.ScanHistoryDetail = converted
+		converted.Host[h.ID.String()] = sd
+	}
+	return
+}

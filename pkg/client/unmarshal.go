@@ -90,13 +90,6 @@ func (u *Unmarshal) Agents(scannerID string, offset string, limit string, skipOn
 	return raw, err
 }
 
-// ScansList will retrieve all scans
-func (u *Unmarshal) ScansList(skipOnHit bool, writeOnReturn bool) ([]byte, error) {
-	s := u.service(skipOnHit, writeOnReturn)
-	raw, err := s.ScansList()
-	return raw, err
-}
-
 // VulnsExportStart start vuln export, if not already started (i.e. cached)
 func (u *Unmarshal) VulnsExportStart() ([]byte, error) {
 	s := u.NewService()
@@ -159,5 +152,19 @@ func (u *Unmarshal) AssetsExportStatus(uuid string, skipOnHit bool, writeOnRetur
 func (u *Unmarshal) AssetsExportGet(uuid string, chunk string) ([]byte, error) {
 	s := u.NewService()
 	raw, err := s.AssetsExportGet(uuid, chunk)
+	return raw, err
+}
+
+// ScansList will retrieve all scans
+func (u *Unmarshal) ScansList(skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+	s := u.service(skipOnHit, writeOnReturn)
+	raw, err := s.ScansList()
+	return raw, err
+}
+
+// ScanDetails will retrieve scan details for current scan
+func (u *Unmarshal) ScanDetails(uuid string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+	s := u.service(skipOnHit, writeOnReturn)
+	raw, err := s.ScanDetails(uuid)
 	return raw, err
 }

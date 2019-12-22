@@ -28,6 +28,7 @@ func (f *Filter) AgentGroupsByRegex(agents []AgentGroup, regex string) (filtered
 	}
 	return filtered
 }
+
 func (f *Filter) AgentsByRegex(agents []ScannerAgent, regex string) (filtered []ScannerAgent) {
 	var r = regexp.MustCompile(regex)
 
@@ -40,6 +41,7 @@ func (f *Filter) AgentsByRegex(agents []ScannerAgent, regex string) (filtered []
 
 	return filtered
 }
+
 func (f *Filter) AgentsByName(agents []ScannerAgent, name string) (filtered []ScannerAgent) {
 	for _, a := range agents {
 		if a.Name == name {
@@ -66,5 +68,51 @@ func GroupMembership(agents []ScannerAgent, group string, shouldKeepMatch bool) 
 			filtered = append(filtered, a)
 		}
 	}
+	return filtered
+}
+
+// ScanByID loops over each scans and keeps only matching
+func (f *Filter) ScanByID(scans []Scan, id string) (filtered []Scan) {
+	for _, a := range scans {
+		if a.ScanID == id {
+			filtered = append(filtered, a)
+			break
+		}
+	}
+	return filtered
+}
+
+// ScanByScheduleUUID loops over each scans and keeps only matching
+func (f *Filter) ScanByScheduleUUID(scans []Scan, uuid string) (filtered []Scan) {
+	for _, a := range scans {
+		if a.ScheduleUUID == uuid {
+			filtered = append(filtered, a)
+			break
+		}
+	}
+	return filtered
+}
+
+// ScanByName filters only the first matching by name
+func (f *Filter) ScanByName(scans []Scan, name string) (filtered []Scan) {
+	for _, s := range scans {
+		if s.Name == name {
+			filtered = append(filtered, s)
+		}
+	}
+	return filtered
+}
+
+// ScanByRegex filters only the first matching by regex
+func (f *Filter) ScanByRegex(scans []Scan, regex string) (filtered []Scan) {
+	var r = regexp.MustCompile(regex)
+
+	for _, a := range scans {
+		s := fmt.Sprintf("%+v", a)
+		if r.MatchString(s) == true {
+			filtered = append(filtered, a)
+		}
+	}
+
 	return filtered
 }

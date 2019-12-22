@@ -94,9 +94,9 @@ func ScannerID(r *http.Request) string {
 	return ContextMap(r)["ScannerID"]
 }
 
-// ScanID pulls the param from the request/contextmap
-func ScanID(r *http.Request) string {
-	return ContextMap(r)["ScanID"]
+// ScanUUID pulls the param from the request/contextmap
+func ScanUUID(r *http.Request) string {
+	return ContextMap(r)["ScanUUID"]
 }
 
 // GroupID pulls the param from the request/contextmap
@@ -187,7 +187,7 @@ func AgentCtx(next http.Handler) http.Handler {
 func ScanCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
-		ctxMap["ScanID"] = chi.URLParam(r, "ScanID")
+		ctxMap["ScanUUID"] = chi.URLParam(r, "ScanUUID")
 		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

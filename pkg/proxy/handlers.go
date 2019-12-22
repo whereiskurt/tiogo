@@ -3,14 +3,15 @@ package proxy
 import (
 	"context"
 	"encoding/json"
-	"github.com/whereiskurt/tiogo/pkg/metrics"
-	"github.com/whereiskurt/tiogo/pkg/proxy/middleware"
-	"github.com/whereiskurt/tiogo/pkg/tenable"
-	"github.com/whereiskurt/tiogo/pkg/ui"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/whereiskurt/tiogo/pkg/metrics"
+	"github.com/whereiskurt/tiogo/pkg/proxy/middleware"
+	"github.com/whereiskurt/tiogo/pkg/tenable"
+	"github.com/whereiskurt/tiogo/pkg/ui"
 )
 
 // CachedTenableCallParams strucuture to hold handler that will/won't be cached on call
@@ -271,7 +272,7 @@ func (s *Server) AgentsList(w http.ResponseWriter, r *http.Request) {
 func (s *Server) Scans(w http.ResponseWriter, r *http.Request) {
 	var pp = CachedTenableCallParams{w: w, r: r}
 	pp.endPoint = tenable.EndPoints.ScansList
-	pp.metricType = metrics.EndPoints.AgentsGroup
+	pp.metricType = metrics.EndPoints.ScansList
 	pp.metricMethod = metrics.Methods.Service.Get
 	pp.f = func(t tenable.Service) ([]byte, error) {
 		return t.ScansList()
@@ -281,6 +282,16 @@ func (s *Server) Scans(w http.ResponseWriter, r *http.Request) {
 
 // ScanDetail handler for outputting scan details for ScanID
 func (s *Server) ScanDetail(w http.ResponseWriter, r *http.Request) {
+	// We need ScanID
+	var pp = CachedTenableCallParams{w: w, r: r}
+	pp.endPoint = tenable.EndPoints.ScanDetails
+	pp.metricType = metrics.EndPoints.ScanDetails
+	pp.metricMethod = metrics.Methods.Service.Get
+	pp.f = func(t tenable.Service) ([]byte, error) {
+		uuid := middleware.ScanUUID(r)
+		return t.ScanDetails(uuid)
+	}
+	s.CachedTenableCall(pp)
 	return
 }
 

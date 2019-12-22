@@ -12,6 +12,7 @@ import (
 	"gopkg.in/matryer/try.v1"
 )
 
+// EndPoints are callable URLs that get mapped get/post/put/delete templates, cacheable file name
 var EndPoints = endPointTypes{
 	VulnsExportStart:   EndPointType("VulnsExportStart"),
 	VulnsExportStatus:  EndPointType("VulnsExportStatus"),
@@ -23,7 +24,8 @@ var EndPoints = endPointTypes{
 	AgentsList:         EndPointType("AgentsList"),
 	ScannerAgentGroups: EndPointType("ScannerAgentGroups"),
 	AgentsGroup:        EndPointType("AgentsGroup"),
-	ScansList:          EndPointType("ScansLIst"),
+	ScansList:          EndPointType("ScansList"),
+	ScanDetails:        EndPointType("ScanDetails"),
 }
 
 type endPointTypes struct {
@@ -41,6 +43,7 @@ type endPointTypes struct {
 	AgentsGroup        EndPointType
 	AgentsUngroup      EndPointType
 	ScansList          EndPointType
+	ScanDetails        EndPointType
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
@@ -142,7 +145,15 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 
 	EndPoints.ScansList: {
 		URL:           "/scans/",
-		CacheFilename: "/scans/scans.json",
+		CacheFilename: "/scans/list.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
+		},
+	},
+
+	EndPoints.ScanDetails: {
+		URL:           "/scans/{{.ScanUUID}}",
+		CacheFilename: "/scans/{{.ScanUUID}}/details.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Get: {},
 		},
@@ -264,31 +275,6 @@ func (s *Service) AgentList(scannerId string, offset string, limit string) ([]by
 
 	err := try.Do(func(attempt int) (bool, error) {
 		body, status, err := s.get(EndPoints.AgentsList, map[string]string{"ScannerID": scannerId, "Offset": offset, "Limit": limit})
-		if err != nil {
-			s.Log.Infof("failed to agent list: http status: %d: %s", status, err)
-			retry := s.sleepBeforeRetry(attempt)
-			return retry, err
-		}
-
-		if status != 200 {
-			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
-			s.Log.Error(msg)
-			return false, errors.New(msg)
-		}
-
-		raw = body
-		return false, nil
-	})
-
-	return raw, err
-}
-
-// ScanList will call '/scans' from the Server (Tenable.io or proxy)
-func (s *Service) ScansList() ([]byte, error) {
-	var raw []byte
-
-	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.get(EndPoints.ScansList, map[string]string{})
 		if err != nil {
 			s.Log.Infof("failed to agent list: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -467,6 +453,56 @@ func (s *Service) AssetsExportGet(exportUUID string, chunk string) ([]byte, erro
 		raw = body
 		s.Log.Debugf("JSON body from get export-assets length: %d", len(raw))
 
+		return false, nil
+	})
+
+	return raw, err
+}
+
+// ScansList will call '/scans' from the Server (Tenable.io or proxy)
+func (s *Service) ScansList() ([]byte, error) {
+	var raw []byte
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.get(EndPoints.ScansList, map[string]string{})
+		if err != nil {
+			s.Log.Infof("failed to agent list: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
+		return false, nil
+	})
+
+	return raw, err
+}
+
+// ScanDetails will call '/scans/{{id}}' from the Server (Tenable.io or proxy)
+func (s *Service) ScanDetails(uuid string) ([]byte, error) {
+	var raw []byte
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.get(EndPoints.ScanDetails, map[string]string{"ScanUUID": uuid})
+		if err != nil {
+			s.Log.Infof("failed to agent list: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
 		return false, nil
 	})
 

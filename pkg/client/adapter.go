@@ -66,24 +66,7 @@ func (a *Adapter) Scanners(skipOnHit bool, writeOnReturn bool) ([]Scanner, error
 	return scanners, err
 }
 
-// Scans will list all the scans matching --name or --regex
-func (a *Adapter) Scans(skipOnHit bool, writeOnReturn bool) ([]Scan, error) {
-	a.Metrics.ClientInc(metrics.EndPoints.ScansList, metrics.Methods.Service.Get)
-
-	u := NewUnmarshal(a.Config, a.Metrics)
-	var scans []Scan
-	raw, err := u.ScansList(skipOnHit, writeOnReturn)
-	if err != nil {
-		a.Config.VM.Log.Errorf("error: failed to get the scan list: %v", err)
-		return scans, err
-	}
-
-	convert := NewConvert()
-	scans, err = convert.ToScans(raw)
-
-	return scans, err
-}
-
+// MagicAgentScanner is the Tenable.io number for the scanner that has agents attached
 var MagicAgentScanner = "00000000-0000-0000-0000-00000000000000000000000000001"
 
 // Agents uses an Unmarshaler and Converter to return DTO or error
@@ -308,7 +291,7 @@ func (a *Adapter) ExportVulnsQuery(uuid string, chunks string, jqex string) erro
 
 		bb, err := ioutil.ReadFile(filename)
 		if err != nil {
-			return errors.New(fmt.Sprintf("error: cannot read cached file: '%s: %v", filename, err))
+			return fmt.Errorf("error: cannot read cached file: '%s: %v", filename, err)
 		}
 
 		filter := a.JSONQuery(bb, jqex)
@@ -424,7 +407,7 @@ func (a *Adapter) ExportAssetsQuery(uuid string, chunks string, jqex string) err
 
 		bb, err := ioutil.ReadFile(filename)
 		if err != nil {
-			return errors.New(fmt.Sprintf("error: cannot read cached file: '%s: %v", filename, err))
+			return fmt.Errorf("error: cannot read cached file: '%s: %v", filename, err)
 		}
 
 		filter := a.JSONQuery(bb, jqex)
@@ -495,11 +478,11 @@ func (a *Adapter) CachedFilename(endpoint tenable.EndPointType, p map[string]str
 
 	filename, err := tenable.ToCacheFilename(endpoint, p)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("error: can't get chunk filename for '%s'", filename))
+		return "", fmt.Errorf("error: can't get chunk filename for '%s'", filename)
 	}
 	filename = filepath.Join(a.Config.VM.CacheFolder, "service", filename)
 	if _, stat := os.Stat(filename); os.IsNotExist(stat) {
-		return "", errors.New(fmt.Sprintf("Cannot read cached file: '%s", filename))
+		return "", fmt.Errorf(fmt.Sprintf("Cannot read cached file: '%s", filename))
 	}
 
 	return filename, nil
@@ -572,7 +555,7 @@ func (a *Adapter) UnpackJQExec() (string, error) {
 	return jqexe, nil
 }
 
-// JSON Query will pipe bytes through jq and return results.
+// JSONQuery will pipe bytes through jq and return results.
 func (a *Adapter) JSONQuery(json []byte, jqex string) []byte {
 
 	if a.Config.VM.JQExec == "" {
@@ -624,4 +607,39 @@ func (a *Adapter) DirEntries(dirname string) ([]string, error) {
 	}
 
 	return files, nil
+}
+
+// Scans will list all the scans matching --name or --regex
+func (a *Adapter) Scans(skipOnHit bool, writeOnReturn bool) ([]Scan, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.ScansList, metrics.Methods.Service.Get)
+
+	u := NewUnmarshal(a.Config, a.Metrics)
+	var scans []Scan
+	raw, err := u.ScansList(skipOnHit, writeOnReturn)
+	if err != nil {
+		a.Config.VM.Log.Errorf("error: failed to get the scan list: %v", err)
+		return scans, err
+	}
+
+	convert := NewConvert()
+	scans, err = convert.ToScans(raw)
+
+	return scans, err
+}
+
+// ScanDetails will list all the scans matching --name or --regex
+func (a *Adapter) ScanDetails(s Scan, skipOnHit bool, writeOnReturn bool) (details ScanHistoryDetail, err error) {
+	a.Metrics.ClientInc(metrics.EndPoints.ScansList, metrics.Methods.Service.Get)
+
+	u := NewUnmarshal(a.Config, a.Metrics)
+	raw, err := u.ScanDetails(s.ScheduleUUID, skipOnHit, writeOnReturn)
+	if err != nil {
+		a.Config.VM.Log.Errorf("error: failed to get the scan list: %v", err)
+		return details, err
+	}
+
+	convert := NewConvert()
+	details, err = convert.ToScanDetails(raw)
+	details.Scan = s
+	return details, err
 }

@@ -116,6 +116,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	cacheCmd := makeCommand("cache", app.CacheInfo, appCmd)
 	_ = makeCommand("list", app.CacheInfo, cacheCmd)
 	cacheClearCmd := makeCommand("clear", app.CacheClear, cacheCmd)
+	//TODO: Make all safe by adding '--all' parameter to remove historical/export outputs too
 	_ = makeCommand("all", app.CacheClearAll, cacheClearCmd)
 	_ = makeCommand("agents", app.CacheClearAgents, cacheClearCmd)
 	_ = makeCommand("scans", app.CacheClearScans, cacheClearCmd)
@@ -127,6 +128,9 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	_ = makeCommand("host", app.ScansHosts, scansCmd)
 	_ = makeCommand("plugin", app.ScansPlugins, scansCmd)
 	_ = makeCommand("query", app.ScansQuery, scansCmd)
+
+	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, scansCmd)
+	makeString("UUID", &a.Config.VM.UUID, []string{"uuid"}, scansCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)

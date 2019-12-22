@@ -24,6 +24,21 @@ func (vm *VM) ScansList(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	//TODO: Make this a method :-P
+	id := vm.Config.VM.ID
+	uuid := vm.Config.VM.UUID
+	name := vm.Config.VM.Name
+	regex := vm.Config.VM.Regex
+	if id != "" {
+		scans = a.Filter.ScanByID(scans, id)
+	} else if uuid != "" {
+		scans = a.Filter.ScanByScheduleUUID(scans, uuid)
+	} else if name != "" {
+		scans = a.Filter.ScanByName(scans, name)
+	} else if regex != "" {
+		scans = a.Filter.ScanByRegex(scans, regex)
+	}
+
 	if a.Config.VM.OutputJSON {
 		// Convert structs to JSON.
 		data, err := json.Marshal(scans)
@@ -41,6 +56,47 @@ func (vm *VM) ScansList(cmd *cobra.Command, args []string) {
 
 // ScansDetail is invoked by Cobra with commandline args passed.
 func (vm *VM) ScansDetail(cmd *cobra.Command, args []string) {
+	log := vm.setupLog()
+	log.Infof("tiogo scan detail command:")
+
+	cli := ui.NewCLI(vm.Config)
+	a := client.NewAdapter(vm.Config, vm.Metrics)
+
+	scans, err := a.Scans(true, true)
+	if err != nil {
+		log.Errorf("error: couldn't scans list: %v", err)
+		return
+	}
+
+	id := vm.Config.VM.ID
+	uuid := vm.Config.VM.UUID
+	name := vm.Config.VM.Name
+	regex := vm.Config.VM.Regex
+	if id != "" {
+		scans = a.Filter.ScanByID(scans, id)
+	} else if uuid != "" {
+		scans = a.Filter.ScanByScheduleUUID(scans, uuid)
+	} else if name != "" {
+		scans = a.Filter.ScanByName(scans, name)
+	} else if regex != "" {
+		scans = a.Filter.ScanByRegex(scans, regex)
+	}
+
+	if len(scans) == 0 {
+		log.Errorf("error: couldn't match a scans")
+		return
+	}
+
+	cli.DrawGopher()
+
+	for _, s := range scans {
+		details, err := a.ScanDetails(s, true, true)
+		if err != nil {
+			log.Fatalf("error: couldn't retrieve details: %v", err)
+		}
+		cli.Println(fmt.Sprintf("details:\n%+v\n", details))
+	}
+
 	return
 }
 

@@ -29,10 +29,10 @@ type ScanHistory struct {
 type ScanHistoryDetail struct {
 	Scan                Scan
 	HistoryID           string
+	ScannerName         string
 	PolicyName          string
 	Targets             string
 	AgentGroup          []AgentGroup
-	ScannerName         string
 	Owner               string
 	HistoryIndex        string
 	Status              string

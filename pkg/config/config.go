@@ -57,8 +57,8 @@ type VMConfig struct {
 	Name          string
 	Regex         string
 	JQex          string
-	JQExec        string //Executable for jq
-	UUID          string
+	JQExec        string // Executable for jq
+	UUID          string // This can be used to map
 
 	Critical bool // When 'true' we only want results realted to critical plugins
 	High     bool // When 'true' we only want results realted to high plugins
