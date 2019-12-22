@@ -25,10 +25,13 @@ ENV GOARCH=$goarch
 ##
 ##    root@4f51ab2342123:/tiogo# ./tio help
 ##
+##    Get SecretKey and AccessKey from your Tenable.io instance:
+##
+##           https://docs.tenable.com/cloud/Content/Settings/GenerateAPIKey.htm
+##
 ##
 ## NOTE: GOFLAGS won't be needed in go1.12 and beyond
 ##       This is what allows the hermetic builds - the whole 'vendor' folder holds the packages for this release
-##
 ##
 ARG goflags="-mod=vendor"
 ENV GOFLAGS=$goflags
