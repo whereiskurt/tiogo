@@ -285,7 +285,11 @@ func (c *Converter) ToScanDetails(raw []byte) (converted ScanHistoryDetail, err 
 		lowHist, _ := strconv.Atoi(converted.PluginLowCount)
 		lowHost, _ := strconv.Atoi(string(h.SeverityLow))
 		converted.PluginLowCount = fmt.Sprintf("%v", lowHist+lowHost)
-		converted.PluginTotalCount = fmt.Sprintf("%v", lowHist+lowHost+mediumHist+mediumHost+highHist+highHost+critsHist+critsHost)
+		infoHist, _ := strconv.Atoi(converted.PluginInfoCount)
+		infoHost, _ := strconv.Atoi(string(h.SeverityInfo))
+		converted.PluginInfoCount = fmt.Sprintf("%v", infoHist+infoHost)
+
+		converted.PluginTotalCount = fmt.Sprintf("%v", infoHist+infoHost+lowHist+lowHost+mediumHist+mediumHost+highHist+highHost+critsHist+critsHost)
 
 		sd.ScanHistoryDetail = &converted
 		converted.Host[h.ID.String()] = sd

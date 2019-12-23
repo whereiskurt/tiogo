@@ -45,6 +45,7 @@ type ScanHistoryDetail struct {
 	PluginHighCount     string
 	PluginMediumCount   string
 	PluginLowCount      string
+	PluginInfoCount     string
 	PluginTotalCount    string
 	ScanStart           string
 	ScanStartUnix       string

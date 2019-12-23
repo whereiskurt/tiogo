@@ -110,6 +110,7 @@ func (vm *VM) ScansDetail(cmd *cobra.Command, args []string) {
 		cli.Println(fmt.Sprintf(" PluginHighCount:\t%+v", details.PluginHighCount))
 		cli.Println(fmt.Sprintf(" PluginMediumCount:\t%+v", details.PluginMediumCount))
 		cli.Println(fmt.Sprintf(" PluginLowCount:\t%+v", details.PluginLowCount))
+		cli.Println(fmt.Sprintf(" PluginLowCount:\t%+v", details.PluginInfoCount))
 		cli.Println(fmt.Sprintf(" ----------------------\n"))
 	}
 

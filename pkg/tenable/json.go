@@ -157,6 +157,7 @@ type ScanDetailHosts struct {
 	SeverityHigh     json.Number `json:"high"`
 	SeverityMedium   json.Number `json:"medium"`
 	SeverityLow      json.Number `json:"low"`
+	SeverityInfo     json.Number `json:"info"`
 	Progress         string      `json:"progress"`
 	Score            json.Number `json:"score"`
 	ProgressCurrent  json.Number `json:"scanprogresscurrent"`
