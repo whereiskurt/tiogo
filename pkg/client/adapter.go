@@ -628,7 +628,7 @@ func (a *Adapter) Scans(skipOnHit bool, writeOnReturn bool) ([]Scan, error) {
 }
 
 // ScanDetails will list all the scans matching --name or --regex
-func (a *Adapter) ScanDetails(s Scan, skipOnHit bool, writeOnReturn bool) (details ScanHistoryDetail, err error) {
+func (a *Adapter) ScanDetails(s *Scan, skipOnHit bool, writeOnReturn bool) (details ScanHistoryDetail, err error) {
 	a.Metrics.ClientInc(metrics.EndPoints.ScansList, metrics.Methods.Service.Get)
 
 	u := NewUnmarshal(a.Config, a.Metrics)

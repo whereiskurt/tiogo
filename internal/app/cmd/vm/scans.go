@@ -89,12 +89,28 @@ func (vm *VM) ScansDetail(cmd *cobra.Command, args []string) {
 
 	cli.DrawGopher()
 
-	for _, s := range scans {
-		details, err := a.ScanDetails(s, true, true)
+	for i := range scans {
+		details, err := a.ScanDetails(&scans[i], true, true)
 		if err != nil {
-			log.Fatalf("error: couldn't retrieve details: %v", err)
+			log.Fatalf("error: couldn't retrieve details: %v: %+v", scans[i], err)
 		}
-		cli.Println(fmt.Sprintf("details:\n%+v\n", details))
+		cli.Println(fmt.Sprintf(" Name:\t\t\t%+v", details.Scan.Name))
+		cli.Println(fmt.Sprintf(" ScanID:\t\t%+v", details.Scan.ScanID))
+		cli.Println(fmt.Sprintf(" ScheduleUUID:\t\t%+v", details.Scan.ScheduleUUID))
+		cli.Println(fmt.Sprintf(" ScanType:\t\t%+v", details.ScanType))
+		cli.Println(fmt.Sprintf(" Last Status:\t\t%+v", details.Status))
+		cli.Println(fmt.Sprintf(" Last StartTime:\t%+v", details.ScanStart))
+		cli.Println(fmt.Sprintf(" Last EndTime:\t\t%+v", details.ScanEnd))
+		cli.Println(fmt.Sprintf(" Timestamp:\t\t%+v", details.Timestamp))
+		cli.Println(fmt.Sprintf(" RRules:\t\t%+v", details.Scan.RRules))
+		cli.Println(fmt.Sprintf(" HistoryCount:\t\t%+v", details.HistoryCount))
+		cli.Println(fmt.Sprintf(" HostCount:\t\t%+v", details.HostCount))
+		cli.Println(fmt.Sprintf(" PluginTotalCount:\t%+v", details.PluginTotalCount))
+		cli.Println(fmt.Sprintf(" PluginCriticalCount:\t%+v", details.PluginCriticalCount))
+		cli.Println(fmt.Sprintf(" PluginHighCount:\t%+v", details.PluginHighCount))
+		cli.Println(fmt.Sprintf(" PluginMediumCount:\t%+v", details.PluginMediumCount))
+		cli.Println(fmt.Sprintf(" PluginLowCount:\t%+v", details.PluginLowCount))
+		cli.Println(fmt.Sprintf(" ----------------------\n"))
 	}
 
 	return

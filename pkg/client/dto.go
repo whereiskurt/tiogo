@@ -22,13 +22,16 @@ type Scan struct {
 	LastModifiedDate string
 	Timestamp        string
 }
-type ScanHistory struct {
-	Scan    Scan
-	History []ScanHistoryDetail
-}
+
+// type ScanHistory struct {
+// 	Scan    Scan
+// 	History []ScanHistoryDetail
+// }
+
 type ScanHistoryDetail struct {
-	Scan                Scan
+	Scan                *Scan
 	HistoryID           string
+	HistoryCount        string
 	ScannerName         string
 	PolicyName          string
 	Targets             string
@@ -47,6 +50,8 @@ type ScanHistoryDetail struct {
 	ScanStartUnix       string
 	ScanEnd             string
 	ScanEndUnix         string
+	Timestamp           string
+	TimestampUnix       string
 	ScanDuration        string
 	HostCount           string
 	AgentCount          string
@@ -60,7 +65,7 @@ type HostScanSummary struct {
 	HostID              string
 	AssetID             string
 	HostnameOrIP        string
-	ScanHistoryDetail   ScanHistoryDetail
+	ScanHistoryDetail   *ScanHistoryDetail
 	HostDetail          HostScanDetail
 	Asset               Asset
 	PluginCriticalCount string

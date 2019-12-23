@@ -127,8 +127,9 @@ type ScanDetailInfo struct {
 	UUID         string        `json:"uuid"`
 	ScheduleUUID string        `json:"schedule_uuid"`
 	Owner        string        `json:"owner"`
-	Start        json.Number   `json:"scan_start"`
-	End          json.Number   `json:"scan_end"`
+	Start        json.Number   `json:"scan_start"` // Last Started Time
+	End          json.Number   `json:"scan_end"`   // Last End Time - can be empty for running/never finsihed
+	Timestamp    json.Number   `json:"timestamp"`  // Last time the info was updated
 	ScannerStart json.Number   `json:"scanner_start"`
 	ScannerEnd   json.Number   `json:"scanner_end"`
 	ScannerName  string        `json:"scanner_name"`

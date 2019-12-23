@@ -3,10 +3,11 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/prometheus/common/log"
-	"github.com/whereiskurt/tiogo/pkg/tenable"
 	"strconv"
 	"time"
+
+	"github.com/prometheus/common/log"
+	"github.com/whereiskurt/tiogo/pkg/tenable"
 )
 
 // Converter translates Tenable.io raw JSONs responses into DTO objects
@@ -203,6 +204,7 @@ func (c *Converter) ToScans(raw []byte) (converted []Scan, err error) {
 		scan.ScanID = s.ID.String()
 		scan.Type = s.Type
 		scan.StartTime = s.StartTime
+
 		scan.RRules = s.RRules
 		scan.Enabled = fmt.Sprintf("%v", s.Enabled)
 		scan.CreationDate = s.CreationDate.String()
@@ -226,16 +228,68 @@ func (c *Converter) ToScanDetails(raw []byte) (converted ScanHistoryDetail, err 
 	if err != nil {
 		return converted, err
 	}
+
+	if len(src.History) == 0 {
+		return converted, nil
+	}
+
+	converted.ScanStartUnix = src.Info.Start.String()
+	i, e1 := strconv.ParseInt(converted.ScanStartUnix, 10, 64)
+	if e1 == nil {
+		tm := time.Unix(i, 0)
+		converted.ScanStart = tm.String()
+	}
+
+	converted.ScanEndUnix = src.Info.End.String()
+	i, e2 := strconv.ParseInt(converted.ScanEndUnix, 10, 64)
+	if e2 == nil {
+		tm := time.Unix(i, 0)
+		converted.ScanEnd = tm.String()
+	}
+
+	converted.TimestampUnix = src.Info.Timestamp.String()
+	i, e3 := strconv.ParseInt(converted.TimestampUnix, 10, 64)
+	if e3 == nil {
+		tm := time.Unix(i, 0)
+		converted.Timestamp = tm.String()
+	}
+
+	converted.ScanType = src.Info.ScanType
+	converted.PolicyName = src.Info.PolicyName
+	converted.Targets = src.Info.Targets
 	converted.ScannerName = src.Info.ScannerName
+	converted.HistoryCount = fmt.Sprintf("%d", len(src.History))
 	converted.HistoryID = src.History[0].HistoryID.String()
+	converted.LastModifiedDate = src.History[0].LastModifiedDate.String()
+	converted.CreationDate = src.History[0].CreationDate.String()
+	converted.Status = src.History[0].Status
+
+	converted.HostCount = fmt.Sprintf("%v", len(src.Hosts))
+	converted.Host = make(map[string]HostScanSummary)
 
 	for _, h := range src.Hosts {
 		var sd HostScanSummary
 		sd.HostID = h.ID.String()
 		sd.AssetID = h.AssetID.String()
 		sd.HostnameOrIP = h.HostnameOrIP
-		sd.ScanHistoryDetail = converted
+
+		critsHist, _ := strconv.Atoi(converted.PluginCriticalCount)
+		critsHost, _ := strconv.Atoi(string(h.SeverityCritical))
+		converted.PluginCriticalCount = fmt.Sprintf("%v", critsHist+critsHost)
+		highHist, _ := strconv.Atoi(converted.PluginHighCount)
+		highHost, _ := strconv.Atoi(string(h.SeverityHigh))
+		converted.PluginHighCount = fmt.Sprintf("%v", highHist+highHost)
+		mediumHist, _ := strconv.Atoi(converted.PluginMediumCount)
+		mediumHost, _ := strconv.Atoi(string(h.SeverityMedium))
+		converted.PluginMediumCount = fmt.Sprintf("%v", mediumHist+mediumHost)
+		lowHist, _ := strconv.Atoi(converted.PluginLowCount)
+		lowHost, _ := strconv.Atoi(string(h.SeverityLow))
+		converted.PluginLowCount = fmt.Sprintf("%v", lowHist+lowHost)
+		converted.PluginTotalCount = fmt.Sprintf("%v", lowHist+lowHost+mediumHist+mediumHost+highHist+highHost+critsHist+critsHost)
+
+		sd.ScanHistoryDetail = &converted
 		converted.Host[h.ID.String()] = sd
 	}
+
 	return
 }
