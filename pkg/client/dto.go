@@ -8,7 +8,7 @@ import (
 type Scan struct {
 	ScanID           string
 	UUID             string
-	ScheduleUUID     string
+	ScheduleUUID     string // Considered the UUID for ScanDetails etc.
 	Name             string
 	Type             string
 	Status           string

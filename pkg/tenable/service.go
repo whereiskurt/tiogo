@@ -491,7 +491,7 @@ func (s *Service) ScanDetails(uuid string) ([]byte, error) {
 	err := try.Do(func(attempt int) (bool, error) {
 		body, status, err := s.get(EndPoints.ScanDetails, map[string]string{"ScanUUID": uuid})
 		if err != nil {
-			s.Log.Infof("failed to agent list: http status: %d: %s", status, err)
+			s.Log.Infof("failed to scan details list: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
 			return retry, err
 		}
