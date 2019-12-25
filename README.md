@@ -20,7 +20,7 @@ Using the Dockerfile is a fast way to get 'up and running' if you already have D
 $ docker build --tag tiogo:v0.1 .
 ... [tiogo builds and verbosely outputs]
 
-$ docker run --it --rm tiogo:v0.1
+$ docker run -it --rm tiogo:v0.1
   
 root@4f51ab2342123:/tiogo# ./tio help
 ```
