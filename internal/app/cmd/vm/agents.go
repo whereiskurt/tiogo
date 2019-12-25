@@ -21,7 +21,7 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	name := vm.Config.VM.Name
 	groupName := vm.Config.VM.GroupName
 
-	agents, agentGroups, err := vm.Agents(cli, a)
+	agents, agentGroups, err := vm.list(cli, a)
 	if err != nil {
 		cli.Fatalf("%s", err)
 		return
@@ -76,7 +76,49 @@ func (vm *VM) AgentsUngroup(cmd *cobra.Command, args []string) {
 	vm.action(filterKeepWithGroup, ungroup)
 }
 
-func (vm *VM) Agents(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []client.AgentGroup, error) {
+func (vm *VM) action(filterFunc func(*client.Adapter, ui.CLI, []client.ScannerAgent, string) []client.ScannerAgent, groupFunc func(*client.Adapter, ui.CLI, client.ScannerAgent, *client.AgentGroup)) {
+	a := client.NewAdapter(vm.Config, vm.Metrics)
+	cli := ui.NewCLI(vm.Config)
+
+	groupName := vm.Config.VM.GroupName
+	if groupName == "" {
+		err := errors.New(fmt.Sprint("error: must provide group name to group agents: missing --group"))
+		cli.Fatalf("%s", err)
+	}
+
+	regex := vm.Config.VM.Regex
+	name := vm.Config.VM.Name
+	if regex == "" && name == "" {
+		err := errors.New(fmt.Sprint("error: must set either --name or --regex not both"))
+		cli.Fatalf("%s", err)
+	}
+
+	// 2) Get Agents and Groups:
+	agents, agentGroups, err := vm.list(cli, a)
+	if err != nil {
+		cli.Fatalf("error: %s", err)
+	}
+
+	group := lookupGroup(cli, agentGroups, groupName)
+
+	agents = filterFunc(a, cli, agents, groupName)
+	if regex != "" {
+		agents = a.Filter.AgentsByRegex(agents, regex)
+	} else {
+		agents = a.Filter.AgentsByName(agents, name)
+	}
+
+	for _, agent := range agents {
+		groupFunc(a, cli, agent, group)
+	}
+
+	// Update the cache :-)
+	agents, err = a.Agents(false, true)
+
+	return
+}
+
+func (vm *VM) list(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []client.AgentGroup, error) {
 	regex := vm.Config.VM.Regex
 	name := vm.Config.VM.Name
 	if name != "" && regex != "" {
@@ -100,48 +142,6 @@ func (vm *VM) Agents(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []cl
 	log.Debugf("Total agents:%d, Total Agent Groups: %d", len(agents), len(agentGroups))
 
 	return agents, agentGroups, nil
-}
-
-func (vm *VM) action(filterFunc func(*client.Adapter, ui.CLI, []client.ScannerAgent, string) []client.ScannerAgent, groupFunc func(*client.Adapter, ui.CLI, client.ScannerAgent, *client.AgentGroup)) {
-	a := client.NewAdapter(vm.Config, vm.Metrics)
-	cli := ui.NewCLI(vm.Config)
-
-	groupName := vm.Config.VM.GroupName
-	if groupName == "" {
-		err := errors.New(fmt.Sprint("error: must provide group name to group agents: missing --group"))
-		cli.Fatalf("%s", err)
-	}
-
-	regex := vm.Config.VM.Regex
-	name := vm.Config.VM.Name
-	if regex == "" && name == "" {
-		err := errors.New(fmt.Sprint("error: must set either --name or --regex not both"))
-		cli.Fatalf("%s", err)
-	}
-
-	// 2) Get Agents and Groups:
-	agents, agentGroups, err := vm.Agents(cli, a)
-	if err != nil {
-		cli.Fatalf("error: %s", err)
-	}
-
-	group := lookupGroup(cli, agentGroups, groupName)
-
-	agents = filterFunc(a, cli, agents, groupName)
-	if regex != "" {
-		agents = a.Filter.AgentsByRegex(agents, regex)
-	} else {
-		agents = a.Filter.AgentsByName(agents, name)
-	}
-
-	for _, agent := range agents {
-		groupFunc(a, cli, agent, group)
-	}
-
-	// Update the cache :-)
-	agents, err = a.Agents(false, true)
-
-	return
 }
 
 func lookupGroup(cli ui.CLI, agentGroups []client.AgentGroup, groupName string) *client.AgentGroup {
