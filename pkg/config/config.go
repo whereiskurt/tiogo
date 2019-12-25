@@ -39,6 +39,9 @@ type Config struct {
 
 // ClientConfig are all of the params for the Client Command
 type VMConfig struct {
+	ReleaseVersion string //The release version and githash for tio.go release. :)
+	GitHash        string
+
 	Config        *Config
 	BaseURL       string
 	AccessKey     string
@@ -54,17 +57,20 @@ type VMConfig struct {
 	Name          string
 	Regex         string
 	JQex          string
-	JQExec        string //Executable for jq
-	UUID          string
-	Critical      bool
-	High          bool
-	Medium        bool
-	Info          bool
+	JQExec        string // Executable for jq
+	UUID          string // This can be used to map
 
-	Chunk           string
-	BeforeDate      string // Date bounding YYYY-MM-DD
-	AfterDate       string // Date bounded for YYYY-MM-DD
-	Days            string // Number of days to include either before or after
+	Critical bool // When 'true' we only want results realted to critical plugins
+	High     bool // When 'true' we only want results realted to high plugins
+	Medium   bool
+	Info     bool
+
+	Chunk       string
+	BeforeDate  string // Date bounding YYYY-MM-DD
+	AfterDate   string // Date bounded for YYYY-MM-DD
+	Days        string // Number of days to include either before or after
+	ExportLimit string // Either chunk_size or num_assets
+
 	DefaultTimezone string
 
 	Category         string // Asset Category
@@ -73,7 +79,6 @@ type VMConfig struct {
 	GroupName        string
 	WithoutGroupName bool
 	AsTargetGroups   bool
-	ExportLimit      string
 	NeverRun         bool
 	Onetime          bool
 	Date             string

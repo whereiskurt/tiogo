@@ -3,16 +3,17 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/prometheus/common/log"
-	"github.com/whereiskurt/tiogo/pkg/tenable"
 	"strconv"
 	"time"
+
+	"github.com/prometheus/common/log"
+	"github.com/whereiskurt/tiogo/pkg/tenable"
 )
 
-// Converter does not need any other objects or references
+// Converter translates Tenable.io raw JSONs responses into DTO objects
 type Converter struct{}
 
-// NewConvert returns a converter, used by the adapter
+// NewConvert exposes methods to take raw JSON from Unmarshal and transform it
 func NewConvert() (convert Converter) { return }
 
 // ToVulnExportStatus takes a raw byte array of JSON from Tenable.io,
@@ -40,6 +41,7 @@ func (c *Converter) ToVulnExportStatus(raw []byte) (converted VulnExportStatus, 
 	return converted, nil
 }
 
+// ToAssetExportStatus converst raw unmarshaled Tenable.io ExportStatus and converts to a DTO.
 func (c *Converter) ToAssetExportStatus(raw []byte) (converted AssetExportStatus, err error) {
 	var tenableStatus tenable.AssetExportStatus
 
@@ -60,11 +62,14 @@ func (c *Converter) ToAssetExportStatus(raw []byte) (converted AssetExportStatus
 	}
 	converted.Status = tenableStatus.Status
 
-	return converted, nil
+	return
 }
 
+// ToAgents converts raw Tenable Agents from Scanner to DTO ScannerAgents
 func (c *Converter) ToAgents(scanner Scanner, raw []byte) ([]ScannerAgent, error) {
 	var src tenable.ScannerAgent
+	var scannerID = scanner.ID // We enrich the DTO Agent with the scanner ID. DNE in the Tenable.ScannerAgent object.
+	var scannerUUID = scanner.UUID
 
 	log.Debug(fmt.Sprintf("%s", raw))
 
@@ -87,8 +92,8 @@ func (c *Converter) ToAgents(scanner Scanner, raw []byte) ([]ScannerAgent, error
 		agent.Distro = a.Distro
 		agent.IP = a.IP
 
-		agent.Scanner.ID = scanner.ID
-		agent.Scanner.UUID = scanner.UUID
+		agent.Scanner.ID = scannerID
+		agent.Scanner.UUID = scannerUUID
 
 		agent.Groups = make(map[string]AgentGroup)
 		for _, g := range a.Groups {
@@ -117,6 +122,7 @@ func (c *Converter) ToAgents(scanner Scanner, raw []byte) ([]ScannerAgent, error
 	return agents, err
 }
 
+// ToAgentGroups converts raw Tenable AgentsGroups to DTO AgentGroup
 func (c *Converter) ToAgentGroups(raw []byte) ([]AgentGroup, error) {
 	var src tenable.ScannerAgentGroups
 	var groups []AgentGroup
@@ -140,11 +146,11 @@ func (c *Converter) ToAgentGroups(raw []byte) ([]AgentGroup, error) {
 	return groups, err
 }
 
-func (c *Converter) ToScanners(raw []byte) ([]Scanner, error) {
+// ToScanners converts raw Tenable AgentsGroups to DTO AgentGroup
+func (c *Converter) ToScanners(raw []byte) (scanners []Scanner, err error) {
 	var src tenable.ScannerList
-	var scanners []Scanner
 
-	err := json.Unmarshal(raw, &src)
+	err = json.Unmarshal(raw, &src)
 	if err != nil {
 		return scanners, err
 	}
@@ -169,8 +175,125 @@ func (c *Converter) ToScanners(raw []byte) ([]Scanner, error) {
 		scanner.Owner = s.Owner
 		scanner.ScanCount = string(s.ScanCount)
 		scanner.Platform = s.Platform
+		if len(s.Addresses) > 0 {
+			scanner.IP = s.Addresses[0]
+		} else {
+			scanner.IP = "Unknown"
+		}
+
 		scanners = append(scanners, scanner)
 	}
 
 	return scanners, err
+}
+
+// ToScans convert the /scans to DTO
+func (c *Converter) ToScans(raw []byte) (converted []Scan, err error) {
+	var src tenable.ScansList
+
+	err = json.Unmarshal(raw, &src)
+	if err != nil {
+		return converted, err
+	}
+
+	for _, s := range src.Scans {
+		var scan Scan
+		scan.Name = s.Name
+		scan.UUID = s.UUID
+		scan.ScheduleUUID = s.ScheduleUUID
+		scan.ScanID = s.ID.String()
+		scan.Type = s.Type
+		scan.StartTime = s.StartTime
+
+		scan.RRules = s.RRules
+		scan.Enabled = fmt.Sprintf("%v", s.Enabled)
+		scan.CreationDate = s.CreationDate.String()
+		scan.LastModifiedDate = s.LastModifiedDate.String()
+		scan.Status = s.Status
+		scan.Owner = s.Owner
+		scan.Timezone = s.Timezone
+		scan.UserPermissions = s.UserPermissions.String()
+
+		converted = append(converted, scan)
+	}
+
+	return
+}
+
+// ToScanDetails convert the /scans to DTO
+func (c *Converter) ToScanDetails(raw []byte) (converted ScanHistoryDetail, err error) {
+	var src tenable.ScanDetail
+
+	err = json.Unmarshal(raw, &src)
+	if err != nil {
+		return converted, err
+	}
+
+	if len(src.History) == 0 {
+		return converted, nil
+	}
+
+	converted.ScanStartUnix = src.Info.Start.String()
+	i, e1 := strconv.ParseInt(converted.ScanStartUnix, 10, 64)
+	if e1 == nil {
+		tm := time.Unix(i, 0)
+		converted.ScanStart = tm.String()
+	}
+
+	converted.ScanEndUnix = src.Info.End.String()
+	i, e2 := strconv.ParseInt(converted.ScanEndUnix, 10, 64)
+	if e2 == nil {
+		tm := time.Unix(i, 0)
+		converted.ScanEnd = tm.String()
+	}
+
+	converted.TimestampUnix = src.Info.Timestamp.String()
+	i, e3 := strconv.ParseInt(converted.TimestampUnix, 10, 64)
+	if e3 == nil {
+		tm := time.Unix(i, 0)
+		converted.Timestamp = tm.String()
+	}
+
+	converted.ScanType = src.Info.ScanType
+	converted.PolicyName = src.Info.PolicyName
+	converted.Targets = src.Info.Targets
+	converted.ScannerName = src.Info.ScannerName
+	converted.HistoryCount = fmt.Sprintf("%d", len(src.History))
+	converted.HistoryID = src.History[0].HistoryID.String()
+	converted.LastModifiedDate = src.History[0].LastModifiedDate.String()
+	converted.CreationDate = src.History[0].CreationDate.String()
+	converted.Status = src.History[0].Status
+
+	converted.HostCount = fmt.Sprintf("%v", len(src.Hosts))
+	converted.Host = make(map[string]HostScanSummary)
+
+	for _, h := range src.Hosts {
+		var sd HostScanSummary
+		sd.HostID = h.ID.String()
+		sd.AssetID = h.AssetID.String()
+		sd.HostnameOrIP = h.HostnameOrIP
+
+		critsHist, _ := strconv.Atoi(converted.PluginCriticalCount)
+		critsHost, _ := strconv.Atoi(string(h.SeverityCritical))
+		converted.PluginCriticalCount = fmt.Sprintf("%v", critsHist+critsHost)
+		highHist, _ := strconv.Atoi(converted.PluginHighCount)
+		highHost, _ := strconv.Atoi(string(h.SeverityHigh))
+		converted.PluginHighCount = fmt.Sprintf("%v", highHist+highHost)
+		mediumHist, _ := strconv.Atoi(converted.PluginMediumCount)
+		mediumHost, _ := strconv.Atoi(string(h.SeverityMedium))
+		converted.PluginMediumCount = fmt.Sprintf("%v", mediumHist+mediumHost)
+		lowHist, _ := strconv.Atoi(converted.PluginLowCount)
+		lowHost, _ := strconv.Atoi(string(h.SeverityLow))
+		converted.PluginLowCount = fmt.Sprintf("%v", lowHist+lowHost)
+		infoHist, _ := strconv.Atoi(converted.PluginInfoCount)
+		infoHost, _ := strconv.Atoi(string(h.SeverityInfo))
+		converted.PluginInfoCount = fmt.Sprintf("%v", infoHist+infoHost)
+
+		converted.PluginTotalCount = fmt.Sprintf("%v", infoHist+infoHost+lowHist+lowHost+mediumHist+mediumHost+highHist+highHost+critsHist+critsHost)
+
+		sd.ScanHistoryDetail = &converted
+		converted.Host[h.ID.String()] = sd
+	}
+
+	return
 }

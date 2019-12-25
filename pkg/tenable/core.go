@@ -34,9 +34,9 @@ func (s *Service) put(endPoint EndPointType, p map[string]string) ([]byte, int, 
 
 	return body, status, err
 }
-
 func (s *Service) get(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
 	if s.SkipOnHit == true {
+
 		// Check for a cache hit
 		if s.DiskCache != nil {
 			// We have initialized a cache then write to it.
@@ -149,7 +149,6 @@ func toURL(baseURL string, name EndPointType, p map[string]string) (string, erro
 
 	return toTemplate(name, p, url)
 }
-
 func toJSON(name EndPointType, method httpMethodType, p map[string]string) (string, error) {
 	sMap, hasMethod := ServiceMap[name]
 	if !hasMethod {

@@ -2,16 +2,18 @@ package vm
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
 	"github.com/whereiskurt/tiogo/pkg/ui"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
+//ExportVulnsStart begin a download with a date since
 func (vm *VM) ExportVulnsStart(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
 	since := vm.Config.VM.AfterDate
@@ -38,6 +40,8 @@ func (vm *VM) ExportVulnsStart(cmd *cobra.Command, args []string) {
 
 	return
 }
+
+//ExportVulnsStatus get the status for download uuid
 func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
 
@@ -59,7 +63,7 @@ func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 	// Check the cached response first
 	status, err := a.ExportVulnsStatus(uuid, true, true)
 	if err != nil {
-		log.Errorf("error: couldn't status export-vulns: %v", err)
+		log.Errorf("error: couldn't get status export-vulns: %v", err)
 		return
 	}
 	// If the status isn't FINISHED, ask for another from the server
@@ -78,6 +82,8 @@ func (vm *VM) ExportVulnsStatus(cmd *cobra.Command, args []string) {
 
 	return
 }
+
+//ExportVulnsGet for chunks files for download uuid
 func (vm *VM) ExportVulnsGet(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
 
@@ -110,6 +116,8 @@ func (vm *VM) ExportVulnsGet(cmd *cobra.Command, args []string) {
 
 	return
 }
+
+//ExportVulnsQuery looks for matching jqex in chunks files for uuid
 func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 	vm.Config.VM.EnableLogging()
 
@@ -141,6 +149,8 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 	if vm.Config.VM.Info == true {
 		sevs = append(sevs, `.severity == "info"`)
 	}
+
+	// If we have severity limits, add them to the between clause
 	if len(sevs) > 0 {
 		sev := strings.Join(sevs, " or ")
 		between = fmt.Sprintf("select( (%s) and (%s) )", between, sev)
@@ -165,6 +175,8 @@ func (vm *VM) ExportVulnsQuery(cmd *cobra.Command, args []string) {
 
 	return
 }
+
+// ExportVulnsHelp outputs the help template
 func (vm *VM) ExportVulnsHelp(cmd *cobra.Command, args []string) {
 	fmt.Printf("tiogo version %s (%s)", ReleaseVersion, GitHash)
 	if vm.Config.VM.Log.IsLevelEnabled(log.DebugLevel) {
@@ -172,7 +184,7 @@ func (vm *VM) ExportVulnsHelp(cmd *cobra.Command, args []string) {
 	}
 
 	cli := ui.NewCLI(vm.Config)
-	fmt.Println(cli.Render("ExportVulnsHelp", nil))
+	fmt.Println(cli.Render("exportVulnsUsage", nil))
 
 	return
 }

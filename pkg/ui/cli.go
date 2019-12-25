@@ -124,6 +124,8 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 	templateFiles = append(templateFiles, "template/client/csv.tmpl")
 	templateFiles = append(templateFiles, "template/cmd/tiogo.tmpl")
 	templateFiles = append(templateFiles, "template/cmd/vm/vm.tmpl")
+	templateFiles = append(templateFiles, "template/cmd/vm/scans.tmpl")
+	templateFiles = append(templateFiles, "template/cmd/vm/exports.tmpl")
 
 	t := template.New("")
 	for _, f := range templateFiles {

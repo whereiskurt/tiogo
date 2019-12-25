@@ -29,6 +29,7 @@ const DefaultServerBaseURL = "https://cloud.tenable.com"
 // DefaultClientCacheFolder stores default client cache file location
 const DefaultClientCacheFolder = ".tiogo/cache/client/"
 const DefaultClientCacheResponse = true
+const DefaultClientCacheLookup = true
 
 const DefaultLogFolder = "log/"
 const DefaultServerMetricsFolder = "log/metrics/server/"
@@ -37,6 +38,7 @@ const DefaultClientMetricsFolder = "log/metrics/client/"
 // DefaultServerCacheFolder  stores default server cache file location
 const DefaultServerCacheFolder = ".tiogo/cache/server/"
 const DefaultServerCacheResponse = true
+const DefaultServerCacheLookup = true
 
 func (c *Config) SetToDefaults() {
 	// Find the User's home folder
@@ -55,21 +57,21 @@ func (c *Config) SetToDefaults() {
 
 	c.VM.CacheFolder = filepath.Join([]string{c.HomeFolder, DefaultClientCacheFolder}...)
 	c.VM.CacheResponse = DefaultClientCacheResponse
-	c.Server.ServiceBaseURL = DefaultServerBaseURL
+	c.VM.MetricsFolder = filepath.Join(DefaultClientMetricsFolder)
 
+	c.Server.ServiceBaseURL = DefaultServerBaseURL
 	c.Server.CacheFolder = filepath.Join([]string{c.HomeFolder, DefaultServerCacheFolder}...)
 	c.Server.CacheResponse = DefaultServerCacheResponse
 	c.Server.MetricsFolder = filepath.Join(DefaultServerMetricsFolder)
-
 	c.Server.MetricsListenPort = DefaultMetricsListenPort
 	c.Server.ListenPort = DefaultServerListenPort
+
 	c.VerboseLevel = DefaultVerboseLevel
 	c.ConfigFolder = DefaultConfigFolder
 	c.ConfigFilename = DefaultConfigFilename
 	c.TemplateFolder = DefaultTemplateFolder
-	c.VM.MetricsFolder = filepath.Join(DefaultClientMetricsFolder)
 
-	c.VM.ExportLimit = "5000" // Default asset and vulnerability size ;-)
+	c.VM.ExportLimit = "5000" // Default asset and vulnerability export size (num_assets and chunk_size) ;-)
 
 	c.DefaultServerStart = true
 

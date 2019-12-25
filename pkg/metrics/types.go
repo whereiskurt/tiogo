@@ -1,7 +1,9 @@
 package metrics
 
+// EndPointType creates a type for the map lookups
 type EndPointType string
 
+// EndPoints are each type of metric we will produce
 var EndPoints = endPointTypes{
 	ScannersList:       EndPointType("ScannersList"),
 	AgentsList:         EndPointType("AgentsList"),
@@ -16,6 +18,8 @@ var EndPoints = endPointTypes{
 	AssetsExportStatus: EndPointType("AssetsExportStatus"),
 	AssetsExportGet:    EndPointType("AssetsExportGet"),
 	AssetsExportQuery:  EndPointType("AssetsExportQuery"),
+	ScansList:          EndPointType("ScansList"),
+	ScanDetails:        EndPointType("ScanDetails"),
 }
 
 type endPointTypes struct {
@@ -32,12 +36,15 @@ type endPointTypes struct {
 	AssetsExportStatus EndPointType
 	AssetsExportGet    EndPointType
 	AssetsExportQuery  EndPointType
+	ScansList          EndPointType
+	ScanDetails        EndPointType
 }
 
 func (c EndPointType) String() string {
 	return "api." + string(c)
 }
 
+// Methods types for metrics
 var Methods = MethodTypes{
 	Service: ServiceTypes{
 		Get:    ServiceMethodType("Get"),
@@ -66,6 +73,7 @@ var Methods = MethodTypes{
 	},
 }
 
+// MethodTypes are all of the possible method types to metric on - Serveice,DB, Cache, Transport...
 type MethodTypes struct {
 	Service   ServiceTypes
 	DB        DbTypes
@@ -73,7 +81,10 @@ type MethodTypes struct {
 	Transport TransportTypes
 }
 
+// ServiceMethodType wrapper from string for type safety
 type ServiceMethodType string
+
+// ServiceTypes we can have add/get/update/delete
 type ServiceTypes struct {
 	Get    ServiceMethodType
 	Update ServiceMethodType
@@ -85,7 +96,10 @@ func (c ServiceMethodType) String() string {
 	return "service." + string(c)
 }
 
+// DbMethodType wrapper from string for type safety
 type DbMethodType string
+
+// DbTypes we can have insert/read/update/delete
 type DbTypes struct {
 	Read   DbMethodType
 	Update DbMethodType
@@ -97,7 +111,10 @@ func (c DbMethodType) String() string {
 	return "db." + string(c)
 }
 
+// CacheMethodType wrapper from string for type safety
 type CacheMethodType string
+
+// CacheTypes we can have hit/miss/store/invalidate
 type CacheTypes struct {
 	Hit        CacheMethodType
 	Miss       CacheMethodType
@@ -109,7 +126,10 @@ func (c CacheMethodType) String() string {
 	return "cache." + string(c)
 }
 
+// TransportMethodType wrapper from string for type safety
 type TransportMethodType string
+
+// TransportTypes we can have get/put/post/delete/head
 type TransportTypes struct {
 	Get    TransportMethodType
 	Put    TransportMethodType

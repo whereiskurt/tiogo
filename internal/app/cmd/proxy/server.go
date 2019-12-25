@@ -24,7 +24,7 @@ func NewServer(config *config.Config, metrics *metrics.Metrics) (s Server) {
 	return
 }
 
-// Server with no params will show the help
+// ServerHelp with no params will show the help
 func (s *Server) ServerHelp(cmd *cobra.Command, args []string) {
 	cli := ui.NewCLI(s.Config)
 	fmt.Println(cli.Render("serverUsage", nil))
@@ -44,7 +44,8 @@ func (s *Server) Stop(cmd *cobra.Command, args []string) {
 	return
 }
 
-func PortAvailable(port string) bool {
+// IsPortAvailable checks if a port can be cound to
+func IsPortAvailable(port string) bool {
 	host := ":" + port
 	server, err := net.Listen("tcp", host)
 	if err != nil {
@@ -53,5 +54,3 @@ func PortAvailable(port string) bool {
 	server.Close()
 	return true
 }
-
-

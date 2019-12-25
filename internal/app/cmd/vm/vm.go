@@ -16,24 +16,27 @@ var (
 	GitHash = "0xhashhash"
 )
 
-// Version holds the config and CLI references.
+// VM holds the config and CLI references.
 type VM struct {
 	Config  *config.Config
 	Metrics *metrics.Metrics
 }
 
-// NewVersion holds a configuration and command line interface reference (for log out, etc.)
+// NewVM holds a configuration and command line interface reference (for log out, etc.)
 func NewVM(c *config.Config, m *metrics.Metrics) (v VM) {
 	v.Config = c
 	v.Metrics = m
+	v.Config.VM.ReleaseVersion = ReleaseVersion
+	v.Config.VM.GitHash = GitHash
 	return
 }
 
-// The help command renders a template showing the help based on parameters
+// Help command renders a template showing the help based on parameters
 func (vm *VM) Help(cmd *cobra.Command, args []string) {
 
 	cli := ui.NewCLI(vm.Config)
-	versionMap := map[string]string{"ReleaseVersion": ReleaseVersion, "GitHash": GitHash}
+
+	versionMap := map[string]string{"ReleaseVersion": vm.Config.VM.ReleaseVersion, "GitHash": vm.Config.VM.GitHash}
 
 	if len(args) == 0 {
 		fmt.Println(cli.Render("vmUsage", versionMap))
@@ -44,13 +47,18 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 	switch helpType {
 	case "scanners":
 		fmt.Println(cli.Render("scannersUsage", versionMap))
-
 	case "agent-groups":
 		fmt.Print(cli.Render("agentGroupsUsage", versionMap))
 	case "agents":
 		fmt.Print(cli.Render("agentsUsage", versionMap))
+	case "scans":
+		fmt.Print(cli.Render("scansUsage", versionMap))
 	case "export-vulns":
-		fmt.Print(cli.Render("ExportVulnsHelp", versionMap))
+		fmt.Print(cli.Render("exportVulnsUsage", versionMap))
+	case "export-assets":
+		fmt.Print(cli.Render("exportAssetsUsage", versionMap))
+	case "cache":
+		fmt.Print(cli.Render("cacheUsage", versionMap))
 
 	default:
 		fmt.Println(cli.Render("vmUsage", versionMap))

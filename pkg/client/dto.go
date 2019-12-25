@@ -4,10 +4,13 @@ import (
 	"time"
 )
 
+// Scan DTO is an all string representation
 type Scan struct {
 	ScanID           string
 	UUID             string
+	ScheduleUUID     string // Considered the UUID for ScanDetails etc.
 	Name             string
+	Type             string
 	Status           string
 	Owner            string
 	UserPermissions  string
@@ -19,17 +22,20 @@ type Scan struct {
 	LastModifiedDate string
 	Timestamp        string
 }
-type ScanHistory struct {
-	Scan    Scan
-	History []ScanHistoryDetail
-}
+
+// type ScanHistory struct {
+// 	Scan    Scan
+// 	History []ScanHistoryDetail
+// }
+
 type ScanHistoryDetail struct {
-	Scan                Scan
+	Scan                *Scan
 	HistoryID           string
+	HistoryCount        string
+	ScannerName         string
 	PolicyName          string
 	Targets             string
 	AgentGroup          []AgentGroup
-	ScannerName         string
 	Owner               string
 	HistoryIndex        string
 	Status              string
@@ -39,11 +45,14 @@ type ScanHistoryDetail struct {
 	PluginHighCount     string
 	PluginMediumCount   string
 	PluginLowCount      string
+	PluginInfoCount     string
 	PluginTotalCount    string
 	ScanStart           string
 	ScanStartUnix       string
 	ScanEnd             string
 	ScanEndUnix         string
+	Timestamp           string
+	TimestampUnix       string
 	ScanDuration        string
 	HostCount           string
 	AgentCount          string
@@ -57,7 +66,7 @@ type HostScanSummary struct {
 	HostID              string
 	AssetID             string
 	HostnameOrIP        string
-	ScanHistoryDetail   ScanHistoryDetail
+	ScanHistoryDetail   *ScanHistoryDetail
 	HostDetail          HostScanDetail
 	Asset               Asset
 	PluginCriticalCount string
@@ -98,7 +107,7 @@ type Plugin struct {
 	PluginID   string
 	Name       string
 	FamilyName string
-	FamilyId   string
+	FamilyID   string
 	Count      string
 	Severity   string
 	Detail     PluginDetail
@@ -272,6 +281,7 @@ type Scanner struct {
 	RegistrationCode string
 	Owner            string
 	Key              string
+	IP               string
 	License          ScannerLicense
 	Agents           []ScannerAgent
 }

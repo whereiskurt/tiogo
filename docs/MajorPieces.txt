@@ -1,0 +1,5 @@
+
+internal/app/cmd/vm/scans -->
+                             pkg/ui/
+                             pkg/client/adapter
+                                               ->

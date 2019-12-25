@@ -1,6 +1,6 @@
 FROM golang
 
-ARG releaseVersion="v0.1.0"
+ARG releaseVersion="v0.2.5"
 ENV VERSION=$releaseVersion
 
 ## Go supports 'cross-complication' for many platforms - which is super hawt!
@@ -20,15 +20,18 @@ ENV GOARCH=$goarch
 ##    $ docker build --tag tiogo:v0.1 .
 ##     ... (build output)
 ##
-##    $ docker run --it --rm tiogo:v0.1
+##    $ docker run --tty --interactive --rm tiogo:v0.1
 ##     ... (docker drops you into working folder with a binary already built. :-)
 ##
 ##    root@4f51ab2342123:/tiogo# ./tio help
 ##
+##    Get SecretKey and AccessKey from your Tenable.io instance:
+##
+##           https://docs.tenable.com/cloud/Content/Settings/GenerateAPIKey.htm
+##
 ##
 ## NOTE: GOFLAGS won't be needed in go1.12 and beyond
 ##       This is what allows the hermetic builds - the whole 'vendor' folder holds the packages for this release
-##
 ##
 ARG goflags="-mod=vendor"
 ENV GOFLAGS=$goflags
@@ -51,7 +54,7 @@ RUN GIT_HASH=$(git rev-list -1 HEAD | cut -b1-8) && go build \
     -tags release \
     -ldflags \
     "-X github.com/whereiskurt/tiogo/internal/app/cmd/vm.ReleaseVersion=$VERSION \
-     -X github.com/whereiskurt/tiogo/internal/app/cmd/vm.GitHash=$GIT_HASH" \
+    -X github.com/whereiskurt/tiogo/internal/app/cmd/vm.GitHash=$GIT_HASH" \
     -o ./tio \
     cmd/tio.go
 

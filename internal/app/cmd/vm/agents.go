@@ -4,22 +4,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/prometheus/common/log"
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
 	"github.com/whereiskurt/tiogo/pkg/ui"
 )
 
+//AgentsList outputs matching agents  by regex, agent name, and group name
 func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
-	log.Debugf("AgentsList started")
+	regex := vm.Config.VM.Regex
+	name := vm.Config.VM.Name
+	groupName := vm.Config.VM.GroupName
 
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 	cli := ui.NewCLI(vm.Config)
 
-	regex := vm.Config.VM.Regex
-	name := vm.Config.VM.Name
-	groupName := vm.Config.VM.GroupName
+	log.Debugf("AgentsList started")
 
 	agents, agentGroups, err := vm.list(cli, a)
 	if err != nil {
@@ -68,12 +70,6 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	}
 
 	return
-}
-func (vm *VM) AgentsGroup(cmd *cobra.Command, args []string) {
-	vm.action(filterRemoveWithoutGroup, group)
-}
-func (vm *VM) AgentsUngroup(cmd *cobra.Command, args []string) {
-	vm.action(filterKeepWithGroup, ungroup)
 }
 
 func (vm *VM) action(filterFunc func(*client.Adapter, ui.CLI, []client.ScannerAgent, string) []client.ScannerAgent, groupFunc func(*client.Adapter, ui.CLI, client.ScannerAgent, *client.AgentGroup)) {
@@ -146,22 +142,24 @@ func (vm *VM) list(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []clie
 
 func lookupGroup(cli ui.CLI, agentGroups []client.AgentGroup, groupName string) *client.AgentGroup {
 	// 3) Check the Group Name passed is an actual agent group
-	var group *client.AgentGroup = nil
+	var group *client.AgentGroup
 	for g := range agentGroups {
-		if agentGroups[g].Name == groupName {
+		if agentGroups[g].Name == lkpName {
 			group = &agentGroups[g]
-			return group
+			break
 		}
 	}
-	cli.Fatalf(`error: no group name matching: "%s"`, groupName)
-	return nil // Fatal never gets here
+	if group == nil {
+		cli.Fatalf(`error: no group name matching: "%s"`, lkpName)
+	}
+	return group
 }
 
 func group(a *client.Adapter, cli ui.CLI, agent client.ScannerAgent, group *client.AgentGroup) {
 	cli.Println(fmt.Sprintf("Adding '%s'(ID:%s) to group '%s'(ID: %s) ...", agent.Name, agent.ID, group.Name, group.ID))
 	err := a.AgentAssignGroup(agent.ID, group.ID, agent.Scanner.ID)
 	if err != nil {
-		err := errors.New(fmt.Sprintf("  error: failed to add agent to group: %s", err))
+		err := fmt.Errorf("  error: failed to add agent to group: %s", err)
 		cli.Errorf("%s", err)
 	}
 }
@@ -169,11 +167,16 @@ func ungroup(a *client.Adapter, cli ui.CLI, agent client.ScannerAgent, group *cl
 	cli.Println(fmt.Sprintf("Removing '%s'(ID:%s) from group '%s'(ID: %s) ...", agent.Name, agent.ID, group.Name, group.ID))
 	err := a.AgentUnassignGroup(agent.ID, group.ID, agent.Scanner.ID)
 	if err != nil {
-		err := errors.New(fmt.Sprintf("  error: failed to remove agent to group: %s", err))
+		err := fmt.Errorf("  error: failed to remove agent to group: %s", err)
 		cli.Errorf("%s", err)
 	}
 }
-func filterKeepWithGroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerAgent, groupName string) []client.ScannerAgent {
+
+//AgentsUngroup is invoked by Cobra with commandline args passed.
+func (vm *VM) AgentsUngroup(cmd *cobra.Command, args []string) {
+	vm.action(filterUngroup, ungroup)
+}
+func filterUngroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerAgent, groupName string) []client.ScannerAgent {
 	// 3) Filter Agents
 	// Filter agent that are to non-group members - don't reassign if assigned
 	agents = a.Filter.KeepOnlyGroupMembers(agents, groupName)
@@ -184,7 +187,14 @@ func filterKeepWithGroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerA
 	}
 	return agents
 }
-func filterRemoveWithoutGroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerAgent, groupName string) []client.ScannerAgent {
+
+//AgentsGroup is invoked by Cobra with commandline args passed.
+func (vm *VM) AgentsGroup(cmd *cobra.Command, args []string) {
+	vm.action(filterForAgentsGroup, group)
+}
+
+//filterForAgentsGroup will only keep agents not already in the agent group.
+func filterForAgentsGroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerAgent, groupName string) []client.ScannerAgent {
 	// 3) Filter Agents
 	// Filter agent that are to non-group members - don't reassign if assigned
 	agents = a.Filter.SkipGroupMembers(agents, groupName)

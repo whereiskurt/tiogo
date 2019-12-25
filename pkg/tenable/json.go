@@ -6,10 +6,12 @@ import (
 	"time"
 )
 
-// GET /scanners
+//ScannerList is from the Tenable.io documentation
 type ScannerList struct {
 	Scanners []Scanner
 }
+
+//Scanner is from the Tenable.io documentation
 type Scanner struct {
 	ID               json.Number `json:"id"`
 	UUID             string      `json:"uuid"`
@@ -23,6 +25,7 @@ type Scanner struct {
 	RegistrationCode string      `json:"registration_code"`
 	Owner            string      `json:"owner"`
 	Key              string      `json:"key"`
+	Addresses        []string    `json:"ip_addresses"`
 	License          struct {
 		Type         string      `json:"type"`
 		IPS          json.Number `json:"ips"`
@@ -33,7 +36,8 @@ type Scanner struct {
 	}
 }
 
-// GET /scanners/{scanner_id}/agents
+// ScannerAgent is from the Tenable.io documentation - GET /scanners/{scanner_id}/agents
+// Pagination is for groups of 5000 maximum limit
 type ScannerAgent struct {
 	Agents []struct {
 		ID          json.Number `json:"id"`
@@ -69,6 +73,7 @@ type ScannerAgentGroup struct {
 	Created      json.Number `json:"creation_date"`
 }
 type Pagination struct {
+	ScanDetailHistory
 	Total  json.Number `json:"total"`
 	Offset json.Number `json:"offset"`
 	Limit  json.Number `json:"limit"`
@@ -79,7 +84,7 @@ type Pagination struct {
 }
 
 // https://cloud.tenable.com/api#/resources/scans/
-type ScanList struct {
+type ScansList struct {
 	Folders []struct {
 		Id json.Number `json:"id"`
 	}
@@ -87,14 +92,22 @@ type ScanList struct {
 	Timestamp json.Number    `json:"timestamp"`
 }
 
+// ScanListItem is returned for each scan
 type ScanListItem struct {
-	Id               json.Number `json:"id"`
+	ID               json.Number `json:"id"`
 	UUID             string      `json:"uuid"`
+	ScheduleUUID     string      `json:"schedule_uuid"`
 	Name             string      `json:"name"`
 	Status           string      `json:"status"`
+	Type             string      `json:"type"` //eg. agent,remote
 	Owner            string      `json:"owner"`
 	UserPermissions  json.Number `json:"user_permissions"`
+	Permissions      json.Number `json:"permissions"`
 	Enabled          bool        `json:"enabled"`
+	Legacy           bool        `json:"legacy"`
+	Read             bool        `json:"read"`
+	Shared           bool        `json:"shared"`
+	Control          bool        `json:"control"`
 	RRules           string      `json:"rrules"`
 	Timezone         string      `json:"timezone"`
 	StartTime        string      `json:"startTime"`
@@ -112,9 +125,11 @@ type ScanDetail struct {
 type ScanDetailInfo struct {
 	ID           json.Number   `json:"object_id"`
 	UUID         string        `json:"uuid"`
+	ScheduleUUID string        `json:"schedule_uuid"`
 	Owner        string        `json:"owner"`
-	Start        json.Number   `json:"scan_start"`
-	End          json.Number   `json:"scan_end"`
+	Start        json.Number   `json:"scan_start"` // Last Started Time
+	End          json.Number   `json:"scan_end"`   // Last End Time - can be empty for running/never finsihed
+	Timestamp    json.Number   `json:"timestamp"`  // Last time the info was updated
 	ScannerStart json.Number   `json:"scanner_start"`
 	ScannerEnd   json.Number   `json:"scanner_end"`
 	ScannerName  string        `json:"scanner_name"`
@@ -142,6 +157,7 @@ type ScanDetailHosts struct {
 	SeverityHigh     json.Number `json:"high"`
 	SeverityMedium   json.Number `json:"medium"`
 	SeverityLow      json.Number `json:"low"`
+	SeverityInfo     json.Number `json:"info"`
 	Progress         string      `json:"progress"`
 	Score            json.Number `json:"score"`
 	ProgressCurrent  json.Number `json:"scanprogresscurrent"`
@@ -149,7 +165,6 @@ type ScanDetailHosts struct {
 	ChecksConsidered json.Number `json:"numchecksconsidered"`
 	ChecksTotal      json.Number `json:"totalchecksconsidered"`
 }
-
 type ScanDetailVulnerabilities struct {
 	ID       json.Number `json:"vuln_index"`
 	PluginID json.Number `json:"plugin_id"`
@@ -583,10 +598,12 @@ type VulnExportChunk struct {
 	State                string      `json:"state"`
 }
 
+// ExportFilter is shared and not the same for
 type ExportFilter struct {
 	ExportRequest string      `json:"export-request"`
 	Limit         json.Number `json:"chunk_size"`
 	Filters       struct {
-		Since json.Number `json:"since"`
+		Since        json.Number `json:"since"`
+		LastAssessed json.Number `json:"last_assessed"`
 	} `json:"filters"`
 }

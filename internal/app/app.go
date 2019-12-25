@@ -78,38 +78,59 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 
 	_ = makeCommand("help", app.Help, appCmd)
 
-	exportVulns := makeCommand("export-vulns", app.ExportVulnsHelp, appCmd)
-	makeString("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportVulns)
-	_ = makeCommand("start", app.ExportVulnsStart, exportVulns)
-	_ = makeCommand("status", app.ExportVulnsStatus, exportVulns)
-	_ = makeCommand("get", app.ExportVulnsGet, exportVulns)
-	_ = makeCommand("query", app.ExportVulnsQuery, exportVulns)
-	makeString("Chunk", &a.Config.VM.Chunk, []string{"chunk", "chunks"}, exportVulns)
-	makeString("BeforeDate", &a.Config.VM.BeforeDate, []string{"before"}, exportVulns)
-	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportVulns)
-	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportVulns)
+	exportVulnsCmd := makeCommand("export-vuln", app.ExportVulnsHelp, appCmd)
+	makeString("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportVulnsCmd)
+	_ = makeCommand("start", app.ExportVulnsStart, exportVulnsCmd)
+	_ = makeCommand("status", app.ExportVulnsStatus, exportVulnsCmd)
+	_ = makeCommand("get", app.ExportVulnsGet, exportVulnsCmd)
+	_ = makeCommand("query", app.ExportVulnsQuery, exportVulnsCmd)
+	makeString("Chunk", &a.Config.VM.Chunk, []string{"chunk", "chunks"}, exportVulnsCmd)
+	makeString("BeforeDate", &a.Config.VM.BeforeDate, []string{"before"}, exportVulnsCmd)
+	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportVulnsCmd)
+	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportVulnsCmd)
 
-	exportAssetsCmd := makeCommand("export-assets", app.ExportAssetsHelp, appCmd)
+	exportAssetsCmd := makeCommand("export-asset", app.ExportAssetsHelp, appCmd)
 	makeString("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportAssetsCmd)
 	_ = makeCommand("start", app.ExportAssetsStart, exportAssetsCmd)
 	_ = makeCommand("status", app.ExportAssetsStatus, exportAssetsCmd)
 	_ = makeCommand("get", app.ExportAssetsGet, exportAssetsCmd)
 	_ = makeCommand("query", app.ExportAssetsQuery, exportAssetsCmd)
 	makeString("Chunk", &a.Config.VM.Chunk, []string{"chunk", "chunks"}, exportAssetsCmd)
+	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportAssetsCmd)
+	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportAssetsCmd)
 
-	sListCmd := makeCommand("scanners", app.ScannersList, appCmd)
-	_ = makeCommand("list", app.ScannersList, sListCmd)
+	scannersCmd := makeCommand("scanner", app.ScannersList, appCmd)
+	_ = makeCommand("list", app.ScannersList, scannersCmd)
 
-	aListCmd := makeCommand("agents", app.AgentsList, appCmd)
-	_ = makeCommand("list", app.AgentsList, aListCmd)
-	_ = makeCommand("group", app.AgentsGroup, aListCmd)
-	_ = makeCommand("ungroup", app.AgentsUngroup, aListCmd)
+	agentsCmd := makeCommand("agent", app.AgentsList, appCmd)
+	_ = makeCommand("list", app.AgentsList, agentsCmd)
+	_ = makeCommand("group", app.AgentsGroup, agentsCmd)
+	_ = makeCommand("ungroup", app.AgentsUngroup, agentsCmd)
 
-	makeBool("WithoutGroupName", &a.Config.VM.WithoutGroupName, []string{"without-group", "no-groups"}, aListCmd)
-	makeString("GroupName", &a.Config.VM.GroupName, []string{"group", "groupname", "group-name"}, aListCmd)
+	makeBool("WithoutGroupName", &a.Config.VM.WithoutGroupName, []string{"without-group", "no-groups"}, agentsCmd)
+	makeString("GroupName", &a.Config.VM.GroupName, []string{"group", "groupname", "group-name"}, agentsCmd)
 
-	aGroupsCmd := makeCommand("agent-groups", app.AgentGroupsList, appCmd)
+	aGroupsCmd := makeCommand("agent-group", app.AgentGroupsList, appCmd)
 	_ = makeCommand("list", app.AgentGroupsList, aGroupsCmd)
+
+	cacheCmd := makeCommand("cache", app.CacheInfo, appCmd)
+	_ = makeCommand("list", app.CacheInfo, cacheCmd)
+	cacheClearCmd := makeCommand("clear", app.CacheClear, cacheCmd)
+	//TODO: Make all safe by adding '--all' parameter to remove historical/export outputs too
+	_ = makeCommand("all", app.CacheClearAll, cacheClearCmd)
+	_ = makeCommand("agents", app.CacheClearAgents, cacheClearCmd)
+	_ = makeCommand("scans", app.CacheClearScans, cacheClearCmd)
+	_ = makeCommand("exports", app.CacheClearExports, cacheClearCmd)
+
+	scansCmd := makeCommand("scan", app.ScansList, appCmd)
+	_ = makeCommand("list", app.ScansList, scansCmd)
+	_ = makeCommand("detail", app.ScansDetail, scansCmd)
+	_ = makeCommand("host", app.ScansHosts, scansCmd)
+	_ = makeCommand("plugin", app.ScansPlugins, scansCmd)
+	_ = makeCommand("query", app.ScansQuery, scansCmd)
+
+	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, scansCmd)
+	makeString("UUID", &a.Config.VM.UUID, []string{"uuid"}, scansCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
@@ -120,17 +141,19 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 // InvokeCLI passes control over to the root cobra command.
 func (a *App) InvokeCLI() {
 	// Enable 'client' log file, since we are invoke the client.
-	clientLog := a.Config.VM.EnableLogging()
 	serverLog := a.Config.Server.EnableLogging()
 
+	//a.Config.IsServerPortAvailable()
 	port := a.Config.Server.ListenPort
-	shouldServer := (a.Config.DefaultServerStart == true) && !isProxyServerCmd() && cmdproxy.PortAvailable(port)
+	shouldServer := (a.Config.DefaultServerStart == true) && !isProxyServerCmd() && cmdproxy.IsPortAvailable(port)
 
 	setDefaultRootCmd()
 
 	if shouldServer {
-		clientLog.Infof("Starting a proxy server for the client...")
+		serverLog.Infof(fmt.Sprintf("Starting a proxy server for the client: %s:%s", a.Config.Server.CacheFolder, a.Config.Server.CacheKey))
+
 		proxy := pkgproxy.NewServer(a.Config, a.Metrics, serverLog)
+		proxy.EnableCache(a.Config.Server.CacheFolder, a.Config.Server.CacheKey)
 		proxy.EnableDefaultRouter()
 		go proxy.ListenAndServe()
 	}
@@ -139,12 +162,13 @@ func (a *App) InvokeCLI() {
 	_ = a.RootCmd.Execute()
 
 	if shouldServer {
-		cmdproxy.Stop(a.Config, a.Metrics)
+		defer cmdproxy.Stop(a.Config, a.Metrics)
 	}
 
 	return
 }
 
+// Usage outputs the help related to the usage of tio.go
 func (a *App) Usage() string {
 	versionMap := map[string]string{"ReleaseVersion": vm.ReleaseVersion, "GitHash": vm.GitHash}
 	return a.commandUsageTmpl("tioUsage", versionMap)

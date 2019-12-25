@@ -48,12 +48,13 @@ func NewAdapter(config *config.Config, metrics *metrics.Metrics) (a *Adapter) {
 	return
 }
 
-func (a *Adapter) Scanners() ([]Scanner, error) {
+// Scanners returns all the Tenable.io scanners
+func (a *Adapter) Scanners(skipOnHit bool, writeOnReturn bool) ([]Scanner, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Get)
 
 	u := NewUnmarshal(a.Config, a.Metrics)
 	var scanners []Scanner
-	raw, err := u.Scanners()
+	raw, err := u.Scanners(skipOnHit, writeOnReturn)
 	if err != nil {
 		a.Config.VM.Log.Errorf("error: failed to get the scanners list: %v", err)
 		return scanners, err
@@ -65,14 +66,16 @@ func (a *Adapter) Scanners() ([]Scanner, error) {
 	return scanners, err
 }
 
+// MagicAgentScanner is the Tenable.io number for the scanner that has agents attached
 var MagicAgentScanner = "00000000-0000-0000-0000-00000000000000000000000000001"
 
+// Agents uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) Agents(skipOnHit bool, writeOnReturn bool) ([]ScannerAgent, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.AgentsList, metrics.Methods.Service.Get)
 
 	AgentsPerRequest, _ := strconv.Atoi(a.Config.VM.ExportLimit)
 
-	scanners, err := a.Scanners()
+	scanners, err := a.Scanners(skipOnHit, writeOnReturn)
 	if err != nil {
 		a.Config.VM.Log.Errorf("error: failed to get the scanners list for agents list: %v", err)
 		return nil, err
@@ -126,11 +129,12 @@ func (a *Adapter) Agents(skipOnHit bool, writeOnReturn bool) ([]ScannerAgent, er
 	return agents, err
 }
 
-func (a *Adapter) AgentGroups() ([]AgentGroup, error) {
+// AgentGroups uses an Unmarshaler and Converter to return DTO or error
+func (a *Adapter) AgentGroups(skipOnHit bool, writeOnReturn bool) ([]AgentGroup, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.AgentGroups, metrics.Methods.Service.Get)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	scanners, err := a.Scanners()
+	scanners, err := a.Scanners(skipOnHit, writeOnReturn)
 	if err != nil {
 		a.Config.VM.Log.Errorf("error: failed to get the agent scanners list : %v", err)
 		return nil, err
@@ -138,12 +142,15 @@ func (a *Adapter) AgentGroups() ([]AgentGroup, error) {
 
 	var agentGroups []AgentGroup
 	for i := range scanners {
+		// We only want the MagicAgentScanner ... can probably replay w/ 00000-000 hardcoded
+		// If this scanner in our collection isnt the Agent Scanner
 		if scanners[i].UUID != MagicAgentScanner {
-			continue
+			continue // Try the next one!
 		}
 
+		// Use thie ID to get all our Agent Groups
 		id := scanners[i].ID
-		raw, err := u.ScannerAgentGroups(id)
+		raw, err := u.ScannerAgentGroups(id, skipOnHit, writeOnReturn)
 
 		if err != nil {
 			a.Config.VM.Log.Errorf("error: failed to get the scanners agent groups: %v", err)
@@ -153,29 +160,33 @@ func (a *Adapter) AgentGroups() ([]AgentGroup, error) {
 		convert := NewConvert()
 		agentGroups, err = convert.ToAgentGroups(raw)
 
-		break
+		break // DONE!
 	}
 
 	return agentGroups, err
 }
 
-func (a *Adapter) AgentAssignGroup(agentId string, groupId string, scannerId string) error {
+// AgentAssignGroup uses an Unmarshaler and Converter to return DTO or error
+func (a *Adapter) AgentAssignGroup(agentID string, groupID string, scannerID string) error {
 	a.Metrics.ClientInc(metrics.EndPoints.AgentsGroup, metrics.Methods.Service.Update)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	_, err := u.AgentGroup(agentId, groupId, scannerId)
+	_, err := u.AgentGroup(agentID, groupID, scannerID)
 
 	return err
 }
-func (a *Adapter) AgentUnassignGroup(agentId string, groupId string, scannerId string) error {
+
+// AgentUnassignGroup uses an Unmarshaler and Converter to return DTO or error
+func (a *Adapter) AgentUnassignGroup(agentID string, groupID string, scannerID string) error {
 	a.Metrics.ClientInc(metrics.EndPoints.AgentsUngroup, metrics.Methods.Service.Update)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	_, err := u.AgentUngroup(agentId, groupId, scannerId)
+	_, err := u.AgentUngroup(agentID, groupID, scannerID)
 
 	return err
 }
 
+// ExportVulnsStart uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportVulnsStart() (string, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStart, metrics.Methods.Service.Update)
 
@@ -196,6 +207,8 @@ func (a *Adapter) ExportVulnsStart() (string, error) {
 
 	return export.UUID, nil
 }
+
+// ExportVulnsStatus uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportVulnsStatus(uuid string, skipOnHit bool, writeOnReturn bool) (VulnExportStatus, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportStatus, metrics.Methods.Service.Get)
 
@@ -213,6 +226,8 @@ func (a *Adapter) ExportVulnsStatus(uuid string, skipOnHit bool, writeOnReturn b
 
 	return status, err
 }
+
+// ExportVulnsGet uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportVulnsGet(uuid string, chunks string) error {
 	ep := tenable.EndPoints.VulnsExportStatus
 
@@ -247,6 +262,8 @@ func (a *Adapter) ExportVulnsGet(uuid string, chunks string) error {
 
 	return nil
 }
+
+// ExportVulnsQuery uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportVulnsQuery(uuid string, chunks string, jqex string) error {
 	a.Metrics.ClientInc(metrics.EndPoints.VulnsExportQuery, metrics.Methods.Service.Get)
 	ep := tenable.EndPoints.VulnsExportStatus
@@ -274,7 +291,7 @@ func (a *Adapter) ExportVulnsQuery(uuid string, chunks string, jqex string) erro
 
 		bb, err := ioutil.ReadFile(filename)
 		if err != nil {
-			return errors.New(fmt.Sprintf("error: cannot read cached file: '%s: %v", filename, err))
+			return fmt.Errorf("error: cannot read cached file: '%s: %v", filename, err)
 		}
 
 		filter := a.JSONQuery(bb, jqex)
@@ -286,12 +303,13 @@ func (a *Adapter) ExportVulnsQuery(uuid string, chunks string, jqex string) erro
 	return nil
 }
 
-func (a *Adapter) ExportAssetsStart(limit string) (string, error) {
+// ExportAssetsStart uses an Unmarshaler and Converter to return DTO or error
+func (a *Adapter) ExportAssetsStart() (string, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.AssetsExportStart, metrics.Methods.Service.Update)
 
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	raw, err := u.AssetsExportStart(limit)
+	raw, err := u.AssetsExportStart()
 	if err != nil {
 		a.Config.VM.Log.Errorf("error: failed to get the export-assets: %v", err)
 		return "", err
@@ -306,6 +324,8 @@ func (a *Adapter) ExportAssetsStart(limit string) (string, error) {
 
 	return export.UUID, nil
 }
+
+// ExportAssetsStatus uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportAssetsStatus(uuid string, skipOnHit bool, writeOnReturn bool) (AssetExportStatus, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.AssetsExportStatus, metrics.Methods.Service.Get)
 
@@ -323,6 +343,8 @@ func (a *Adapter) ExportAssetsStatus(uuid string, skipOnHit bool, writeOnReturn 
 
 	return status, err
 }
+
+// ExportAssetsGet uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportAssetsGet(uuid string, chunks string) error {
 	a.Metrics.ClientInc(metrics.EndPoints.AssetsExportGet, metrics.Methods.Service.Get)
 	ep := tenable.EndPoints.AssetsExportStatus
@@ -356,6 +378,8 @@ func (a *Adapter) ExportAssetsGet(uuid string, chunks string) error {
 
 	return nil
 }
+
+// ExportAssetsQuery uses an Unmarshaler and Converter to return DTO or error
 func (a *Adapter) ExportAssetsQuery(uuid string, chunks string, jqex string) error {
 	a.Metrics.ClientInc(metrics.EndPoints.AssetsExportQuery, metrics.Methods.Service.Get)
 	ep := tenable.EndPoints.AssetsExportStatus
@@ -383,7 +407,7 @@ func (a *Adapter) ExportAssetsQuery(uuid string, chunks string, jqex string) err
 
 		bb, err := ioutil.ReadFile(filename)
 		if err != nil {
-			return errors.New(fmt.Sprintf("error: cannot read cached file: '%s: %v", filename, err))
+			return fmt.Errorf("error: cannot read cached file: '%s: %v", filename, err)
 		}
 
 		filter := a.JSONQuery(bb, jqex)
@@ -409,7 +433,7 @@ func (a *Adapter) ExportCachedChunks(uuid string, chunks string, ep tenable.EndP
 
 	bb, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("error: cannot read cached file: '%s: %v", filename, err))
+		return "", fmt.Errorf("error: cannot read cached file: '%s: %v", filename, err)
 	}
 
 	var status tenable.VulnExportStatus
@@ -454,11 +478,11 @@ func (a *Adapter) CachedFilename(endpoint tenable.EndPointType, p map[string]str
 
 	filename, err := tenable.ToCacheFilename(endpoint, p)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("error: can't get chunk filename for '%s'", filename))
+		return "", fmt.Errorf("error: can't get chunk filename for '%s'", filename)
 	}
 	filename = filepath.Join(a.Config.VM.CacheFolder, "service", filename)
 	if _, stat := os.Stat(filename); os.IsNotExist(stat) {
-		return "", errors.New(fmt.Sprintf("Cannot read cached file: '%s", filename))
+		return "", fmt.Errorf(fmt.Sprintf("Cannot read cached file: '%s", filename))
 	}
 
 	return filename, nil
@@ -531,7 +555,7 @@ func (a *Adapter) UnpackJQExec() (string, error) {
 	return jqexe, nil
 }
 
-// JSON Query will pipe bytes through jq and return results.
+// JSONQuery will pipe bytes through jq and return results.
 func (a *Adapter) JSONQuery(json []byte, jqex string) []byte {
 
 	if a.Config.VM.JQExec == "" {
@@ -583,4 +607,39 @@ func (a *Adapter) DirEntries(dirname string) ([]string, error) {
 	}
 
 	return files, nil
+}
+
+// Scans will list all the scans matching --name or --regex
+func (a *Adapter) Scans(skipOnHit bool, writeOnReturn bool) ([]Scan, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.ScansList, metrics.Methods.Service.Get)
+
+	u := NewUnmarshal(a.Config, a.Metrics)
+	var scans []Scan
+	raw, err := u.ScansList(skipOnHit, writeOnReturn)
+	if err != nil {
+		a.Config.VM.Log.Errorf("error: failed to get the scan list: %v", err)
+		return scans, err
+	}
+
+	convert := NewConvert()
+	scans, err = convert.ToScans(raw)
+
+	return scans, err
+}
+
+// ScanDetails will list all the scans matching --name or --regex
+func (a *Adapter) ScanDetails(s *Scan, skipOnHit bool, writeOnReturn bool) (details ScanHistoryDetail, err error) {
+	a.Metrics.ClientInc(metrics.EndPoints.ScansList, metrics.Methods.Service.Get)
+
+	u := NewUnmarshal(a.Config, a.Metrics)
+	raw, err := u.ScanDetails(s.ScheduleUUID, skipOnHit, writeOnReturn)
+	if err != nil {
+		a.Config.VM.Log.Errorf("error: failed to get the scan list: %v", err)
+		return details, err
+	}
+
+	convert := NewConvert()
+	details, err = convert.ToScanDetails(raw)
+	details.Scan = s
+	return details, err
 }

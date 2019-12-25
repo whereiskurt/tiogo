@@ -2,6 +2,14 @@ package proxy
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"syscall"
+	"time"
+
 	"github.com/go-chi/chi"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -10,12 +18,6 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"github.com/whereiskurt/tiogo/pkg/proxy/middleware"
 	"github.com/whereiskurt/tiogo/pkg/tenable"
-	"net/http"
-	"os"
-	"os/signal"
-	"path/filepath"
-	"syscall"
-	"time"
 )
 
 // Server is built on go-chi
@@ -43,6 +45,7 @@ func NewServer(config *config.Config, metrics *metrics.Metrics, serverLog *log.L
 	server.Log = serverLog
 	server.ListenPort = config.Server.ListenPort
 	server.CacheFolder = config.Server.CacheFolder
+
 	server.MetricsListenPort = config.Server.MetricsListenPort
 
 	if config.Server.CacheResponse {
@@ -63,8 +66,9 @@ func NewServer(config *config.Config, metrics *metrics.Metrics, serverLog *log.L
 	server.Metrics = metrics
 	return
 }
-func (s *Server) ListenAndServeMetrics() {
 
+// ListenAndServeMetrics starts the default promethues metric server
+func (s *Server) ListenAndServeMetrics() {
 	s.Log.Infof("Starting metrics server...")
 	// Start the /metrics server
 	go func() {
@@ -121,6 +125,8 @@ func (s *Server) EnableCache(cacheFolder string, cryptoKey string) {
 	if cryptoKey != "" {
 		useCrypto = true
 	}
+	s.Log.Debugf(fmt.Sprintf("111111111111Using server side folder: %s", cacheFolder))
+
 	s.DiskCache = cache.NewDisk(cacheFolder, cryptoKey, useCrypto)
 	return
 }
