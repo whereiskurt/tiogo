@@ -23,7 +23,7 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 
 	log.Debugf("AgentsList started")
 
-	agents, agentGroups, err := vm.Agents(cli, a)
+	agents, agentGroups, err := vm.list(cli, a)
 	if err != nil {
 		cli.Fatalf("%s", err)
 		return
@@ -72,34 +72,6 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	return
 }
 
-//Agents is invoked by Cobra with commandline args passed.
-func (vm *VM) Agents(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []client.AgentGroup, error) {
-	regex := vm.Config.VM.Regex
-	name := vm.Config.VM.Name
-	if name != "" && regex != "" {
-		err := errors.New(fmt.Sprint("error: cannot have both name parameters --name and --regex"))
-		cli.Fatalf("%s", err)
-	}
-
-	//TODO: Make this from
-	agents, err := a.Agents(true, true)
-	if err != nil {
-		err := fmt.Errorf("error: couldn't agents list: %v", err)
-		return nil, nil, err
-	}
-
-	agentGroups, err := a.AgentGroups(true, true)
-	if err != nil {
-		err := fmt.Errorf("error: couldn't agent groups list: %v", err)
-		return nil, nil, err
-	}
-
-	// Invoke with --trace outputs these lines.
-	log.Debugf("Total agents:%d, Total Agent Groups: %d", len(agents), len(agentGroups))
-
-	return agents, agentGroups, nil
-}
-
 func (vm *VM) action(filterFunc func(*client.Adapter, ui.CLI, []client.ScannerAgent, string) []client.ScannerAgent, groupFunc func(*client.Adapter, ui.CLI, client.ScannerAgent, *client.AgentGroup)) {
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 	cli := ui.NewCLI(vm.Config)
@@ -118,7 +90,7 @@ func (vm *VM) action(filterFunc func(*client.Adapter, ui.CLI, []client.ScannerAg
 	}
 
 	// 2) Get Agents and Groups:
-	agents, agentGroups, err := vm.Agents(cli, a)
+	agents, agentGroups, err := vm.list(cli, a)
 	if err != nil {
 		cli.Fatalf("error: %s", err)
 	}
@@ -142,8 +114,33 @@ func (vm *VM) action(filterFunc func(*client.Adapter, ui.CLI, []client.ScannerAg
 	return
 }
 
-func lookupGroup(cli ui.CLI, agentGroups []client.AgentGroup, lkpName string) *client.AgentGroup {
+func (vm *VM) list(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []client.AgentGroup, error) {
+	regex := vm.Config.VM.Regex
+	name := vm.Config.VM.Name
+	if name != "" && regex != "" {
+		err := errors.New(fmt.Sprint("error: cannot have both name parameters --name and --regex"))
+		cli.Fatalf("%s", err)
+	}
 
+	agents, err := a.Agents(true, true)
+	if err != nil {
+		err := errors.New(fmt.Sprintf("error: couldn't agents list: %v", err))
+		return nil, nil, err
+	}
+
+	agentGroups, err := a.AgentGroups()
+	if err != nil {
+		err := errors.New(fmt.Sprintf("error: couldn't agent groups list: %v", err))
+		return nil, nil, err
+	}
+
+	// Invoke with --trace outputs these lines.
+	log.Debugf("Total agents:%d, Total Agent Groups: %d", len(agents), len(agentGroups))
+
+	return agents, agentGroups, nil
+}
+
+func lookupGroup(cli ui.CLI, agentGroups []client.AgentGroup, groupName string) *client.AgentGroup {
 	// 3) Check the Group Name passed is an actual agent group
 	var group *client.AgentGroup
 	for g := range agentGroups {
