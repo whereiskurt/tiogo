@@ -124,7 +124,7 @@ func (vm *VM) list(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []clie
 
 	agents, err := a.Agents(true, true)
 	if err != nil {
-		err := fmt.Errorf("error: couldn't agents list: %v", err))
+		err := fmt.Errorf("error: couldn't agents list: %v", err)
 		return nil, nil, err
 	}
 
