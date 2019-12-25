@@ -7,7 +7,7 @@
 ![alt text](https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tiogopher")
 
 ## Mid-release
-I'm hoping to complete this realease short! :-) 
+I'm hoping to complete this realease shortly! :-) 
 
 ## A **C**ommand **L**ine **I**nterface to Tenable.io API
 
