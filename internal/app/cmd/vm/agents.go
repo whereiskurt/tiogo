@@ -124,13 +124,13 @@ func (vm *VM) list(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []clie
 
 	agents, err := a.Agents(true, true)
 	if err != nil {
-		err := errors.New(fmt.Sprintf("error: couldn't agents list: %v", err))
+		err := fmt.Errorf("error: couldn't agents list: %v", err))
 		return nil, nil, err
 	}
 
-	agentGroups, err := a.AgentGroups()
+	agentGroups, err := a.AgentGroups(true, true)
 	if err != nil {
-		err := errors.New(fmt.Sprintf("error: couldn't agent groups list: %v", err))
+		err := fmt.Errorf(fmt.Sprintf("error: couldn't agent groups list: %v", err))
 		return nil, nil, err
 	}
 
@@ -140,7 +140,7 @@ func (vm *VM) list(cli ui.CLI, a *client.Adapter) ([]client.ScannerAgent, []clie
 	return agents, agentGroups, nil
 }
 
-func lookupGroup(cli ui.CLI, agentGroups []client.AgentGroup, groupName string) *client.AgentGroup {
+func lookupGroup(cli ui.CLI, agentGroups []client.AgentGroup, lkpName string) *client.AgentGroup {
 	// 3) Check the Group Name passed is an actual agent group
 	var group *client.AgentGroup
 	for g := range agentGroups {
