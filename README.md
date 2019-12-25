@@ -1,10 +1,13 @@
 # Welcome to tiogo!!
 
-### A modern CLI for Tenable.io written in Go - v0.1 [20190515] :rocket:
+### A modern CLI for Tenable.io written in Go - v0.0.1225 [20191225] :rocket:
 
 [logo]: https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tiogopher"
 
 ![alt text](https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tiogopher")
+
+## Mid-release
+I'm hoping to complete this realease short! :-) 
 
 ## A **C**ommand **L**ine **I**nterface to Tenable.io API
 
@@ -81,10 +84,11 @@ Global Options:
 
 For more help:
     $ tio help scanners
+    $ tio help scans
     $ tio help agents
     $ tio help agent-groups
+    $ tio help export-assets
     $ tio help export-vulns
-    $ tio help scans
 ```
 
 ## UserHomeDir and `.tiogo/cache/`
