@@ -299,3 +299,17 @@ func (s *Server) ScanDetail(w http.ResponseWriter, r *http.Request) {
 func (s *Server) ScanHistory(w http.ResponseWriter, r *http.Request) {
 	return
 }
+
+// ScansExportStart handler for starting exports-scans
+func (s *Server) ScansExportStart(w http.ResponseWriter, r *http.Request) {
+	var pp = CachedTenableCallParams{w: w, r: r}
+	pp.endPoint = tenable.EndPoints.ScansExportStart
+	pp.metricType = metrics.EndPoints.ScansExportStart
+	pp.metricMethod = metrics.Methods.Service.Update
+	pp.f = func(t tenable.Service) ([]byte, error) {
+		scanid := middleware.ScanUUID(r) // We use chi apped UUI
+		histid := middleware.HistoryID(r)
+		return t.ScansExportStart(scanid, histid)
+	}
+	s.CachedTenableCall(pp)
+}

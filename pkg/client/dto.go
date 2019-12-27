@@ -23,14 +23,20 @@ type Scan struct {
 	Timestamp        string
 }
 
-// type ScanHistory struct {
-// 	Scan    Scan
-// 	History []ScanHistoryDetail
-// }
+// ScanHistoryItem are all the instances for this scan
+type ScanHistoryItem struct {
+	HistoryID        string
+	UUID             string
+	ScanType         string
+	Status           string
+	LastModifiedDate string
+	CreationDate     string
+}
 
+// ScanHistoryDetail is a particular scan instance
 type ScanHistoryDetail struct {
 	Scan                *Scan
-	HistoryID           string
+	History             []ScanHistoryItem
 	HistoryCount        string
 	ScannerName         string
 	PolicyName          string
@@ -382,4 +388,10 @@ type VulnExportChunkScan struct {
 	ScheduleUUID string `json:"schedule_uuid"`
 	StartedAt    string `json:"started_at"`
 	UUID         string `json:"uuid"`
+}
+
+// ScansExportStart is outputed at successful scans export
+type ScansExportStart struct {
+	FileUUID  string `json:"file"`
+	TempToken string `json:"temp_token"`
 }

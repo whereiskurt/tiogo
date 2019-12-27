@@ -607,3 +607,9 @@ type ExportFilter struct {
 		LastAssessed json.Number `json:"last_assessed"`
 	} `json:"filters"`
 }
+
+// ScansExportStart is outputed at successful scans export
+type ScansExportStart struct {
+	FileUUID  string `json:"file"`
+	TempToken string `json:"temp_token"`
+}

@@ -114,6 +114,16 @@ func Offset(r *http.Request) string {
 	return ContextMap(r)["Offset"]
 }
 
+// ScanID pulls the param from the request/contextmap
+func ScanID(r *http.Request) string {
+	return ContextMap(r)["ScanUUID"]
+}
+
+// HistoryID pulls the param from the request/contextmap
+func HistoryID(r *http.Request) string {
+	return ContextMap(r)["HistoryID"]
+}
+
 // Limit pulls the param from the request/contextmap
 func Limit(r *http.Request) string {
 	return ContextMap(r)["Limit"]
@@ -188,6 +198,7 @@ func ScanCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
 		ctxMap["ScanUUID"] = chi.URLParam(r, "ScanUUID")
+		ctxMap["HistoryID"] = r.URL.Query().Get("history_id")
 		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

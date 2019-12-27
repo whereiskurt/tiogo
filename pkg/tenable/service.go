@@ -26,6 +26,7 @@ var EndPoints = endPointTypes{
 	AgentsGroup:        EndPointType("AgentsGroup"),
 	ScansList:          EndPointType("ScansList"),
 	ScanDetails:        EndPointType("ScanDetails"),
+	ScansExportStart:   EndPointType("ScansExportStart"),
 }
 
 type endPointTypes struct {
@@ -44,6 +45,7 @@ type endPointTypes struct {
 	AgentsUngroup      EndPointType
 	ScansList          EndPointType
 	ScanDetails        EndPointType
+	ScansExportStart   EndPointType
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
@@ -114,6 +116,7 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 			HTTP.Get: {},
 		},
 	},
+
 	EndPoints.AssetsExportStart: {
 		URL:           "/assets/export",
 		CacheFilename: "/export/assets/request.json",
@@ -128,6 +131,7 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 }`},
 		},
 	},
+
 	EndPoints.AssetsExportStatus: {
 		URL:           "/assets/export/{{.ExportUUID}}/status",
 		CacheFilename: "/export/assets/{{.ExportUUID}}/status.json",
@@ -156,6 +160,14 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 		CacheFilename: "/scans/{{.ScanUUID}}/details.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Get: {},
+		},
+	},
+
+	EndPoints.ScansExportStart: {
+		URL:           "/scans/{{.ScanID}}/export?history_id={{.HistoryID}}&fileType=",
+		CacheFilename: "/scans/{{.ScanID}}/export/{{.HistoryID}}/request.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Post: {`{ "format" : "csv" } `},
 		},
 	},
 }
@@ -188,6 +200,7 @@ type Service struct {
 	WriteOnReturn  bool
 }
 
+// NewService makes the HTTP calls to the Tenable.io service (or Proxy)
 func NewService(base string, secret string, access string, log *log.Logger) (s Service) {
 	s.BaseURL = strings.TrimSuffix(base, "/")
 	s.SecretKey = secret
@@ -215,6 +228,7 @@ func (s *Service) EnableCache(cacheFolder string, cryptoKey string) {
 	return
 }
 
+// ToCacheFilename given an endpoint and map it
 func ToCacheFilename(name EndPointType, p map[string]string) (string, error) {
 	sMap, ok := ServiceMap[name]
 	if !ok {
@@ -223,6 +237,7 @@ func ToCacheFilename(name EndPointType, p map[string]string) (string, error) {
 	return toTemplate(name, p, sMap.CacheFilename)
 }
 
+// ScannersList get the Scanners from Tenable.io
 func (s *Service) ScannersList() ([]byte, error) {
 	var raw []byte
 
@@ -246,6 +261,8 @@ func (s *Service) ScannersList() ([]byte, error) {
 
 	return raw, err
 }
+
+// ScannerAgentGroups get the Agent Groups from Tenable.io
 func (s *Service) ScannerAgentGroups(uuid string) ([]byte, error) {
 	var raw []byte
 
@@ -270,11 +287,12 @@ func (s *Service) ScannerAgentGroups(uuid string) ([]byte, error) {
 	return raw, err
 }
 
-func (s *Service) AgentList(scannerId string, offset string, limit string) ([]byte, error) {
+// AgentList get the Agents from Tenable.io
+func (s *Service) AgentList(scannerID string, offset string, limit string) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.get(EndPoints.AgentsList, map[string]string{"ScannerID": scannerId, "Offset": offset, "Limit": limit})
+		body, status, err := s.get(EndPoints.AgentsList, map[string]string{"ScannerID": scannerID, "Offset": offset, "Limit": limit})
 		if err != nil {
 			s.Log.Infof("failed to agent list: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -319,11 +337,13 @@ func (s *Service) AgentGroup(agentID string, groupID string, scannerID string) (
 
 	return raw, err
 }
-func (s *Service) AgentUngroup(agentId string, groupId string, scannerId string) ([]byte, error) {
+
+// AgentUngroup will remove an agent from a group
+func (s *Service) AgentUngroup(agentID string, groupID string, scannerID string) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.delete(EndPoints.AgentsGroup, map[string]string{"ScannerID": scannerId, "GroupID": groupId, "AgentID": agentId})
+		body, status, err := s.delete(EndPoints.AgentsGroup, map[string]string{"ScannerID": scannerID, "GroupID": groupID, "AgentID": agentID})
 		if err != nil {
 			s.Log.Infof("failed to ungroup agent: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -343,6 +363,7 @@ func (s *Service) AgentUngroup(agentId string, groupId string, scannerId string)
 	return raw, err
 }
 
+// VulnsExportStatus will check the vulns export status
 func (s *Service) VulnsExportStatus(exportUUID string) ([]byte, error) {
 	var raw []byte
 
@@ -362,11 +383,13 @@ func (s *Service) VulnsExportStatus(exportUUID string) ([]byte, error) {
 
 	return raw, err
 }
+
+// VulnsExportStart will check the vulns export status
 func (s *Service) VulnsExportStart(limit string, sinceUnix string) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.update(EndPoints.VulnsExportStart, map[string]string{"Since": sinceUnix, "Limit": limit})
+		body, status, err := s.post(EndPoints.VulnsExportStart, map[string]string{"Since": sinceUnix, "Limit": limit})
 		if err != nil {
 			s.Log.Infof("failed to export-vulns start: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -381,6 +404,8 @@ func (s *Service) VulnsExportStart(limit string, sinceUnix string) ([]byte, erro
 
 	return raw, err
 }
+
+// VulnsExportGet will get a chunk from the vulns export
 func (s *Service) VulnsExportGet(exportUUID string, chunk string) ([]byte, error) {
 	var raw []byte
 
@@ -401,6 +426,7 @@ func (s *Service) VulnsExportGet(exportUUID string, chunk string) ([]byte, error
 	return raw, err
 }
 
+// AssetsExportStatus will check the assets export status
 func (s *Service) AssetsExportStatus(exportUUID string) ([]byte, error) {
 	var raw []byte
 
@@ -420,11 +446,13 @@ func (s *Service) AssetsExportStatus(exportUUID string) ([]byte, error) {
 
 	return raw, err
 }
+
+// AssetsExportStart will start the assets export
 func (s *Service) AssetsExportStart(limit string, lastAssessedUnix string) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.update(EndPoints.AssetsExportStart, map[string]string{"Limit": limit, "LastAssessed": lastAssessedUnix})
+		body, status, err := s.post(EndPoints.AssetsExportStart, map[string]string{"Limit": limit, "LastAssessed": lastAssessedUnix})
 		if err != nil {
 			s.Log.Infof("failed to export-assets start: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
@@ -439,6 +467,8 @@ func (s *Service) AssetsExportStart(limit string, lastAssessedUnix string) ([]by
 
 	return raw, err
 }
+
+// AssetsExportGet will get a chunk from assets export
 func (s *Service) AssetsExportGet(exportUUID string, chunk string) ([]byte, error) {
 	var raw []byte
 
@@ -492,6 +522,31 @@ func (s *Service) ScanDetails(uuid string) ([]byte, error) {
 		body, status, err := s.get(EndPoints.ScanDetails, map[string]string{"ScanUUID": uuid})
 		if err != nil {
 			s.Log.Infof("failed to scan details list: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
+		return false, nil
+	})
+
+	return raw, err
+}
+
+// ScansExportStart start a scan export for scanid and histid
+func (s *Service) ScansExportStart(scanid string, histid string) ([]byte, error) {
+	var raw []byte
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.post(EndPoints.ScansExportStart, map[string]string{"ScanID": scanid, "HistoryID": histid})
+		if err != nil {
+			s.Log.Infof("failed to scans export: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
 			return retry, err
 		}

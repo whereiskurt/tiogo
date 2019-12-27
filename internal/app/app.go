@@ -128,9 +128,20 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	_ = makeCommand("host", app.ScansHosts, scansCmd)
 	_ = makeCommand("plugin", app.ScansPlugins, scansCmd)
 	_ = makeCommand("query", app.ScansQuery, scansCmd)
-
 	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, scansCmd)
 	makeString("UUID", &a.Config.VM.UUID, []string{"uuid"}, scansCmd)
+	makeString("HistoryUUID", &a.Config.VM.HistoryUUID, []string{"history", "history_uuid"}, scansCmd)
+	makeString("Offset", &a.Config.VM.Offset, []string{"offset"}, scansCmd)
+
+	exportScansCmd := makeCommand("export-scans", app.ExportScansHelp, appCmd)
+	_ = makeCommand("start", app.ExportScansStart, exportScansCmd)
+	_ = makeCommand("status", app.ExportScansStatus, exportScansCmd)
+	_ = makeCommand("get", app.ExportScansGet, exportScansCmd)
+	_ = makeCommand("query", app.ExportScansQuery, exportScansCmd)
+	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, exportScansCmd)
+	makeString("UUID", &a.Config.VM.UUID, []string{"uuid"}, exportScansCmd)
+	makeString("HistoryUUID", &a.Config.VM.HistoryUUID, []string{"history", "history_uuid"}, exportScansCmd)
+	makeString("Offset", &a.Config.VM.Offset, []string{"offset"}, exportScansCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)

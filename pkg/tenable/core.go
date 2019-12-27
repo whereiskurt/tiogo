@@ -34,22 +34,37 @@ func (s *Service) put(endPoint EndPointType, p map[string]string) ([]byte, int, 
 
 	return body, status, err
 }
-func (s *Service) get(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
-	if s.SkipOnHit == true {
 
-		// Check for a cache hit
-		if s.DiskCache != nil {
-			// We have initialized a cache then write to it.
-			filename, err := ToCacheFilename(endPoint, p)
-			if err != nil {
-				return nil, 0, err
-			}
+func (s *Service) post(endPoint EndPointType, p map[string]string) (body []byte, status int, err error) {
+	body, status, err = s.checkSkipOnHit(endPoint, p)
+	if err != nil && status != 0 {
+		return body, status, err
+	}
 
-			body, err := s.DiskCache.Fetch(filename)
-			if err == nil && len(body) > 0 {
-				return body, 200, nil
-			}
-		}
+	var url string
+	url, err = toURL(s.BaseURL, endPoint, p)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	t := NewTransport(s)
+	data, _ := toJSON(endPoint, HTTP.Post, p)
+
+	body, status, err = t.Post(url, data, "application/json")
+	if err != nil {
+		return nil, status, err
+	}
+
+	s.checkWriteOnReturn(body, endPoint, p)
+
+	return body, status, err
+}
+
+func (s *Service) get(endPoint EndPointType, p map[string]string) (body []byte, status int, err error) {
+
+	body, status, err = s.checkSkipOnHit(endPoint, p)
+	if err != nil && status != 0 {
+		return body, status, err
 	}
 
 	url, err := toURL(s.BaseURL, endPoint, p)
@@ -58,27 +73,13 @@ func (s *Service) get(endPoint EndPointType, p map[string]string) ([]byte, int, 
 	}
 
 	t := NewTransport(s)
-	body, status, err := t.Get(url, s.SkipOnHit, s.WriteOnReturn)
+	body, status, err = t.Get(url, s.SkipOnHit, s.WriteOnReturn)
 
 	if err != nil {
 		return nil, status, err
 	}
 
-	if s.WriteOnReturn == true {
-		// If we have a DiskCache it means we will write out responses to disk.
-		if s.DiskCache != nil {
-			// We have initialized a cache then write to it.
-			filename, err := ToCacheFilename(endPoint, p)
-			if err != nil {
-				return nil, status, err
-			}
-
-			err = s.DiskCache.Store(filename, body)
-			if err != nil {
-				return nil, status, err
-			}
-		}
-	}
+	s.checkWriteOnReturn(body, endPoint, p)
 
 	return body, status, err
 }
@@ -89,25 +90,6 @@ func (s *Service) delete(endPoint EndPointType, p map[string]string) ([]byte, in
 	}
 	t := NewTransport(s)
 	body, status, err := t.Delete(url)
-	if err != nil {
-		return nil, status, err
-	}
-
-	return body, status, err
-}
-func (s *Service) update(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
-	url, err := toURL(s.BaseURL, endPoint, p)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	j, err := toJSON(endPoint, HTTP.Post, p)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	t := NewTransport(s)
-	body, status, err := t.Post(url, j, "application/json")
 	if err != nil {
 		return nil, status, err
 	}
@@ -186,6 +168,45 @@ func (s *Service) sleepBeforeRetry(attempt int) (shouldReRun bool) {
 		s.Log.Infof("Failure leading to sleep='%dms'", s.RetryIntervals[attempt])
 		time.Sleep(time.Duration(s.RetryIntervals[attempt]) * time.Millisecond)
 		shouldReRun = true
+	}
+	return
+}
+
+func (s *Service) checkSkipOnHit(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
+	if s.SkipOnHit == true {
+		// Check for a cache hit
+		if s.DiskCache != nil {
+			// We have initialized a cache then write to it.
+			filename, err := ToCacheFilename(endPoint, p)
+			if err != nil {
+				return nil, 0, err
+			}
+
+			body, err := s.DiskCache.Fetch(filename)
+			if err == nil && len(body) > 0 {
+				return body, 200, nil
+			}
+		}
+	}
+	// We didn't cache hit or SkipOnHit is false
+	return nil, 0, nil
+}
+
+func (s *Service) checkWriteOnReturn(body []byte, endPoint EndPointType, p map[string]string) {
+	if s.WriteOnReturn == true {
+		// If we have a DiskCache it means we will write out responses to disk.
+		if s.DiskCache != nil {
+			// We have initialized a cache then write to it.
+			filename, err := ToCacheFilename(endPoint, p)
+			if err != nil {
+				return
+			}
+
+			err = s.DiskCache.Store(filename, body)
+			if err != nil {
+				return
+			}
+		}
 	}
 	return
 }

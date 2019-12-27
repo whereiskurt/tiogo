@@ -258,8 +258,18 @@ func (c *Converter) ToScanDetails(raw []byte) (converted ScanHistoryDetail, err 
 	converted.PolicyName = src.Info.PolicyName
 	converted.Targets = src.Info.Targets
 	converted.ScannerName = src.Info.ScannerName
-	converted.HistoryCount = fmt.Sprintf("%d", len(src.History))
-	converted.HistoryID = src.History[0].HistoryID.String()
+
+	for _, h := range src.History {
+		var news ScanHistoryItem
+		news.HistoryID = h.HistoryID.String()
+		news.UUID = h.UUID
+		news.Status = h.Status
+		news.LastModifiedDate = h.LastModifiedDate.String()
+		news.CreationDate = h.CreationDate.String()
+		converted.History = append(converted.History, news)
+	}
+	converted.HistoryCount = fmt.Sprintf("%d", len(converted.History))
+
 	converted.LastModifiedDate = src.History[0].LastModifiedDate.String()
 	converted.CreationDate = src.History[0].CreationDate.String()
 	converted.Status = src.History[0].Status
@@ -296,4 +306,19 @@ func (c *Converter) ToScanDetails(raw []byte) (converted ScanHistoryDetail, err 
 	}
 
 	return
+}
+
+//ToScansExportStart converts Tenable.io start scan outputs
+func (c *Converter) ToScansExportStart(raw []byte) (converted ScansExportStart, err error) {
+	var src tenable.ScansExportStart
+
+	err = json.Unmarshal(raw, &src)
+	if err != nil {
+		return converted, err
+	}
+
+	converted.FileUUID = src.FileUUID
+	converted.TempToken = src.TempToken
+
+	return converted, err
 }

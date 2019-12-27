@@ -23,21 +23,7 @@ func (vm *VM) ScansList(cmd *cobra.Command, args []string) {
 		log.Errorf("error: couldn't scans list: %v", err)
 		return
 	}
-
-	//TODO: Make this a method :-P
-	id := vm.Config.VM.ID
-	uuid := vm.Config.VM.UUID
-	name := vm.Config.VM.Name
-	regex := vm.Config.VM.Regex
-	if id != "" {
-		scans = a.Filter.ScanByID(scans, id)
-	} else if uuid != "" {
-		scans = a.Filter.ScanByScheduleUUID(scans, uuid)
-	} else if name != "" {
-		scans = a.Filter.ScanByName(scans, name)
-	} else if regex != "" {
-		scans = a.Filter.ScanByRegex(scans, regex)
-	}
+	scans = vm.FilterScans(a, &scans)
 
 	if a.Config.VM.OutputJSON {
 		// Convert structs to JSON.
@@ -49,6 +35,48 @@ func (vm *VM) ScansList(cmd *cobra.Command, args []string) {
 
 	} else if a.Config.VM.OutputCSV || !a.Config.VM.OutputJSON {
 		cli.Println(cli.Render("ScansListCSV", map[string]interface{}{"Scans": scans}))
+	}
+
+	return
+}
+
+// FilterScans uses cli arguments to reduce scans to filtered
+func (vm *VM) FilterScans(a *client.Adapter, scans *[]client.Scan) (filtered []client.Scan) {
+	//TODO: Make this a method :-P
+	id := vm.Config.VM.ID
+	uuid := vm.Config.VM.UUID
+	name := vm.Config.VM.Name
+	regex := vm.Config.VM.Regex
+	histuuid := vm.Config.VM.HistoryUUID
+
+	if id != "" {
+		filtered = a.Filter.ScanByID(*scans, id)
+	} else if uuid != "" {
+		filtered = a.Filter.ScanByScheduleUUID(*scans, uuid)
+	} else if name != "" {
+		filtered = a.Filter.ScanByName(*scans, name)
+	} else if regex != "" {
+		filtered = a.Filter.ScanByRegex(*scans, regex)
+	} else {
+		filtered = append(filtered, *scans...)
+	}
+
+	if histuuid != "" {
+		var reduced []client.Scan
+		for _, s := range filtered {
+			det, err := a.ScanDetails(&s, true, true)
+			if err != nil {
+				continue
+			}
+			for _, h := range det.History {
+				if h.UUID == histuuid {
+					reduced = append(reduced, s)
+					break
+				}
+			}
+
+		}
+		filtered = reduced
 	}
 
 	return

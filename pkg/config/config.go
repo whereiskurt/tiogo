@@ -58,7 +58,9 @@ type VMConfig struct {
 	Regex         string
 	JQex          string
 	JQExec        string // Executable for jq
-	UUID          string // This can be used to map
+	UUID          string // This can be used to map ScheduleUUID, AssetUUID, others
+	HistoryUUID   string // Previous history UUID of the scan, will solve for current if empty (ie. --offset=0)
+	HistoryID     string // Previous history ID of the scan, will solve for current if empty (ie. --offset=0)
 
 	Critical bool // When 'true' we only want results realted to critical plugins
 	High     bool // When 'true' we only want results realted to high plugins
@@ -70,6 +72,7 @@ type VMConfig struct {
 	AfterDate   string // Date bounded for YYYY-MM-DD
 	Days        string // Number of days to include either before or after
 	ExportLimit string // Either chunk_size or num_assets
+	Offset      string //Starts at zero: 0=current, 1=previous, 2=prevprevious, ...
 
 	DefaultTimezone string
 

@@ -643,3 +643,22 @@ func (a *Adapter) ScanDetails(s *Scan, skipOnHit bool, writeOnReturn bool) (deta
 	details.Scan = s
 	return details, err
 }
+
+// ScansExportStart extract scan for histuuid
+func (a *Adapter) ScansExportStart(s *Scan, histid string, skipOnHit bool, writeOnReturn bool) (ScansExportStart, error) {
+	var export ScansExportStart
+
+	a.Metrics.ClientInc(metrics.EndPoints.ScansExportStart, metrics.Methods.Service.Get)
+	u := NewUnmarshal(a.Config, a.Metrics)
+
+	raw, err := u.ScansExportStart(s.ScanID, histid, skipOnHit, writeOnReturn)
+	if err != nil {
+		a.Config.VM.Log.Errorf("error: failed to get the scan export: %v", err)
+		return export, err
+	}
+
+	convert := NewConvert()
+	export, err = convert.ToScansExportStart(raw)
+
+	return export, err
+}

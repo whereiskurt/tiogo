@@ -78,6 +78,9 @@ func (s *Server) EnableDefaultRouter() {
 				r.Use(middleware.ScanCtx)
 				r.Get("/", s.ScanDetail)
 				r.Get("/history", s.ScanHistory)
+				r.Route("/export", func(r chi.Router) {
+					r.Post("/", s.ScansExportStart)
+				})
 			})
 		})
 
