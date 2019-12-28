@@ -27,6 +27,8 @@ var EndPoints = endPointTypes{
 	ScansList:          EndPointType("ScansList"),
 	ScanDetails:        EndPointType("ScanDetails"),
 	ScansExportStart:   EndPointType("ScansExportStart"),
+	ScansExportGet:     EndPointType("ScansExportGet"),
+	ScansExportStatus:  EndPointType("ScansExportStatus"),
 }
 
 type endPointTypes struct {
@@ -47,6 +49,7 @@ type endPointTypes struct {
 	ScanDetails        EndPointType
 	ScansExportStart   EndPointType
 	ScansExportStatus  EndPointType
+	ScansExportGet     EndPointType
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
@@ -175,6 +178,13 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 	EndPoints.ScansExportStatus: {
 		URL:           "/scans/{{.ScanID}}/export/{{.FileUUID}}/status",
 		CacheFilename: "/scans/export/{{.ScanID}}/{{.FileUUID}}/status.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
+		},
+	},
+	EndPoints.ScansExportGet: {
+		URL:           "/scans/{{.ScanID}}/export/{{.FileUUID}}/download",
+		CacheFilename: "/scans/export/{{.ScanID}}/{{.FileUUID}}/download.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Get: {},
 		},
@@ -581,6 +591,31 @@ func (s *Service) ScansExportStatus(scanid string, fileuuid string) ([]byte, err
 		body, status, err := s.get(EndPoints.ScansExportStatus, map[string]string{"ScanID": scanid, "FileUUID": fileuuid})
 		if err != nil {
 			s.Log.Infof("failed to scans export: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
+		return false, nil
+	})
+
+	return raw, err
+}
+
+// ScansExportGet get the status of the export-scans,
+func (s *Service) ScansExportGet(scanid string, fileuuid string) ([]byte, error) {
+	var raw []byte
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.get(EndPoints.ScansExportGet, map[string]string{"ScanID": scanid, "FileUUID": fileuuid})
+		if err != nil {
+			s.Log.Infof("failed to get export scans: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
 			return retry, err
 		}

@@ -22,6 +22,7 @@ var EndPoints = endPointTypes{
 	ScanDetails:        EndPointType("ScanDetails"),
 	ScansExportStart:   EndPointType("ScansExportStart"),
 	ScansExportStatus:  EndPointType("ScansExportStatus"),
+	ScansExportGet:     EndPointType("ScansExportGet"),
 }
 
 type endPointTypes struct {
@@ -42,6 +43,7 @@ type endPointTypes struct {
 	ScanDetails        EndPointType
 	ScansExportStart   EndPointType
 	ScansExportStatus  EndPointType
+	ScansExportGet     EndPointType
 }
 
 func (c EndPointType) String() string {

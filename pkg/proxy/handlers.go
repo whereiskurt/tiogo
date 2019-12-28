@@ -316,9 +316,23 @@ func (s *Server) ScansExportStatus(w http.ResponseWriter, r *http.Request) {
 	pp.metricType = metrics.EndPoints.ScansExportStatus
 	pp.metricMethod = metrics.Methods.Service.Get
 	pp.f = func(t tenable.Service) ([]byte, error) {
-		scanid := middleware.ScanID(r) // We use chi apped UUI
+		scanid := middleware.ScanID(r)
 		fileuuid := middleware.FileUUID(r)
 		return t.ScansExportStatus(scanid, fileuuid)
+	}
+	s.CachedTenableCall(pp)
+}
+
+// ScansExportGet handler for export-start get
+func (s *Server) ScansExportGet(w http.ResponseWriter, r *http.Request) {
+	var pp = CachedTenableCallParams{w: w, r: r}
+	pp.endPoint = tenable.EndPoints.ScansExportGet
+	pp.metricType = metrics.EndPoints.ScansExportGet
+	pp.metricMethod = metrics.Methods.Service.Get
+	pp.f = func(t tenable.Service) ([]byte, error) {
+		scanid := middleware.ScanID(r)
+		fileuuid := middleware.FileUUID(r)
+		return t.ScansExportGet(scanid, fileuuid)
 	}
 	s.CachedTenableCall(pp)
 }

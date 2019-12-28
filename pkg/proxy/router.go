@@ -79,9 +79,10 @@ func (s *Server) EnableDefaultRouter() {
 				r.Get("/", s.ScanDetail)
 				r.Route("/export", func(r chi.Router) {
 					r.Post("/", s.ScansExportStart)
-					r.Route("/{FileUUID}/status", func(r chi.Router) {
-						r.Use(middleware.ScanCtx)
-						r.Get("/", s.ScansExportStatus)
+					r.Route("/{FileUUID}", func(r chi.Router) {
+						r.Use(middleware.ScansExportCtx)
+						r.Get("/status", s.ScansExportStatus)
+						r.Get("/download", s.ScansExportGet)
 					})
 				})
 			})

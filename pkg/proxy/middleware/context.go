@@ -204,13 +204,22 @@ func ScanCtx(next http.Handler) http.Handler {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
 		ctxMap["ScanUUID"] = chi.URLParam(r, "ScanUUID")
 		ctxMap["ScanID"] = chi.URLParam(r, "ScanUUID")
-		ctxMap["FileUUID"] = chi.URLParam(r, "FileUUID")
 
 		ctxMap["HistoryID"] = r.URL.Query().Get("history_id")
 		if ctxMap["HistoryID"] == "" {
 			ctxMap["HistoryID"] = r.URL.Query().Get("HistoryID")
 		}
 
+		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// ScansExportCtx extracts FileUUID from the parameters
+func ScansExportCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
+		ctxMap["FileUUID"] = chi.URLParam(r, "FileUUID")
 		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

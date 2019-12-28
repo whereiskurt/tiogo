@@ -11,7 +11,7 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/ui"
 )
 
-//AgentsList outputs matching agents  by regex, agent name, and group name
+// AgentsList outputs matching agents  by regex, agent name, and group name
 func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
 	regex := vm.Config.VM.Regex
@@ -70,6 +70,16 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	}
 
 	return
+}
+
+// AgentsUngroup is invoked by Cobra with commandline args passed.
+func (vm *VM) AgentsUngroup(cmd *cobra.Command, args []string) {
+	vm.action(filterUngroup, ungroup)
+}
+
+// AgentsGroup is invoked by Cobra with commandline args passed.
+func (vm *VM) AgentsGroup(cmd *cobra.Command, args []string) {
+	vm.action(filterForAgentsGroup, group)
 }
 
 func (vm *VM) action(filterFunc func(*client.Adapter, ui.CLI, []client.ScannerAgent, string) []client.ScannerAgent, groupFunc func(*client.Adapter, ui.CLI, client.ScannerAgent, *client.AgentGroup)) {
@@ -172,10 +182,6 @@ func ungroup(a *client.Adapter, cli ui.CLI, agent client.ScannerAgent, group *cl
 	}
 }
 
-//AgentsUngroup is invoked by Cobra with commandline args passed.
-func (vm *VM) AgentsUngroup(cmd *cobra.Command, args []string) {
-	vm.action(filterUngroup, ungroup)
-}
 func filterUngroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerAgent, groupName string) []client.ScannerAgent {
 	// 3) Filter Agents
 	// Filter agent that are to non-group members - don't reassign if assigned
@@ -186,11 +192,6 @@ func filterUngroup(a *client.Adapter, cli ui.CLI, agents []client.ScannerAgent, 
 		cli.Fatalf("%s", err)
 	}
 	return agents
-}
-
-//AgentsGroup is invoked by Cobra with commandline args passed.
-func (vm *VM) AgentsGroup(cmd *cobra.Command, args []string) {
-	vm.action(filterForAgentsGroup, group)
 }
 
 //filterForAgentsGroup will only keep agents not already in the agent group.
