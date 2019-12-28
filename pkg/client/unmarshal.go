@@ -176,3 +176,11 @@ func (u *Unmarshal) ScansExportStart(scanid string, histid string, skipOnHit boo
 	raw, err := s.ScansExportStart(scanid, histid)
 	return raw, err
 }
+
+// ScansExportStatus gets the status for the export-scan, returns 'ready' on done.
+func (u *Unmarshal) ScansExportStatus(scanid string, fileuuid string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+	s := u.service(skipOnHit, writeOnReturn)
+
+	raw, err := s.ScansExportStatus(scanid, fileuuid)
+	return raw, err
+}

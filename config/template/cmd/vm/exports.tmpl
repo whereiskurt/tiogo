@@ -230,3 +230,18 @@ To review the status for 'READY' and then get the prepared file:
     ## Download the export-scan from Tenable.io (once 'READY')
     $ tio vm export-scans get --id={{.ScanID}} --history={{.HistoryID}}
 {{end}}
+
+{{define "ExportScansStatus"}}
+Requested export-scans status for uuid='{{.FileUUID}} scanid='{{.ScanID}}' histid='{{.HistoryID}}'
+{{if eq .Status "READY"}}
+Export status is "READY"! You can retrieve the download:
+{{else}}
+Export status is currently '{{.Status}}', once it becomes 'READY' you can get the file:
+{{- end}}
+    ## Retrieve the download. NOTE: Fails unless status is 'READY'
+    $ tio vm export-scans get -id={{.ScanID}} --history={{.HistoryID}}
+
+    ## Retrieve the file NOTE: Fails unless status is 'READY'
+    $ tio vm export-scans get -id={{.ScanID}} --history={{.HistoryID}}
+{{end}}
+

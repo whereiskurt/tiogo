@@ -47,7 +47,7 @@ func (vm *VM) FilterScans(a *client.Adapter, scans *[]client.Scan) (filtered []c
 	uuid := vm.Config.VM.UUID
 	name := vm.Config.VM.Name
 	regex := vm.Config.VM.Regex
-	histuuid := vm.Config.VM.HistoryUUID
+	histid := vm.Config.VM.HistoryID
 
 	if id != "" {
 		filtered = a.Filter.ScanByID(*scans, id)
@@ -61,7 +61,7 @@ func (vm *VM) FilterScans(a *client.Adapter, scans *[]client.Scan) (filtered []c
 		filtered = append(filtered, *scans...)
 	}
 
-	if histuuid != "" {
+	if histid != "" {
 		var reduced []client.Scan
 		for _, s := range filtered {
 			det, err := a.ScanDetails(&s, true, true)
@@ -69,7 +69,7 @@ func (vm *VM) FilterScans(a *client.Adapter, scans *[]client.Scan) (filtered []c
 				continue
 			}
 			for _, h := range det.History {
-				if h.UUID == histuuid {
+				if h.HistoryID == histid {
 					reduced = append(reduced, s)
 					break
 				}

@@ -384,14 +384,20 @@ type VulnExportChunkPort struct {
 	Service  string `json:"service"`
 }
 type VulnExportChunkScan struct {
-	CompletedAt  string `json:"completed_at"`
-	ScheduleUUID string `json:"schedule_uuid"`
-	StartedAt    string `json:"started_at"`
-	UUID         string `json:"uuid"`
+	CompletedAt  string
+	ScheduleUUID string
+	StartedAt    string
+	UUID         string
 }
 
 // ScansExportStart is outputed at successful scans export
 type ScansExportStart struct {
-	FileUUID  string `json:"file"`
-	TempToken string `json:"temp_token"`
+	FileUUID  string
+	TempToken string
+}
+
+// ScansExportStatus is outputed at successful scans export
+type ScansExportStatus struct {
+	Status   string
+	FileUUID string
 }

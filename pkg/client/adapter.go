@@ -662,3 +662,28 @@ func (a *Adapter) ScansExportStart(s *Scan, histid string, skipOnHit bool, write
 
 	return export, err
 }
+
+// ScansExportStatus gets the status of the export-scan that was started
+func (a *Adapter) ScansExportStatus(s *Scan, histid string, skipOnHit bool, writeOnReturn bool) (ScansExportStatus, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.ScansExportStatus, metrics.Methods.Service.Get)
+	u := NewUnmarshal(a.Config, a.Metrics)
+
+	started, err := a.ScansExportStart(s, histid, skipOnHit, writeOnReturn)
+	if err != nil {
+		return ScansExportStatus{}, err
+	}
+
+	var export ScansExportStatus
+	var fileuuid string
+	fileuuid = started.FileUUID
+	raw, err := u.ScansExportStatus(s.ScanID, fileuuid, skipOnHit, writeOnReturn)
+	if err != nil {
+		a.Config.VM.Log.Errorf("error: failed to get the scan export: %v", err)
+		return export, err
+	}
+
+	convert := NewConvert()
+	export, err = convert.ToScansExportStatus(fileuuid, raw)
+
+	return export, err
+}

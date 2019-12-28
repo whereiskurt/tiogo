@@ -46,6 +46,7 @@ type endPointTypes struct {
 	ScansList          EndPointType
 	ScanDetails        EndPointType
 	ScansExportStart   EndPointType
+	ScansExportStatus  EndPointType
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
@@ -168,6 +169,14 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 		CacheFilename: "/scans/export/{{.ScanID}}/{{.HistoryID}}/start.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Post: {`{ "format" : "csv" } `},
+		},
+	},
+
+	EndPoints.ScansExportStatus: {
+		URL:           "/scans/{{.ScanID}}/export/{{.FileUUID}}/status",
+		CacheFilename: "/scans/export/{{.ScanID}}/{{.FileUUID}}/status.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
 		},
 	},
 }
@@ -545,6 +554,31 @@ func (s *Service) ScansExportStart(scanid string, histid string) ([]byte, error)
 
 	err := try.Do(func(attempt int) (bool, error) {
 		body, status, err := s.post(EndPoints.ScansExportStart, map[string]string{"ScanID": scanid, "HistoryID": histid})
+		if err != nil {
+			s.Log.Infof("failed to scans export: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
+		return false, nil
+	})
+
+	return raw, err
+}
+
+// ScansExportStatus get the status of the export-scans,
+func (s *Service) ScansExportStatus(scanid string, fileuuid string) ([]byte, error) {
+	var raw []byte
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.get(EndPoints.ScansExportStatus, map[string]string{"ScanID": scanid, "FileUUID": fileuuid})
 		if err != nil {
 			s.Log.Infof("failed to scans export: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)

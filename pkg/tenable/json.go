@@ -613,3 +613,8 @@ type ScansExportStart struct {
 	FileUUID  string `json:"file"`
 	TempToken string `json:"temp_token"`
 }
+
+// ScansExportStatus returns 'ready' when done
+type ScansExportStatus struct {
+	Status string `json:"status"`
+}

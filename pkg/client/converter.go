@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/prometheus/common/log"
@@ -319,6 +320,21 @@ func (c *Converter) ToScansExportStart(raw []byte) (converted ScansExportStart, 
 
 	converted.FileUUID = src.FileUUID
 	converted.TempToken = src.TempToken
+
+	return converted, err
+}
+
+//ToScansExportStatus converts Tenable.io status scan outputs
+func (c *Converter) ToScansExportStatus(fileuuid string, raw []byte) (converted ScansExportStatus, err error) {
+	var src tenable.ScansExportStatus
+
+	err = json.Unmarshal(raw, &src)
+	if err != nil {
+		return converted, err
+	}
+
+	converted.Status = strings.ToUpper(src.Status)
+	converted.FileUUID = fileuuid
 
 	return converted, err
 }
