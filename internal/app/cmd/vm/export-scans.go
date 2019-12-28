@@ -108,7 +108,7 @@ func (vm *VM) ExportScansStatus(cmd *cobra.Command, args []string) {
 		cli := ui.NewCLI(vm.Config)
 		cli.Println(fmt.Sprintf("tiogo version %s (%s)", ReleaseVersion, GitHash))
 		cli.DrawGopher()
-		fmt.Println(cli.Render("ExportScansStatus", map[string]string{"Status": export.Status, "ScanID": s.ScanID, "HistoryID": histid}))
+		fmt.Println(cli.Render("ExportScansStatus", map[string]string{"FileUUID": export.FileUUID, "Status": export.Status, "ScanID": s.ScanID, "HistoryID": histid}))
 
 	}
 	return

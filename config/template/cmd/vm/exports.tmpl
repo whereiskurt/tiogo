@@ -239,9 +239,9 @@ Export status is "READY"! You can retrieve the download:
 Export status is currently '{{.Status}}', once it becomes 'READY' you can get the file:
 {{- end}}
     ## Retrieve the download. NOTE: Fails unless status is 'READY'
-    $ tio vm export-scans get -id={{.ScanID}} --history={{.HistoryID}}
+    $ tio vm export-scans get --id={{.ScanID}} --history={{.HistoryID}}
 
     ## Retrieve the file NOTE: Fails unless status is 'READY'
-    $ tio vm export-scans get -id={{.ScanID}} --history={{.HistoryID}}
+    $ tio vm export-scans get --id={{.ScanID}} --history={{.HistoryID}}
 {{end}}
 
