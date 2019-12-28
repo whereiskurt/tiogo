@@ -205,14 +205,30 @@ Examples:
     ## offset 1 (previous scan) and a specific history id 13545223
     $ tio vm export-scans start --id=1234    
     $ tio vm export-scans start --id=1234 --offset=1   
-    $ tio vm export-scans start --history=13545223
+    $ tio vm export-scans start --id=1234 --history=123456789
     
     ## Check this status of the started exports
     $ tio vm export-scans status --id=1234
     $ tio vm export-scans status --id=1234 --offset=1
-    $ tio vm export-scans status --history=13545223
+    $ tio vm export-scans status --id=1234 --history=123456789
     
     ## Download the export-scans file from Tenable.io
     $ tio vm export-scans get --id=1234
     $ tio vm export-scans get --id=1234 --offset=1
+    $ tio vm export-scans get --id=1234 --history=123456789
+    
+{{end}}
+
+
+
+{{define "ExportScansStart"}}
+Successfully started scans export uuid='{{.FileUUID}}'
+
+To review the status for 'READY' and then get the prepared file:
+
+    ## Check this status of the started exports
+    $ tio vm export-scans status --id={{.ScanID}} --history={{.HistoryID}}
+
+    ## Download the export-scan from Tenable.io (once 'READY')
+    $ tio vm export-scans get --id={{.ScanID}} --history={{.HistoryID}}
 {{end}}

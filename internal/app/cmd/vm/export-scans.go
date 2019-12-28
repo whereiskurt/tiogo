@@ -35,6 +35,7 @@ func (vm *VM) ExportScansStart(cmd *cobra.Command, args []string) {
 			if err != nil {
 				continue
 			}
+
 			if len(det.History) == 0 {
 				continue
 			}
@@ -48,7 +49,11 @@ func (vm *VM) ExportScansStart(cmd *cobra.Command, args []string) {
 			continue
 		}
 
-		log.Infof("successfully started export-scans: %s with file_id:'%s' and temp_token:'%s' ", s, export.FileUUID, export.TempToken)
+		cli := ui.NewCLI(vm.Config)
+		cli.Println(fmt.Sprintf("tiogo version %s (%s)", ReleaseVersion, GitHash))
+		cli.DrawGopher()
+		fmt.Println(cli.Render("ExportScansStart", map[string]string{"FileUUID": export.FileUUID, "ScanID": s.ScanID, "HistoryID": histid}))
+
 	}
 	return
 }
