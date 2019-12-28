@@ -37,7 +37,7 @@ type Config struct {
 	Server             ServerConfig
 }
 
-// ClientConfig are all of the params for the Client Command
+// VMConfig are all of the params for the Client Command
 type VMConfig struct {
 	ReleaseVersion string //The release version and githash for tio.go release. :)
 	GitHash        string
@@ -156,6 +156,7 @@ func NewConfig() (c *Config) {
 	return
 }
 
+// DumpMetrics captures stats related to VMConfig
 func (c *VMConfig) DumpMetrics() {
 	pid := os.Getpid()
 	dts := time.Now().Format("20060102150405")
@@ -163,6 +164,8 @@ func (c *VMConfig) DumpMetrics() {
 	file := filepath.Join(".", c.MetricsFolder, name)
 	metrics.DumpMetricsToFile(file)
 }
+
+// DumpMetrics captures stats related to ServerConfig
 func (c *ServerConfig) DumpMetrics() {
 	pid := os.Getpid()
 	dts := time.Now().Format("20060102150405")
@@ -171,6 +174,7 @@ func (c *ServerConfig) DumpMetrics() {
 	metrics.DumpMetricsToFile(file)
 }
 
+// EnableLogging creates the folder and sets the filename for the VMConfig
 func (c *VMConfig) EnableLogging() *log.Logger {
 	filename := c.LogFilename()
 	dirName := filepath.Dir(c.LogFilename())
@@ -184,6 +188,8 @@ func (c *VMConfig) EnableLogging() *log.Logger {
 
 	return c.Config.VM.Log
 }
+
+// EnableLogging creates the folder and sets the filename for the ServerConfig
 func (c *ServerConfig) EnableLogging() *log.Logger {
 	filename := c.LogFilename()
 	dirName := filepath.Dir(c.LogFilename())

@@ -11,28 +11,38 @@ import (
 )
 
 // These defaults are needed to configure Viper/Cobra
-const DefaultHomeFilename = ".tiogo.v1"
-const DefaultConfigFilename = "default.tiogo.v1"
+
+// DefaultConfigType the file extension for the configuration files (using YAML instead of XML)
 const DefaultConfigType = "yaml"
+
+// DefaultHomeFilename base filename in the $HOMEDIR for the '.tiogo.v1.yaml'
+const DefaultHomeFilename = ".tiogo.v1"
+
+// DefaultConfigFolder the namefolder with the default.tiogo.v1.yaml file
 const DefaultConfigFolder = "./config/"
+
+// DefaultConfigFilename base filename for the 'default.tiogo.v1'
+const DefaultConfigFilename = "default.tiogo.v1"
+
 const DefaultTemplateFolder = "./config/template/"
 
 // Sensible defaults even with out a configuration file present
 const DefaultVerboseLevel = "3"
 const DefaultServerListenPort = "10101"
-const DefaultMetricsListenPort = "22222"
-
 const DefaultClientBaseURL = "http://localhost:" + DefaultServerListenPort
 const DefaultServerBaseURL = "https://cloud.tenable.com"
 
 // Used by the *_test to the set defaults
+
 // DefaultClientCacheFolder stores default client cache file location
 const DefaultClientCacheFolder = ".tiogo/cache/client/"
+
 const DefaultClientCacheResponse = true
 const DefaultClientCacheLookup = true
 
 const DefaultLogFolder = "log/"
 const DefaultServerMetricsFolder = "log/metrics/server/"
+const DefaultMetricsListenPort = "22222"
 const DefaultClientMetricsFolder = "log/metrics/client/"
 
 // DefaultServerCacheFolder  stores default server cache file location
