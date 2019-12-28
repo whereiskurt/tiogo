@@ -198,6 +198,8 @@ func ScanCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
 		ctxMap["ScanUUID"] = chi.URLParam(r, "ScanUUID")
+		ctxMap["ScanID"] = chi.URLParam(r, "ScanUUID")
+
 		ctxMap["HistoryID"] = r.URL.Query().Get("history_id")
 		if ctxMap["HistoryID"] == "" {
 			ctxMap["HistoryID"] = r.URL.Query().Get("HistoryID")

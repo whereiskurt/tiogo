@@ -307,7 +307,7 @@ func (s *Server) ScansExportStart(w http.ResponseWriter, r *http.Request) {
 	pp.metricType = metrics.EndPoints.ScansExportStart
 	pp.metricMethod = metrics.Methods.Service.Update
 	pp.f = func(t tenable.Service) ([]byte, error) {
-		scanid := middleware.ScanUUID(r) // We use chi apped UUI
+		scanid := middleware.ScanID(r) // We use chi apped UUI
 		histid := middleware.HistoryID(r)
 		return t.ScansExportStart(scanid, histid)
 	}
