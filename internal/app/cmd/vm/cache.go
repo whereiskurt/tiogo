@@ -109,16 +109,28 @@ func (vm *VM) CacheClearAgents(cmd *cobra.Command, args []string) {
 func (vm *VM) CacheClearScans(cmd *cobra.Command, args []string) {
 	log := vm.setupLog()
 
-	log.Debugf("Clearing Scanners cache...")
+	log.Debugf("Clearing Scans & Scanners cache...")
 
-	scannerEndPoint := tenable.ServiceMap[tenable.EndPoints.ScansList].CacheFilename
+	filename := tenable.ServiceMap[tenable.EndPoints.ScansList].CacheFilename
 
-	cpath := filepath.Join(vm.Config.VM.CacheFolder, client.DefaultServiceFolder, scannerEndPoint)
+	cpath := filepath.Join(vm.Config.VM.CacheFolder, client.DefaultServiceFolder, filename)
 	cdir := filepath.Dir(cpath)
 	log.Debugf("Delete cache folder: os.RemoveAll(%s)", cdir)
 	os.RemoveAll(cdir)
 
-	cpath = filepath.Join(vm.Config.Server.CacheFolder, scannerEndPoint)
+	cpath = filepath.Join(vm.Config.Server.CacheFolder, filename)
+	cdir = filepath.Dir(cpath)
+	log.Debugf("Delete cache folder: os.RemoveAll(%s)", cdir)
+	os.RemoveAll(cdir)
+
+	filename = tenable.ServiceMap[tenable.EndPoints.ScannersList].CacheFilename
+
+	cpath = filepath.Join(vm.Config.VM.CacheFolder, client.DefaultServiceFolder, filename)
+	cdir = filepath.Dir(cpath)
+	log.Debugf("Delete cache folder: os.RemoveAll(%s)", cdir)
+	os.RemoveAll(cdir)
+
+	cpath = filepath.Join(vm.Config.Server.CacheFolder, filename)
 	cdir = filepath.Dir(cpath)
 	log.Debugf("Delete cache folder: os.RemoveAll(%s)", cdir)
 	os.RemoveAll(cdir)

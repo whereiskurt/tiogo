@@ -197,24 +197,22 @@ Export Scans Options:
     Selection modifiers:
     --id=[unique id of the scan]
     --uuid=[unique id of the scan]
-    --history|history_uuid=[the uuid of the historical run]
+    --history|history_id=[the uuid of the historical run]
     --offset=[previous scan offset to export. e.g. 0 current, 1 previous, 2 prevprevious]
 
 Examples:
-    ## Start an export for scan id 1234 offset 0 (current scan)
-    $ tio vm export-assets start --id=1234
-    ## Start an export for scan id 1234 offset 1 (previous scan)
-    $ tio vm export-assets start --id=1234 --offset=1
-    ## Start an export for scan with history id of 12345-abc123-456def-67890
-    $ tio vm export-assets start --history=12345-abc123-456def-67890
+    ## Start examples of an export for scan id 1234 offset 0 (current scan)
+    ## offset 1 (previous scan) and a specific history id 13545223
+    $ tio vm export-scans start --id=1234    
+    $ tio vm export-scans start --id=1234 --offset=1   
+    $ tio vm export-scans start --history=13545223
     
     ## Check this status of the started exports
-    $ tio vm export-assets status --id=1234
-    $ tio vm export-assets status --id=1234 --offset=1
-    $ tio vm export-assets status --history=12345-abc123-456def-67890
+    $ tio vm export-scans status --id=1234
+    $ tio vm export-scans status --id=1234 --offset=1
+    $ tio vm export-scans status --history=13545223
     
     ## Download the export-scans file from Tenable.io
-    $ tio vm export-assets get --id=1234
-    $ tio vm export-assets get --id=1234 --offset=1
-    
+    $ tio vm export-scans get --id=1234
+    $ tio vm export-scans get --id=1234 --offset=1
 {{end}}
