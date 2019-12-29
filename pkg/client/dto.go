@@ -394,10 +394,17 @@ type VulnExportChunkScan struct {
 type ScansExportStart struct {
 	FileUUID  string
 	TempToken string
+	Format    string
 }
 
 // ScansExportStatus is outputed at successful scans export
 type ScansExportStatus struct {
 	Status   string
 	FileUUID string
+}
+
+// ScansExportGet is outputed at successful scans export
+type ScansExportGet struct {
+	FileUUID       string
+	CachedFileName string
 }

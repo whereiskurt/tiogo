@@ -245,3 +245,17 @@ Export status is currently '{{.Status}}', once it becomes 'READY' you can get th
     $ tio vm export-scans get --id={{.ScanID}} --history={{.HistoryID}}
 {{end}}
 
+{{define "ExportScansGet"}}
+Successfully retrieved export-scans file in format "{{.Format}}" for uuid='{{.FileUUID}}' scanid='{{.ScanID}}' histid='{{.HistoryID}}'.
+
+Downloaded file '{{.Filename}}'
+
+Use export-scans query to output the scan:
+
+    ## Query downloaded export scans
+    $ tio vm export-scans query --id={{.ScanID}} --history={{.HistoryID}} --jqex=".[]"
+
+    ## Query exported scans for ALL scans at offset 0 (current)
+    $ tio vm export-scans query  
+
+{{end}}

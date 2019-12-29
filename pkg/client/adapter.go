@@ -638,37 +638,39 @@ func (a *Adapter) ScanDetails(s *Scan, skipOnHit bool, writeOnReturn bool) (deta
 		return details, err
 	}
 
+	groups, err := a.AgentGroups(true, true)
 	convert := NewConvert()
-	details, err = convert.ToScanDetails(raw)
+	details, err = convert.ToScanDetails(raw, groups)
+
 	details.Scan = s
 	return details, err
 }
 
 // ScansExportStart extract scan for histuuid
-func (a *Adapter) ScansExportStart(s *Scan, histid string, skipOnHit bool, writeOnReturn bool) (ScansExportStart, error) {
+func (a *Adapter) ScansExportStart(s *Scan, histid string, format string, skipOnHit bool, writeOnReturn bool) (ScansExportStart, error) {
 	var export ScansExportStart
 
 	a.Metrics.ClientInc(metrics.EndPoints.ScansExportStart, metrics.Methods.Service.Get)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	raw, err := u.ScansExportStart(s.ScanID, histid, skipOnHit, writeOnReturn)
+	raw, err := u.ScansExportStart(s.ScanID, histid, format, skipOnHit, writeOnReturn)
 	if err != nil {
 		a.Config.VM.Log.Errorf("error: failed to get the scan export: %v", err)
 		return export, err
 	}
 
 	convert := NewConvert()
-	export, err = convert.ToScansExportStart(raw)
+	export, err = convert.ToScansExportStart(format, raw)
 
 	return export, err
 }
 
 // ScansExportStatus gets the status of the export-scan that was started
-func (a *Adapter) ScansExportStatus(s *Scan, histid string, skipOnHit bool, writeOnReturn bool) (ScansExportStatus, error) {
+func (a *Adapter) ScansExportStatus(s *Scan, histid string, format string, skipOnHit bool, writeOnReturn bool) (ScansExportStatus, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.ScansExportStatus, metrics.Methods.Service.Get)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	started, err := a.ScansExportStart(s, histid, skipOnHit, writeOnReturn)
+	started, err := a.ScansExportStart(s, histid, format, skipOnHit, writeOnReturn)
 	if err != nil {
 		return ScansExportStatus{}, err
 	}
@@ -684,6 +686,36 @@ func (a *Adapter) ScansExportStatus(s *Scan, histid string, skipOnHit bool, writ
 
 	convert := NewConvert()
 	export, err = convert.ToScansExportStatus(fileuuid, raw)
+
+	return export, err
+}
+
+// ScansExportGet downloads the prepared
+func (a *Adapter) ScansExportGet(s *Scan, histid string, format string, skipOnHit bool, writeOnReturn bool) (ScansExportGet, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.ScansExportGet, metrics.Methods.Service.Get)
+	u := NewUnmarshal(a.Config, a.Metrics)
+
+	status, err := a.ScansExportStatus(s, histid, format, skipOnHit, writeOnReturn)
+	if err != nil {
+		return ScansExportGet{}, err
+	}
+	if strings.ToUpper(status.Status) != "READY" {
+		return ScansExportGet{}, fmt.Errorf("error: can't download until the status is 'ready'")
+	}
+	fileuuid := status.FileUUID
+	raw, err := u.ScansExportGet(s.ScanID, fileuuid, skipOnHit, writeOnReturn)
+	if err != nil {
+		a.Config.VM.Log.Errorf("error: failed to get the scan export: %v", err)
+		return ScansExportGet{}, err
+	}
+
+	convert := NewConvert()
+	export, err := convert.ToScansExportGet(fileuuid, raw)
+
+	filename, _ := tenable.ToCacheFilename(tenable.EndPoints.ScansExportGet, map[string]string{"ScanID": s.ScanID, "FileUUID": fileuuid})
+
+	filename = filepath.Join(a.Config.VM.CacheFolder, "service", filename)
+	export.CachedFileName = filename
 
 	return export, err
 }

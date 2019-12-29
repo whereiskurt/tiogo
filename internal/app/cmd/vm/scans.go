@@ -129,6 +129,7 @@ func (vm *VM) ScansDetail(cmd *cobra.Command, args []string) {
 		cli.Println(fmt.Sprintf(" ScannerName:\t\t%+v", details.ScannerName))
 		cli.Println(fmt.Sprintf(" ScanType:\t\t%+v", details.ScanType))
 		cli.Println(fmt.Sprintf(" Target:\t\t%+v", details.Targets))
+		cli.Println(fmt.Sprintf(" AgentGroups:\t\t%+v", details.AgentGroup))
 		cli.Println(fmt.Sprintf(" HistoryCount:\t\t%+v", details.HistoryCount))
 		cli.Println(fmt.Sprintf(" Last Status:\t\t%+v", details.Status))
 		cli.Println(fmt.Sprintf(" Last StartTime:\t%+v", details.ScanStart))

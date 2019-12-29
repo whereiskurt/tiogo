@@ -2,10 +2,15 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi"
+	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/go-chi/chi"
+	"github.com/prometheus/common/log"
+	"github.com/whereiskurt/tiogo/pkg/tenable"
 )
 
 // DefaultCacheSkipOnHit determines whether to try for a cache hit - when 'true' then return the cached results
@@ -139,6 +144,23 @@ func ChunkID(r *http.Request) string {
 	return ContextMap(r)["ChunkID"]
 }
 
+// Format pulls the param from the request/contextmap
+func Format(r *http.Request) string {
+	bb, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Errorf("couldn't read scan export body: %v", err)
+		return ""
+	}
+
+	var body tenable.ScansExportStartPost
+	err = json.Unmarshal(bb, &body)
+	if err != nil {
+		return ""
+	}
+
+	return body.Format
+}
+
 // ExportCtx pulls the param from the request/contextmap
 func ExportCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -220,6 +242,7 @@ func ScansExportCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
 		ctxMap["FileUUID"] = chi.URLParam(r, "FileUUID")
+
 		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

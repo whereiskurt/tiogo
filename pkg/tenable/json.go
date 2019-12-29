@@ -618,3 +618,8 @@ type ScansExportStart struct {
 type ScansExportStatus struct {
 	Status string `json:"status"`
 }
+
+// ScansExportStartPost returns 'ready' when done
+type ScansExportStartPost struct {
+	Format string `json:"format"`
+}

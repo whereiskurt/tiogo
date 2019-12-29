@@ -171,7 +171,7 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 		URL:           "/scans/{{.ScanID}}/export?history_id={{.HistoryID}}&fileType=",
 		CacheFilename: "/scans/export/{{.ScanID}}/{{.HistoryID}}/start.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
-			HTTP.Post: {`{ "format" : "csv" } `},
+			HTTP.Post: {`{ "format" : "{{.Format}}" } `},
 		},
 	},
 
@@ -184,7 +184,7 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 	},
 	EndPoints.ScansExportGet: {
 		URL:           "/scans/{{.ScanID}}/export/{{.FileUUID}}/download",
-		CacheFilename: "/scans/export/{{.ScanID}}/{{.FileUUID}}/download.json",
+		CacheFilename: "/scans/export/{{.ScanID}}/{{.FileUUID}}/download",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Get: {},
 		},
@@ -559,11 +559,11 @@ func (s *Service) ScanDetails(uuid string) ([]byte, error) {
 }
 
 // ScansExportStart start a scan export for scanid and histid
-func (s *Service) ScansExportStart(scanid string, histid string) ([]byte, error) {
+func (s *Service) ScansExportStart(scanid string, histid string, format string) ([]byte, error) {
 	var raw []byte
 
 	err := try.Do(func(attempt int) (bool, error) {
-		body, status, err := s.post(EndPoints.ScansExportStart, map[string]string{"ScanID": scanid, "HistoryID": histid})
+		body, status, err := s.post(EndPoints.ScansExportStart, map[string]string{"ScanID": scanid, "HistoryID": histid, "Format": format})
 		if err != nil {
 			s.Log.Infof("failed to scans export: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)

@@ -222,7 +222,7 @@ func (c *Converter) ToScans(raw []byte) (converted []Scan, err error) {
 }
 
 // ToScanDetails convert the /scans to DTO
-func (c *Converter) ToScanDetails(raw []byte) (converted ScanHistoryDetail, err error) {
+func (c *Converter) ToScanDetails(raw []byte, groups []AgentGroup) (converted ScanHistoryDetail, err error) {
 	var src tenable.ScanDetail
 
 	err = json.Unmarshal(raw, &src)
@@ -306,11 +306,19 @@ func (c *Converter) ToScanDetails(raw []byte) (converted ScanHistoryDetail, err 
 		converted.Host[h.ID.String()] = sd
 	}
 
+	var mapGroups = make(map[string]AgentGroup)
+	for i, g := range groups {
+		mapGroups[g.Name] = groups[i]
+	}
+	for _, at := range src.Info.AgentTarget {
+		converted.AgentGroup = append(converted.AgentGroup, mapGroups[at.Name])
+	}
+
 	return
 }
 
 //ToScansExportStart converts Tenable.io start scan outputs
-func (c *Converter) ToScansExportStart(raw []byte) (converted ScansExportStart, err error) {
+func (c *Converter) ToScansExportStart(format string, raw []byte) (converted ScansExportStart, err error) {
 	var src tenable.ScansExportStart
 
 	err = json.Unmarshal(raw, &src)
@@ -320,7 +328,7 @@ func (c *Converter) ToScansExportStart(raw []byte) (converted ScansExportStart, 
 
 	converted.FileUUID = src.FileUUID
 	converted.TempToken = src.TempToken
-
+	converted.Format = format
 	return converted, err
 }
 
@@ -336,5 +344,11 @@ func (c *Converter) ToScansExportStatus(fileuuid string, raw []byte) (converted 
 	converted.Status = strings.ToUpper(src.Status)
 	converted.FileUUID = fileuuid
 
+	return converted, err
+}
+
+//ToScansExportGet converts Tenable.io status scan outputs
+func (c *Converter) ToScansExportGet(fileuuid string, raw []byte) (converted ScansExportGet, err error) {
+	converted.FileUUID = fileuuid
 	return converted, err
 }
