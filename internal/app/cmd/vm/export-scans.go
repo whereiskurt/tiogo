@@ -259,7 +259,14 @@ func (vm *VM) ExportScansQuery(cmd *cobra.Command, args []string) {
 
 		cli := ui.NewCLI(vm.Config)
 
-		cli.Println(fmt.Sprintf("%s", json))
+		jqex := vm.Config.VM.JQex
+		if jqex == "" {
+			jqex = "."
+			a.Config.VM.Log.Infof("query --jqex was not specified - will use default '%s'", jqex)
+		}
+		filter := a.JSONQuery(json, jqex)
+		cli.Println(fmt.Sprintf("%s", filter))
+
 	}
 	return
 }

@@ -25,7 +25,7 @@ type ScansExportNessusData struct {
 				Item struct {
 					Text             string `xml:",chardata"`
 					PluginName       string `xml:"pluginName"`
-					PluginId         string `xml:"pluginId"`
+					PluginID         string `xml:"pluginId"`
 					FullName         string `xml:"fullName"`
 					PreferenceName   string `xml:"preferenceName"`
 					PreferenceType   string `xml:"preferenceType"`
@@ -46,7 +46,7 @@ type ScansExportNessusData struct {
 			Text       string `xml:",chardata"`
 			PluginItem struct {
 				Text       string `xml:",chardata"`
-				PluginId   string `xml:"PluginId"`
+				PluginID   string `xml:"PluginId"`
 				PluginName string `xml:"PluginName"`
 				Family     string `xml:"Family"`
 				Status     string `xml:"Status"`

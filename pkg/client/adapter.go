@@ -557,11 +557,11 @@ func (a *Adapter) UnpackJQExec() (string, error) {
 
 // JSONQuery will pipe bytes through jq and return results.
 func (a *Adapter) JSONQuery(json []byte, jqex string) []byte {
-
+	log := a.Config.VM.Log
 	if a.Config.VM.JQExec == "" {
 		jq, err := exec.LookPath("jq")
 		if err != nil {
-			a.Config.VM.Log.Infof("'jq' exec not found in path: extracting from self")
+			log.Infof("'jq' exec not found in path: extracting from self")
 			jq, err = a.UnpackJQExec()
 			if err != nil {
 				log.Errorf("error: cannot unpack jq from self and not in path.")
@@ -569,12 +569,16 @@ func (a *Adapter) JSONQuery(json []byte, jqex string) []byte {
 			}
 		}
 		a.Config.VM.JQExec = jq
+		log.Infof("using jq from path '%s'", jq)
 	}
 
-	jq := a.Config.VM.JQExec
+	jqexec := a.Config.VM.JQExec
 
 	var stdout bytes.Buffer
-	cmd := exec.Command(jq, "-c", "-r", jqex)
+	// var cmds = []string{"-c", "-r", jqex}
+	var cmds = []string{jqex}
+
+	cmd := exec.Command(jqexec, cmds...)
 	cmd.Stdin = strings.NewReader(string(json))
 	cmd.Stdout = &stdout
 	err := cmd.Run()
