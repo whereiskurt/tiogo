@@ -325,17 +325,17 @@ type AgentGroup struct {
 }
 
 type VulnExportStatus struct {
-	Status          string   `json:"status"`
-	Chunks          []string `json:"chunks_available"`
-	ChunksFailed    []string `json:"chunks_failed"`
-	ChunksCancelled []string `json:"chunks_cancelled"`
+	Status          string
+	Chunks          []string
+	ChunksFailed    []string
+	ChunksCancelled []string
 }
 
 type AssetExportStatus struct {
-	Status          string   `json:"status"`
-	Chunks          []string `json:"chunks_available"`
-	ChunksFailed    []string `json:"chunks_failed"`
-	ChunksCancelled []string `json:"chunks_cancelled"`
+	Status          string
+	Chunks          []string
+	ChunksFailed    []string
+	ChunksCancelled []string
 }
 
 type VulnExportChunk struct {
@@ -353,35 +353,35 @@ type VulnExportChunk struct {
 	State                string
 }
 type VulnExportChunkAsset struct {
-	DeviceType               string   `json:"device_type"`
-	FQDN                     string   `json:"fqdn"`
-	HostName                 string   `json:"hostname"`
-	UUID                     string   `json:"uuid"`
-	IPV4                     string   `json:"ipv4"`
-	LastAuthenticatedResults string   `json:"last_unauthenticated_results"`
-	NetBIOSWorkgroup         []string `json:"netbios_workgroup"`
-	OperatingSystem          []string `json:"operating_system"`
-	Tracked                  bool     `json:"tracked"`
+	DeviceType               string
+	FQDN                     string
+	HostName                 string
+	UUID                     string
+	IPV4                     string
+	LastAuthenticatedResults string
+	NetBIOSWorkgroup         []string
+	OperatingSystem          []string
+	Tracked                  bool
 }
 type VulnExportChunkPlugin struct {
-	ID               string `json:"id"`
-	Name             string `json:"name"`
-	Description      string `json:"decsription"`
-	Family           string `json:"family"`
-	FamilyID         string `json:"family_id"`
-	HasPatch         bool   `json:"has_patch"`
-	ModificationDate string `json:"modification_date"`
-	PublicationDate  string `json:"publication_date"`
-	RiskFactor       string `json:"risk_factor"`
-	Solution         string `json:"solution"`
-	Synopsis         string `json:"synopsis"`
-	Type             string `json:"type"`
-	Version          string `json:"version"`
+	ID               string
+	Name             string
+	Description      string
+	Family           string
+	FamilyID         string
+	HasPatch         bool
+	ModificationDate string
+	PublicationDate  string
+	RiskFactor       string
+	Solution         string
+	Synopsis         string
+	Type             string
+	Version          string
 }
 type VulnExportChunkPort struct {
-	Port     string `json:"port"`
-	Protocol string `json:"protocol"`
-	Service  string `json:"service"`
+	Port     string
+	Protocol string
+	Service  string
 }
 type VulnExportChunkScan struct {
 	CompletedAt  string
@@ -405,6 +405,95 @@ type ScansExportStatus struct {
 
 // ScansExportGet is outputed at successful scans export
 type ScansExportGet struct {
-	FileUUID       string
-	CachedFileName string
+	ScanID       string
+	HistoryID    string
+	ScheduleUUID string
+
+	Policy struct {
+		Name        string
+		Comments    string
+		Preferences struct {
+			Server  map[string]string
+			Plugins []PolicyPreferencePlugin
+		}
+		FamilyStatus map[string]string
+		Plugins      []PolicyPlugin
+	}
+	Report struct {
+		Name  string
+		Hosts []ReportHost
+	}
+	SourceFile struct {
+		FileUUID       string
+		CachedFileName string
+	}
+}
+
+// PolicyPreferencePlugin used with export-scans nessus xml
+type PolicyPreferencePlugin struct {
+	PluginName       string
+	PluginID         string
+	FullName         string
+	PreferenceName   string
+	PreferenceType   string
+	PreferenceValues string
+	SelectedValue    string
+}
+
+// PolicyPlugin used with export-scans nessus xml
+type PolicyPlugin struct {
+	PluginID   string
+	PluginName string
+	Family     string
+	Status     string
+}
+
+// ReportHost used with export-scans nessus xml
+type ReportHost struct {
+	Name       string
+	HostTag    map[string]string
+	ReportItem []ReportItemType
+}
+
+// ReportItemType used with export-scans nessus xml
+type ReportItemType struct {
+	BID                        []string
+	CanvasPackage              string
+	CVE                        []string
+	CVSS3BaseScore             string
+	CVSS3TemporalScore         string
+	CVSS3TemporalVector        string
+	CVSS3Vector                string
+	CVSSBaseScore              string
+	CVSSTemporalScore          string
+	CVSSTemporalVector         string
+	CVSSVector                 string
+	Description                string
+	ExploitAvailable           string
+	ExploitedByMalware         string
+	ExploitFrameworkCanvas     string
+	ExploitFrameworkCore       string
+	ExploitFrameworkMetasploit string
+	InTheNews                  string
+	MetasploitName             string
+	PatchPublicationDate       string
+	PluginFamily               string
+	PluginID                   string
+	PluginModificationDate     string
+	PluginName                 string
+	PluginOutput               string
+	PluginPublicationDate      string
+	PluginType                 string
+	Port                       string
+	Protocol                   string
+	RiskFactor                 string
+	ScriptVersion              string
+	SeeAlso                    string
+	Severity                   string
+	Solution                   string
+	SvcName                    string
+	Synopsis                   string
+	UnsupportedByVendor        string
+	VulnPublicationDate        string
+	XRef                       []string
 }

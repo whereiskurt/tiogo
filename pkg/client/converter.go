@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"strconv"
 	"strings"
@@ -348,7 +349,107 @@ func (c *Converter) ToScansExportStatus(fileuuid string, raw []byte) (converted 
 }
 
 //ToScansExportGet converts Tenable.io status scan outputs
-func (c *Converter) ToScansExportGet(fileuuid string, raw []byte) (converted ScansExportGet, err error) {
-	converted.FileUUID = fileuuid
-	return converted, err
+func (c *Converter) ToScansExportGet(raw *[]byte) (tgt ScansExportGet, err error) {
+	var src tenable.ScansExportNessusData
+	err = xml.Unmarshal([]byte(*raw), &src)
+	if err != nil {
+		log.Errorf("error: couldn't parse exported scan XML: %v", err)
+		return tgt, err
+	}
+
+	tgt.Policy.Name = src.Policy.PolicyName
+	tgt.Policy.Comments = src.Policy.PolicyComments
+	tgt.Policy.Preferences.Server = make(map[string]string)
+	for _, v := range src.Policy.Preferences.ServerPreferences.Preference {
+		tgt.Policy.Preferences.Server[v.Name] = v.Value
+	}
+
+	for _, v := range src.Policy.Preferences.PluginsPreferences.Item {
+		var n PolicyPreferencePlugin
+		n.PluginName = v.PluginName
+		n.PluginID = v.PluginID
+		n.FullName = v.FullName
+		n.PreferenceName = v.PreferenceName
+		n.PreferenceType = v.PreferenceType
+		n.PreferenceValues = v.PreferenceValues
+		n.SelectedValue = v.SelectedValue
+		tgt.Policy.Preferences.Plugins = append(tgt.Policy.Preferences.Plugins, n)
+	}
+
+	tgt.Policy.FamilyStatus = make(map[string]string)
+	for _, f := range src.Policy.FamilySelection.FamilyItem {
+		tgt.Policy.FamilyStatus[f.FamilyName] = f.Status
+	}
+
+	for _, v := range src.Policy.IndividualPluginSelection.PluginItem {
+		var n PolicyPlugin
+		n.PluginID = v.PluginID
+		n.PluginName = v.PluginName
+		n.Family = v.Family
+		n.Status = v.Status
+		tgt.Policy.Plugins = append(tgt.Policy.Plugins, n)
+	}
+
+	tgt.Report.Name = src.Report.Name
+	for _, v := range src.Report.ReportHost {
+		var n ReportHost
+		n.Name = v.Name
+		n.HostTag = make(map[string]string)
+		for _, w := range v.HostProperties.Tag {
+			n.HostTag[w.Name] = w.Text
+		}
+
+		for _, w := range v.ReportItem {
+			var i ReportItemType
+			i.CanvasPackage = w.CanvasPackage
+			i.CVSS3BaseScore = w.Cvss3BaseScore
+			i.CVSS3TemporalScore = w.Cvss3TemporalScore
+			i.CVSS3TemporalVector = w.Cvss3TemporalVector
+			i.CVSS3Vector = w.Cvss3Vector
+			i.CVSSBaseScore = w.CvssBaseScore
+			i.CVSSTemporalScore = w.CvssTemporalScore
+			i.CVSSTemporalVector = w.CvssTemporalVector
+			i.CVSSVector = w.CvssVector
+			i.Description = w.Description
+			i.ExploitAvailable = w.ExploitAvailable
+			i.ExploitedByMalware = w.ExploitedByMalware
+			i.ExploitFrameworkCanvas = w.ExploitFrameworkCanvas
+			i.ExploitFrameworkCore = w.ExploitFrameworkCore
+			i.ExploitFrameworkMetasploit = w.ExploitFrameworkMetasploit
+			i.InTheNews = w.InTheNews
+			i.MetasploitName = w.MetasploitName
+			i.PatchPublicationDate = w.PatchPublicationDate
+			i.PluginFamily = w.PluginFamily
+			i.PluginID = w.PluginID
+			i.PluginModificationDate = w.PluginModificationDate
+			i.PluginName = w.PluginName
+			i.PluginOutput = w.PluginOutput
+			i.PluginPublicationDate = w.PluginPublicationDate
+			i.PluginType = w.PluginType
+			i.Port = w.Port
+			i.Protocol = w.Protocol
+			i.RiskFactor = w.RiskFactor
+			i.ScriptVersion = w.ScriptVersion
+			i.SeeAlso = w.SeeAlso
+			i.Severity = w.Severity
+			i.Solution = w.Solution
+			i.SvcName = w.SvcName
+			i.Synopsis = w.Synopsis
+			i.UnsupportedByVendor = w.UnsupportedByVendor
+			i.VulnPublicationDate = w.VulnPublicationDate
+			for _, x := range w.Bid {
+				i.BID = append(i.BID, x)
+			}
+			for _, x := range w.Xref {
+				i.XRef = append(i.XRef, x)
+			}
+			for _, x := range w.Cve {
+				i.CVE = append(i.CVE, x)
+			}
+			n.ReportItem = append(n.ReportItem, i)
+		}
+		tgt.Report.Hosts = append(tgt.Report.Hosts, n)
+	}
+
+	return tgt, err
 }

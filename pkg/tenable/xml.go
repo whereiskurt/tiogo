@@ -22,7 +22,7 @@ type ScansExportNessusData struct {
 			} `xml:"ServerPreferences"`
 			PluginsPreferences struct {
 				Text string `xml:",chardata"`
-				Item struct {
+				Item []struct {
 					Text             string `xml:",chardata"`
 					PluginName       string `xml:"pluginName"`
 					PluginID         string `xml:"pluginId"`
@@ -44,7 +44,7 @@ type ScansExportNessusData struct {
 		} `xml:"FamilySelection"`
 		IndividualPluginSelection struct {
 			Text       string `xml:",chardata"`
-			PluginItem struct {
+			PluginItem []struct {
 				Text       string `xml:",chardata"`
 				PluginID   string `xml:"PluginId"`
 				PluginName string `xml:"PluginName"`
@@ -68,24 +68,46 @@ type ScansExportNessusData struct {
 				} `xml:"tag"`
 			} `xml:"HostProperties"`
 			ReportItem []struct {
-				Text                   string `xml:",chardata"`
-				Severity               string `xml:"severity,attr"`
-				Port                   string `xml:"port,attr"`
-				PluginFamily           string `xml:"pluginFamily,attr"`
-				PluginName             string `xml:"pluginName,attr"`
-				PluginID               string `xml:"pluginID,attr"`
-				Protocol               string `xml:"protocol,attr"`
-				SvcName                string `xml:"svc_name,attr"`
-				PluginModificationDate string `xml:"plugin_modification_date"`
-				PluginPublicationDate  string `xml:"plugin_publication_date"`
-				PluginType             string `xml:"plugin_type"`
-				Solution               string `xml:"solution"`
-				Description            string `xml:"description"`
-				Synopsis               string `xml:"synopsis"`
-				RiskFactor             string `xml:"risk_factor"`
-				ScriptVersion          string `xml:"script_version"`
-				PluginOutput           string `xml:"plugin_output"`
-				SeeAlso                string `xml:"see_also"`
+				Text                       string   `xml:",chardata"`
+				Severity                   string   `xml:"severity,attr"`
+				Port                       string   `xml:"port,attr"`
+				PluginFamily               string   `xml:"pluginFamily,attr"`
+				PluginName                 string   `xml:"pluginName,attr"`
+				PluginID                   string   `xml:"pluginID,attr"`
+				Protocol                   string   `xml:"protocol,attr"`
+				SvcName                    string   `xml:"svc_name,attr"`
+				PluginModificationDate     string   `xml:"plugin_modification_date"`
+				PluginPublicationDate      string   `xml:"plugin_publication_date"`
+				PluginType                 string   `xml:"plugin_type"`
+				Solution                   string   `xml:"solution"`
+				Description                string   `xml:"description"`
+				Synopsis                   string   `xml:"synopsis"`
+				SeeAlso                    string   `xml:"see_also"`
+				RiskFactor                 string   `xml:"risk_factor"`
+				ScriptVersion              string   `xml:"script_version"`
+				PluginOutput               string   `xml:"plugin_output"`
+				Cve                        []string `xml:"cve"`
+				Bid                        []string `xml:"bid"`
+				CvssBaseScore              string   `xml:"cvss_base_score"`
+				CvssTemporalScore          string   `xml:"cvss_temporal_score"`
+				Cvss3BaseScore             string   `xml:"cvss3_base_score"`
+				Cvss3TemporalScore         string   `xml:"cvss3_temporal_score"`
+				ExploitAvailable           string   `xml:"exploit_available"`
+				PatchPublicationDate       string   `xml:"patch_publication_date"`
+				VulnPublicationDate        string   `xml:"vuln_publication_date"`
+				Cvss3TemporalVector        string   `xml:"cvss3_temporal_vector"`
+				Cvss3Vector                string   `xml:"cvss3_vector"`
+				CvssTemporalVector         string   `xml:"cvss_temporal_vector"`
+				CvssVector                 string   `xml:"cvss_vector"`
+				Xref                       []string `xml:"xref"`
+				UnsupportedByVendor        string   `xml:"unsupported_by_vendor"`
+				ExploitFrameworkMetasploit string   `xml:"exploit_framework_metasploit"`
+				MetasploitName             string   `xml:"metasploit_name"`
+				CanvasPackage              string   `xml:"canvas_package"`
+				ExploitFrameworkCanvas     string   `xml:"exploit_framework_canvas"`
+				ExploitedByMalware         string   `xml:"exploited_by_malware"`
+				ExploitFrameworkCore       string   `xml:"exploit_framework_core"`
+				InTheNews                  string   `xml:"in_the_news"`
 			} `xml:"ReportItem"`
 		} `xml:"ReportHost"`
 	} `xml:"Report"`

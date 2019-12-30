@@ -714,12 +714,15 @@ func (a *Adapter) ScansExportGet(s *Scan, histid string, format string, skipOnHi
 	}
 
 	convert := NewConvert()
-	export, err := convert.ToScansExportGet(fileuuid, raw)
+	export, err := convert.ToScansExportGet(&raw)
 
+	export.ScanID = s.ScanID
+	export.ScheduleUUID = s.ScheduleUUID
+	export.HistoryID = histid
+	export.SourceFile.FileUUID = fileuuid
 	filename, _ := tenable.ToCacheFilename(tenable.EndPoints.ScansExportGet, map[string]string{"ScanID": s.ScanID, "FileUUID": fileuuid})
-
 	filename = filepath.Join(a.Config.VM.CacheFolder, "service", filename)
-	export.CachedFileName = filename
+	export.SourceFile.CachedFileName = filename
 
 	return export, err
 }

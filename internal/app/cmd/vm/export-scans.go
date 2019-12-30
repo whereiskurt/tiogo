@@ -2,13 +2,10 @@ package vm
 
 import (
 	"encoding/json"
-	"encoding/xml"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
-	"github.com/whereiskurt/tiogo/pkg/tenable"
 	"github.com/whereiskurt/tiogo/pkg/ui"
 )
 
@@ -184,7 +181,7 @@ func (vm *VM) ExportScansGet(cmd *cobra.Command, args []string) {
 		cli := ui.NewCLI(vm.Config)
 		cli.Println(fmt.Sprintf("tiogo version %s (%s)", ReleaseVersion, GitHash))
 		cli.DrawGopher()
-		fmt.Println(cli.Render("ExportScansGet", map[string]string{"Format": format, "Filename": export.CachedFileName, "FileUUID": export.FileUUID, "ScanID": s.ScanID, "HistoryID": histid}))
+		fmt.Println(cli.Render("ExportScansGet", map[string]string{"Format": format, "Filename": export.SourceFile.CachedFileName, "FileUUID": export.SourceFile.FileUUID, "ScanID": s.ScanID, "HistoryID": histid}))
 
 	}
 	return
@@ -195,6 +192,7 @@ func (vm *VM) ExportScansQuery(cmd *cobra.Command, args []string) {
 	log := vm.Config.VM.EnableLogging()
 
 	a := client.NewAdapter(vm.Config, vm.Metrics)
+	cli := ui.NewCLI(vm.Config)
 
 	scans, err := a.Scans(true, true)
 	if err != nil {
@@ -230,6 +228,8 @@ func (vm *VM) ExportScansQuery(cmd *cobra.Command, args []string) {
 			histid = det.History[0].HistoryID
 		}
 
+		log.Infof(fmt.Sprintf("tiogo version %s (%s)", ReleaseVersion, GitHash))
+
 		// TODO: Pass in 2x code{} for cmd, and output
 		var export client.ScansExportGet
 		export, err := a.ScansExportGet(&s, histid, format, true, true)
@@ -237,36 +237,14 @@ func (vm *VM) ExportScansQuery(cmd *cobra.Command, args []string) {
 			log.Errorf("error: couldn't get export-scans: %v", err)
 			continue
 		}
-		filename := export.CachedFileName
 
-		log.Infof(fmt.Sprintf("tiogo version %s (%s)", ReleaseVersion, GitHash))
-		log.Infof(fmt.Sprintf("Opening file to query: %s", filename))
-
-		raw, _ := ioutil.ReadFile(filename)
-
-		var parsed tenable.ScansExportNessusData
-		err = xml.Unmarshal([]byte(raw), &parsed)
+		json, err := json.Marshal(export)
 		if err != nil {
-			log.Errorf("error: couldn't parse '%s' as nesses xml: %v", filename, err)
-			continue
-		}
-
-		json, err := json.Marshal(parsed)
-		if nil != err {
 			fmt.Println("Error marshalling to JSON", err)
 			return
 		}
 
-		cli := ui.NewCLI(vm.Config)
-
-		jqex := vm.Config.VM.JQex
-		if jqex == "" {
-			jqex = "."
-			a.Config.VM.Log.Infof("query --jqex was not specified - will use default '%s'", jqex)
-		}
-		filter := a.JSONQuery(json, jqex)
-		cli.Println(fmt.Sprintf("%s", filter))
-
+		cli.Println(string(json))
 	}
 	return
 }
