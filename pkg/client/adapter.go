@@ -714,8 +714,10 @@ func (a *Adapter) ScansExportGet(s *Scan, histid string, format string, skipOnHi
 	}
 
 	convert := NewConvert()
+	// DTO from Tenable.io
 	export, err := convert.ToScansExportGet(&raw)
 
+	// Store the scan indentifiers with export
 	export.ScanID = s.ScanID
 	export.ScheduleUUID = s.ScheduleUUID
 	export.HistoryID = histid
