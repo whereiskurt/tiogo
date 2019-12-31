@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	outputFilename := "../pkg/config/jq_generate.go"
+	outputFilename := "../pkg/config/vfsgenerate.go"
 	err := vfsgen.Generate(http.Dir("./"), vfsgen.Options{
 		Filename:     outputFilename,
 		PackageName:  "config",
@@ -25,10 +25,10 @@ func main() {
 		logrus.Fatalln(err)
 	}
 
-	outputFilename = "../pkg/config/cmd_generate.go"
+	outputFilename = "../internal/app/cmd/vfsgenerate.go"
 	err = vfsgen.Generate(http.Dir("../internal/app/cmd/"), vfsgen.Options{
 		Filename:     outputFilename,
-		PackageName:  "config",
+		PackageName:  "cmd",
 		BuildTags:    "release",
 		VariableName: "CmdHelpEmbed",
 	})

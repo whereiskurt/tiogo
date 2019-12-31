@@ -5,11 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/csv"
 	"fmt"
-	"github.com/whereiskurt/tiogo/pkg/client"
-	"github.com/whereiskurt/tiogo/pkg/config"
 	"io/ioutil"
 	"strings"
 	"text/template"
+
+	"github.com/whereiskurt/tiogo/internal/app/cmd"
+	"github.com/whereiskurt/tiogo/pkg/client"
+	"github.com/whereiskurt/tiogo/pkg/config"
 )
 
 // CLI makes the text output to the terminal.
@@ -132,7 +134,7 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 
 	t := template.New("")
 	for _, f := range templateFiles {
-		file, err := config.CmdHelpEmbed.Open(fmt.Sprintf("%s", f))
+		file, err := cmd.CmdHelpEmbed.Open(fmt.Sprintf("%s", f))
 		content, err := ioutil.ReadAll(file)
 		if err != nil {
 			log.Errorf("Couldn't load template file: %s: %s", fmt.Sprintf("%s", f), err)

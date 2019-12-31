@@ -3,19 +3,21 @@ package internal
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
+	"text/template"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/whereiskurt/tiogo/internal/app/cmd"
 	cmdproxy "github.com/whereiskurt/tiogo/internal/app/cmd/proxy"
 	"github.com/whereiskurt/tiogo/internal/app/cmd/vm"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	pkgproxy "github.com/whereiskurt/tiogo/pkg/proxy"
 	"github.com/whereiskurt/tiogo/pkg/ui"
-	"io/ioutil"
-	"os"
-	"strings"
-	"text/template"
 )
 
 var (
@@ -194,7 +196,7 @@ func (a *App) commandUsageTmpl(name string, data interface{}) string {
 
 	t := template.New("")
 
-	file, err := config.CmdHelpEmbed.Open("tio.tmpl")
+	file, err := cmd.CmdHelpEmbed.Open("tio.tmpl")
 	if err != nil {
 		log.Fatal(err)
 		return ""
