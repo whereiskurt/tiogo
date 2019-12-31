@@ -58,11 +58,9 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 	case "export-assets", "export-asset":
 		fmt.Print(cli.Render("exportAssetsUsage", versionMap))
 	case "export-scans", "export-scan":
-		fmt.Print(cli.Render("exportAssetsUsage", versionMap))
-
+		fmt.Print(cli.Render("exportScansUsage", versionMap))
 	case "cache":
 		fmt.Print(cli.Render("cacheUsage", versionMap))
-
 	default:
 		fmt.Println(cli.Render("vmUsage", versionMap))
 	}
