@@ -194,7 +194,7 @@ func (a *App) commandUsageTmpl(name string, data interface{}) string {
 
 	t := template.New("")
 
-	file, err := config.TemplateFolder.Open("/template/cmd/tiogo.tmpl")
+	file, err := config.CmdHelpEmbed.Open("tio.tmpl")
 	if err != nil {
 		log.Fatal(err)
 		return ""

@@ -7,37 +7,31 @@ package main
 //go:generate go run vfsgen_templates.go
 
 import (
+	"net/http"
+
 	"github.com/shurcooL/vfsgen"
 	"github.com/sirupsen/logrus"
-	"net/http"
-	"os"
-	"strings"
 )
 
 func main() {
-	outputFilename := "pkg/config/templates_generate.go"
-
-	// NOTE: If we run from the IDE with a right-click our cwd() is inside of config/templates
-	cwd, _ := os.Getwd()
-	templateFolder := "config/"
-
-	logrus.Infof("Generating from working folder: cwd:%s", cwd)
-
-	// Check if we're running inside the config/template folder, and adjust relative paths.
-	if strings.Contains(cwd, "config") {
-		templateFolder = "./"
-		outputFilename = "../" + outputFilename
-	}
-
-	logrus.Infof("Setting template folder:'%s' and output filename:'%s'", templateFolder, outputFilename)
-
-	err := vfsgen.Generate(http.Dir(templateFolder), vfsgen.Options{
+	outputFilename := "../pkg/config/jq_generate.go"
+	err := vfsgen.Generate(http.Dir("./"), vfsgen.Options{
 		Filename:     outputFilename,
 		PackageName:  "config",
 		BuildTags:    "release",
-		VariableName: "TemplateFolder",
+		VariableName: "BinaryEmbedFolder",
 	})
+	if err != nil {
+		logrus.Fatalln(err)
+	}
 
+	outputFilename = "../pkg/config/cmd_generate.go"
+	err = vfsgen.Generate(http.Dir("../internal/app/cmd/"), vfsgen.Options{
+		Filename:     outputFilename,
+		PackageName:  "config",
+		BuildTags:    "release",
+		VariableName: "CmdHelpEmbed",
+	})
 	if err != nil {
 		logrus.Fatalln(err)
 	}

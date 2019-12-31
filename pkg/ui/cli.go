@@ -120,16 +120,19 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 	var log = cli.Config.VM.Log
 	// TODO: Replace this with an 'index' concept - needs to be generated. vfsgen types/methods not visible.
 	var templateFiles []string
-	templateFiles = append(templateFiles, "template/client/table.tmpl")
-	templateFiles = append(templateFiles, "template/client/csv.tmpl")
-	templateFiles = append(templateFiles, "template/cmd/tiogo.tmpl")
-	templateFiles = append(templateFiles, "template/cmd/vm/vm.tmpl")
-	templateFiles = append(templateFiles, "template/cmd/vm/scans.tmpl")
-	templateFiles = append(templateFiles, "template/cmd/vm/exports.tmpl")
+	templateFiles = append(templateFiles, "vm/agent-groups.tmpl")
+	templateFiles = append(templateFiles, "vm/agents.tmpl")
+	templateFiles = append(templateFiles, "vm/cache.tmpl")
+	templateFiles = append(templateFiles, "vm/export-assets.tmpl")
+	templateFiles = append(templateFiles, "vm/export-scans.tmpl")
+	templateFiles = append(templateFiles, "vm/export-vulns.tmpl")
+	templateFiles = append(templateFiles, "vm/scanners.tmpl")
+	templateFiles = append(templateFiles, "vm/scans.tmpl")
+	templateFiles = append(templateFiles, "vm/vm.tmpl")
 
 	t := template.New("")
 	for _, f := range templateFiles {
-		file, err := config.TemplateFolder.Open(fmt.Sprintf("%s", f))
+		file, err := config.CmdHelpEmbed.Open(fmt.Sprintf("%s", f))
 		content, err := ioutil.ReadAll(file)
 		if err != nil {
 			log.Errorf("Couldn't load template file: %s: %s", fmt.Sprintf("%s", f), err)

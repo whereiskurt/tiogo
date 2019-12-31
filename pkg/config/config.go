@@ -217,8 +217,8 @@ func (c *Config) UnmarshalViper() {
 func (c *Config) readWithViper() {
 	var err error
 
-	defaultFilename := filepath.Join("/config", DefaultConfigFilename+"."+DefaultConfigType)
-	f, err := TemplateFolder.Open(defaultFilename)
+	defaultFilename := filepath.Join(DefaultConfigFilename + "." + DefaultConfigType)
+	f, err := BinaryEmbedFolder.Open(defaultFilename)
 	defer f.Close()
 	err = viper.ReadConfig(f)
 	if err != nil {

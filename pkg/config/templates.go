@@ -11,14 +11,18 @@ import (
 	"runtime"
 )
 
-// TemplateFolder implements the http filesystem, but is overridden when we
+// BinaryEmbedFolder implements the http filesystem, but is overridden when we
 // build with tags (go build -tags release) this file won't be built, but
 // templates_generate.go will be.
-var TemplateFolder http.FileSystem
+var BinaryEmbedFolder http.FileSystem
+
+var CmdHelpEmbed http.FileSystem
 
 func init() {
 	// This needs to be set to an absolute folder path, so we derive it. :-)
 	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Join(path.Dir(filename), "../../")
-	TemplateFolder = http.Dir(dir)
+
+	BinaryEmbedFolder = http.Dir(path.Join(path.Dir(filename), "../../config/"))
+	CmdHelpEmbed = http.Dir(path.Join(path.Dir(filename), "../../internal/app/cmd/"))
+
 }

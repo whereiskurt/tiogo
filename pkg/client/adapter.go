@@ -534,7 +534,7 @@ func (a *Adapter) UnpackJQExec() (string, error) {
 	}
 
 	a.Config.VM.Log.Debugf("Creating temporary file for jq executable: %s from %s", jqexe, jqint)
-	file, err := config.TemplateFolder.Open(jqint)
+	file, err := config.BinaryEmbedFolder.Open(jqint)
 	if err != nil {
 		log.Error(err)
 		return "", err
