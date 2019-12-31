@@ -3,3 +3,7 @@ log/*
 .idea/*
 *.bat
 *.sh
+
+## These are specific build or testing artifacts that can end up in the root folder.
+tio
+xtime

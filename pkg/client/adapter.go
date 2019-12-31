@@ -636,7 +636,7 @@ func (a *Adapter) ScanDetails(s *Scan, skipOnHit bool, writeOnReturn bool) (deta
 	a.Metrics.ClientInc(metrics.EndPoints.ScansList, metrics.Methods.Service.Get)
 
 	u := NewUnmarshal(a.Config, a.Metrics)
-	raw, err := u.ScanDetails(s.ScheduleUUID, skipOnHit, writeOnReturn)
+	raw, err := u.ScanDetails(s.ScanID, skipOnHit, writeOnReturn)
 	if err != nil {
 		a.Config.VM.Log.Errorf("error: failed to get the scan list: %v", err)
 		return details, err
