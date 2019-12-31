@@ -1,0 +1,34 @@
+{{define "vmUsage" -}}
+An interface into the Tenable.io API using Go!
+
+Version {{.ReleaseVersion}} {{.GitHash}}
+
+{{- Gopher }}
+Find more information at:
+    https://github.com/whereiskurt/tiogo/
+
+Usage:
+    tio [SUBCOMMAND] [ACTION ...] [OPTIONS]
+
+Sub-commands:
+    help, scanners, agents, agent-groups, export-vulns, cache (#TODO: scans)
+
+VM Options:
+    Selection modifiers:
+      --id=[unique id]
+      --name=[string]
+      --regex=[regular expression]
+      --jqex=[jq expression]
+
+Output Modes:
+      --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+      --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+VM Actions and Examples:
+    $ tio vm help agents
+    $ tio vm help agent-groups
+    $ tio vm help scanners
+    $ tio vm help export-vulns
+    $ tio vm help export-assets
+
+{{end}}

@@ -1,0 +1,23 @@
+{{define "cacheUsage"}}
+Bulk Exports of Assets
+https://developer.tenable.com/reference#exports
+
+Usage:
+    tio vm cache [ACTION ...] [OPTIONS]
+
+Action:
+    info, clear all, clear agents, clear scans, clear exports
+
+Examples:
+    ## Display cache folder locations that will be affected
+    $ tio cache info
+
+    ## Remove ALL cached entries including agents/scans/exports/
+    $ tio cache clear all 
+
+    ## Remove cached agents
+    $ tio cache clear agents
+    ## Remove cached scans
+    $ tio cache clear scans
+
+{{end}}

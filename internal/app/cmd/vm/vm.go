@@ -45,18 +45,21 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 
 	helpType := strings.ToLower(args[0])
 	switch helpType {
-	case "scanners":
+	case "scanners", "scanner":
 		fmt.Println(cli.Render("scannersUsage", versionMap))
-	case "agent-groups":
+	case "agent-groups", "agent-group":
 		fmt.Print(cli.Render("agentGroupsUsage", versionMap))
-	case "agents":
+	case "agents", "agent":
 		fmt.Print(cli.Render("agentsUsage", versionMap))
-	case "scans":
+	case "scans", "scan":
 		fmt.Print(cli.Render("scansUsage", versionMap))
-	case "export-vulns":
+	case "export-vulns", "export-vuln":
 		fmt.Print(cli.Render("exportVulnsUsage", versionMap))
-	case "export-assets":
+	case "export-assets", "export-asset":
 		fmt.Print(cli.Render("exportAssetsUsage", versionMap))
+	case "export-scans", "export-scan":
+		fmt.Print(cli.Render("exportAssetsUsage", versionMap))
+
 	case "cache":
 		fmt.Print(cli.Render("cacheUsage", versionMap))
 

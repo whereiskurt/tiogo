@@ -1,0 +1,52 @@
+{{define "agentsUsage" -}}
+Agents are software installed on hosts that execute local host scans and report back to Tenable.io
+    https://developer.tenable.com/reference#agents
+
+Usage:
+    tio vm agents [ACTION ...] [OPTIONS]
+
+Action:
+    list, group, ungroup
+
+Agents Options:
+    Selection modifiers:
+      --id=[unique id]
+      --name=[string]
+      --regex=[regular expression]
+      --jqex=[jq expression]
+
+    Output Modes:
+      --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+      --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+    Examples:
+      $ tio agents
+      $ tio agents list --without-group
+      $ tio agents list --group "New Group Name"
+      $ tio agents list --regex "New Group .+"
+
+      ## Group and Ungroup Agents into Agent Groups
+      $ tio agents group --group "New Group Name" --regex "10\.0\.2\"
+      $ tio agents ungroup --group "New Group Name"
+{{end}}
+
+{{define "IPSegments" -}}
+{{- if Contains . "." -}}
+{{- $ip:= StringsSplit . "."}}
+{{- $ip1:=index $ip 0 -}}
+{{- $ip2:=index $ip 1 -}}
+{{- $ip3:=index $ip 2 -}}
+{{- $ip4:=index $ip 3 -}}
+{{$ip1}},{{$ip2}},{{$ip3}},{{$ip4}},{{ . }}
+{{- else -}}
+,,,,{{.}}
+{{- end}}
+{{- end}}
+
+{{define "AgentsListCSV"}}
+Name,IP1,IP2,IP3,IP4,IP,LastScan,LastConnect,{{AgentGroupsHeader .AgentGroups}},Groups,GroupCount,LinkedOn,Feed,UUID,Status
+{{ $groups := .AgentGroups -}}
+{{- range $k, $v := .Agents -}}
+    {{$v.Name | ToLower }},{{template "IPSegments" $v.IP }},"{{$v.LastScanned}}","{{$v.LastConnect}}",{{CSVString (GroupMembership $v.Groups $groups)}},"{{StringsJoin $v.Groups ";"}}",{{len $v.Groups}},{{$v.LinkedOn}},{{$v.Feed}},{{$v.UUID}},{{$v.Status}}
+{{end}}
+{{end}}

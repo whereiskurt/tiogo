@@ -1,0 +1,39 @@
+{{define "agentGroupsUsage"}}
+Agents are put into Groups and used for the purposes of Agent Scans.
+(https://cloud.tenable.com/api/#/resources/agent-groups)
+
+Usage:
+    tio vm agent-groups [ACTION ...] [OPTIONS]
+
+Action:
+    list, (TODO: create, delete)
+
+Agents Options:
+    Selection modifiers:
+      --id=[unique id]
+      --name=[string]
+      --regex=[regular expression]
+      --jqex=[jq expression]
+
+    Output Modes:
+      --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+      --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+    Examples:
+      $ tio vm agent-groups list
+      $ tio agent-groups
+
+      ## TODO: Implement create, delete, and --as-target-groups
+      $ tio vm agent-groups create --name "Agent Group #Y"
+      $ tio vm agent-groups delete --name "Agent Group #Y"
+
+      ## Output IP addresses of Agents to so we can create Target Groups
+      $ tio vm agent-groups list --as-target-groups --size=16
+{{end}}
+
+{{define "AgentGroupsListCSV" }}
+{{ printf "ID,AgentsCount,Name\n" }}
+{{- range $k, $v := .AgentGroups -}}
+    {{ printf "%s,%s,\"%s\"\n" .ID .AgentsCount .Name }}
+{{- end -}}
+{{end}}

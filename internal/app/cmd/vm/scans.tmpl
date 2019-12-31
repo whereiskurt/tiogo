@@ -38,5 +38,11 @@ Agents Options:
 
       ## Query 
       $ tio scans query --id=1 --offset=3 
+{{end}}
 
+{{define "ScansListCSV" }}
+{{ printf "ID, Name, Type, Enabled, ScheduleStart,ScheduleRules,LastRunDate\n"  }}
+{{- range $k, $v := .Scans -}}
+    {{ printf "%s,%s,%s,%s,%s,%s,%s\n" .ScanID .Name .Type .Enabled .StartTime .RRules .LastModifiedDate}}
+{{- end -}}
 {{end}}

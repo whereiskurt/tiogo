@@ -1,0 +1,93 @@
+{{define "exportVulnsUsage"}}
+Bulk Exports of Vulnerabilities
+https://developer.tenable.com/reference#exports
+
+Usage:
+    tio vm export-vulns [ACTION ...] [OPTIONS]
+
+Action:
+    start, status, get, query
+
+Export Vulns Options:
+    Selection modifiers:
+    --uuid=[unique id]
+    --jqex=[jq expression]
+    --chunk=[chunk to get, defaults: ALL]
+    --critical, --high, --med[ium], --info  [severity to match for vulnerability]
+    --after=[YYYY-MM-DD HH:MM:SS +/-0000 TZ] [date boundaries, or set 'days']
+    --days=[number of days to go back to, instead of defining 'after']
+
+Output Modes:
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
+    $ tio vm export-vulns start
+    $ tio vm export-vulns start --after="2019-01-01" --crit
+    $ tio vm export-vulns start --after="2019-01-01 00:00:00 -0400 EDT" --high,med,info
+    $ tio vm export-vulns start --days=31 --critical --high
+
+    $ tio vm export-vulns status
+    $ tio vm export-vulns get
+    $ tio vm export-vulns query --jqex="[.asset.ipv4, .asset.operating_system[0]]"
+{{end}}
+
+
+{{define "ExportVulnsStart"}}
+Successfully started vulnerability export uuid='{{.ExportUUID}}'
+
+Retrieving vulnerabilities since date of '{{.Since}}'
+
+To review the status for 'FINISHED' and then get the export chunks:
+
+    ## Check the status of the chunk file creation:
+    $ tio vm export-vulns status --uuid={{.ExportUUID}}
+
+    ## Retrieve all chunk files. NOTE: Fails unless status is 'FINISHED'
+    $ tio vm export-vulns get --uuid={{.ExportUUID}}
+
+{{end}}
+
+{{define "ExportVulnsStatus"}}
+Requested vulns status for uuid='{{.ExportUUID}}'.
+{{if eq .Status "FINISHED"}}
+Export status is "FINISHED"! You can retrieve the chunks:
+{{else}}
+Export status is currently '{{.Status}}', once it becomes 'FINISHED' you can get the chunks:
+{{- end}}
+    ## Retrieve all of the chunks. NOTE: Fails unless status is 'FINISHED'
+    $ tio vm export-vulns get --uuid={{.ExportUUID}}
+
+    ## Retrieve FINISHED chunks 1,2,3. NOTE: Fails unless status is 'FINISHED'
+    $ tio vm export-vulns get --uuid={{.ExportUUID}} --chunk=1,2,3
+{{end}}
+
+{{define "ExportVulnsGet"}}
+Successfully retrieved chunks='{{.Chunks}} for uuid='{{.ExportUUID}}'.
+
+Options modifiers:
+    --uuid=[unique id]
+    --jqex=[jq expression]
+    --chunk=[chunk to get]
+
+    --critical, --high, --medium, --info [severity to match for vulnerability]
+    --before,--after=[YYYY-MM-DD of date boundaries]
+    --days=[number of days to bound query to, can be used with either 'before' or 'after']
+
+Examples:
+    ## Query
+    ##Output all of the contents of the chunks as JSON
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex=".[]"
+
+    ##Output all of the contents of the chunks as JSON
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --jqex=".[]" --chunk=1,2
+
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --medium --days=45
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --days=30
+
+    ## These three examples all produce the same results -- 15 day time boxes
+    ## Everything after 2019-01-01 and before 2019-01-15
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --after 2019-01-01 --before 2019-01-15
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --after 2019-01-01 --days=15
+    $ tio vm export-vulns query --uuid='{{.ExportUUID}}' --critical --high --before 2019-01-15 --days=15   
+
+{{end}}

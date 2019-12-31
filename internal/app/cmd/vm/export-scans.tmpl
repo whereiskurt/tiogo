@@ -1,0 +1,76 @@
+{{define "exportScansUsage"}}
+Bulk Exports of Scans
+https://developer.tenable.com/reference#scans-export-request
+
+Usage:
+    tio vm export-scans [ACTION ...] [OPTIONS]
+
+Action:
+    start, status, get, query
+
+Export Scans Options:
+    Selection modifiers:
+    --id=[unique id of the scan]
+    --uuid=[unique id of the scan]
+    --history|history_id=[the uuid of the historical run]
+    --offset=[previous scan offset to export. e.g. 0 current, 1 previous, 2 prevprevious]
+
+Examples:
+    ## Start examples of an export for scan id 1234 offset 0 (current scan)
+    ## offset 1 (previous scan) and a specific history id 13545223
+    $ tio vm export-scans start --id=1234    
+    $ tio vm export-scans start --id=1234 --offset=1   
+    $ tio vm export-scans start --id=1234 --history=123456789
+    
+    ## Check this status of the started exports
+    $ tio vm export-scans status --id=1234
+    $ tio vm export-scans status --id=1234 --offset=1
+    $ tio vm export-scans status --id=1234 --history=123456789
+    
+    ## Download the export-scans file from Tenable.io
+    $ tio vm export-scans get --id=1234
+    $ tio vm export-scans get --id=1234 --offset=1
+    $ tio vm export-scans get --id=1234 --history=123456789
+    
+{{end}}
+
+{{define "ExportScansStart"}}
+Successfully started scans export uuid='{{.FileUUID}}'
+
+To review the status for 'READY' and then get the prepared file:
+
+    ## Check this status of the started exports
+    $ tio vm export-scans status --id={{.ScanID}} --history={{.HistoryID}}
+
+    ## Download the export-scan from Tenable.io (once 'READY')
+    $ tio vm export-scans get --id={{.ScanID}} --history={{.HistoryID}}
+{{end}}
+
+{{define "ExportScansStatus"}}
+Requested export-scans status for uuid='{{.FileUUID}} scanid='{{.ScanID}}' histid='{{.HistoryID}}'
+{{if eq .Status "READY"}}
+Export status is "READY"! You can retrieve the download:
+{{else}}
+Export status is currently '{{.Status}}', once it becomes 'READY' you can get the file:
+{{- end}}
+    ## Retrieve the download. NOTE: Fails unless status is 'READY'
+    $ tio vm export-scans get --id={{.ScanID}} --history={{.HistoryID}}
+
+    ## Retrieve the file NOTE: Fails unless status is 'READY'
+    $ tio vm export-scans get --id={{.ScanID}} --history={{.HistoryID}}
+{{end}}
+
+{{define "ExportScansGet"}}
+Successfully retrieved export-scans file in format "{{.Format}}" for uuid='{{.FileUUID}}' scanid='{{.ScanID}}' histid='{{.HistoryID}}'.
+
+Downloaded file '{{.Filename}}'
+
+Use export-scans query to output the scan:
+
+    ## Query downloaded export scans
+    $ tio vm export-scans query --id={{.ScanID}} --history={{.HistoryID}} --jqex=".[]"
+
+    ## Query exported scans for ALL scans at offset 0 (current)
+    $ tio vm export-scans query  
+
+{{end}}

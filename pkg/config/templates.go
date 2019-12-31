@@ -19,6 +19,6 @@ var TemplateFolder http.FileSystem
 func init() {
 	// This needs to be set to an absolute folder path, so we derive it. :-)
 	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Join(path.Dir(filename), "../../config/")
+	dir := path.Join(path.Dir(filename), "../../")
 	TemplateFolder = http.Dir(dir)
 }

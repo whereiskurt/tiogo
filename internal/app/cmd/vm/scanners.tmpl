@@ -1,0 +1,36 @@
+{{define "scannersUsage"}}
+Scanners conduct network based scanning and report results back to Tenable.io.
+https://developer.tenable.com/reference#scanners
+
+Usage:
+    tio vm scanners [ACTION ...] [OPTIONS]
+
+Action:
+    list
+
+Scanners Options:
+    Selection modifiers:
+    --id=[unique id]
+    --name=[string]
+    --regex=[regular expression]
+    --jqex=[jq expression]
+
+Output Modes:
+    --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
+    $ tio scanners
+    $ tio vm scanners
+    $ tio vm scanners list
+    $ tio vm scanners list --csv
+    $ tio vm scanners list --json
+    $ tio vm scanners list --regex '.*PROD[0-9][0-9]?.*'
+{{end}}
+
+{{define "ScannersListCSV" }}
+{{ printf "Name,Type,ID,UUID,IP\n" }}
+{{- range $k, $v := .Scanners -}}
+    {{ printf "\"%s\",\"%s\",\"%s\",%s,%s,%s\n" .Name .Status .Type .ID .UUID .IP }}
+{{- end -}}
+{{end}}

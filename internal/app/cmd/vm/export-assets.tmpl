@@ -1,0 +1,87 @@
+{{define "exportAssetsUsage"}}
+Bulk Exports of Assets
+https://developer.tenable.com/reference#exports
+
+Usage:
+    tio vm export-assets [ACTION ...] [OPTIONS]
+
+Action:
+    start, status, get, query
+
+Export Assets Options:
+    Selection modifiers:
+    --uuid=[unique id]
+    --jqex=[jq expression]
+    --chunk=[chunk to get, defaults: ALL]
+    --after=[YYYY-MM-DD HH:MM:SS +/-0000 TZ] [date boundaries, or set 'days']
+    --days=[number of days to go back to, instead of defining 'after']
+
+Output Modes:
+    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+
+Examples:
+    ## Start an export for all asses since the last_assessed date 365 days ago 
+    $ tio vm export-assets start --days=365 
+
+    ## Start an export for all assets last_assessed after 2019-01-01
+    $ tio vm export-assets start --after="2019-01-01" 
+    $ tio vm export-assets start --after="2019-01-01 00:00:00 -0400 EDT"
+
+    ## Start an export for all assets last_assessed last 31 days
+    $ tio vm export-assets start --days=31  
+    
+    ## Check the status of the requeste export.
+    $ tio vm export-assets status
+
+    ## Get all of the chunk files with asset data
+    $ tio vm export-assets get
+    $ tio vm export-assets get --chunk=ALL
+
+    ## Use built-in 'jq' to query chunks files with JQ expression.
+    $ tio vm export-assets query --jqex="[.asset.ipv4s[0], .asset.operating_system[0]]"
+
+{{end}}
+
+{{define "ExportAssetsStart"}}
+Successfully started asset export uuid='{{.ExportUUID}}'
+
+To review the status for 'FINISHED' and then get the export chunks:
+
+    ## Check the status of the chunk file creation:
+    $ tio vm export-assets status --uuid={{.ExportUUID}}
+
+    ## Retrieve all chunk files. NOTE: Fails unless status is 'FINISHED'
+    $ tio vm export-assets get --uuid={{.ExportUUID}}
+{{end}}
+
+
+{{define "ExportAssetsStatus"}}
+Requested asset status for uuid='{{.ExportUUID}}'.
+{{if eq .Status "FINISHED"}}
+Export status is "FINISHED"! You can retrieve the chunks:
+{{else}}
+Export status is currently '{{.Status}}', once it becomes 'FINISHED' you can get the chunks:
+{{- end}}
+    ## Retrieve all of the chunks. NOTE: Fails unless status is 'FINISHED'
+    $ tio vm export-assets get --uuid={{.ExportUUID}}
+
+    ## Retrieve FINISHED chunks 1,2,3. NOTE: Fails unless status is 'FINISHED'
+    $ tio vm export-assets get --uuid={{.ExportUUID}} --chunk=1,2,3
+{{end}}
+
+{{define "ExportAssetsGet"}}
+Successfully retrieved chunks='{{.Chunks}} for uuid='{{.ExportUUID}}'.
+
+Options modifiers:
+    --uuid=[unique id]
+    --jqex=[jq expression]
+    --chunk=[chunk to get]
+
+Examples:
+    ##Output all of the contents of the chunks as JSON
+    $ tio vm export-assets query --uuid='{{.ExportUUID}}' --jqex=".[]"
+
+    ##Output all of the contents of the chunks as JSON
+    $ tio vm export-assets query --uuid='{{.ExportUUID}}' --jqex=".[]" --chunk=1,2
+
+{{end}}
