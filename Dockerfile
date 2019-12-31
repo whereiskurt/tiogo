@@ -17,10 +17,10 @@ ENV GOARCH=$goarch
 ## Here's how to get a build going using this docker file:
 ##
 ## Using docker:
-##    $ docker build --tag tiogo:v0.1 .
+##    $ docker build --tag tiogo:v0.2 .
 ##     ... (build output)
 ##
-##    $ docker run --tty --interactive --rm tiogo:v0.1
+##    $ docker run --tty --interactive --rm tiogo:v0.2
 ##     ... (docker drops you into working folder with a binary already built. :-)
 ##
 ##    root@4f51ab2342123:/tiogo# ./tio help
@@ -50,7 +50,7 @@ RUN go generate -tags release ./...
 RUN go test -tags release  -v ./...
 
 ## -1 == -ONE!!!111
-RUN GIT_HASH=$(git rev-list -1 HEAD | cut -b1-8) && go build \
+RUN GIT_HASH=$(git rev-list -1 master | cut -b1-8) && go build \
     -tags release \
     -ldflags \
     "-X github.com/whereiskurt/tiogo/internal/app/cmd/vm.ReleaseVersion=$VERSION \

@@ -507,14 +507,14 @@ func (a *Adapter) UnpackJQExec() (string, error) {
 	case "linux":
 		switch runtime.GOARCH {
 		case "386":
-			jqint = "binary/jq/linux/jq-linux32"
+			jqint = "embed/jq/linux/jq-linux32"
 		case "amd64":
-			jqint = "binary/jq/linux/jq-linux64"
+			jqint = "embed/jq/linux/jq-linux64"
 		}
 	case "osx":
 		switch runtime.GOARCH {
 		case "amd64":
-			jqint = "binary/jq/osx/jq-osx-amd64"
+			jqint = "embed/jq/osx/jq-osx-amd64"
 		}
 	case "windows":
 		defer os.Remove(tempFile.Name())
@@ -522,9 +522,9 @@ func (a *Adapter) UnpackJQExec() (string, error) {
 		jqexe = jqexe + ".exe"
 		switch runtime.GOARCH {
 		case "386":
-			jqint = "binary/jq/windows/jq-win32.exe"
+			jqint = "embed/jq/windows/jq-win32.exe"
 		case "amd64":
-			jqint = "binary/jq/windows/jq-win64.exe"
+			jqint = "embed/jq/windows/jq-win64.exe"
 		}
 	}
 

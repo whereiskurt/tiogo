@@ -68,6 +68,7 @@ type ScanHistoryDetail struct {
 	HostAssetMap        map[string]string
 }
 
+// HostScanSummary struct
 type HostScanSummary struct {
 	HostID              string
 	AssetID             string
@@ -88,13 +89,7 @@ type HostScanSummary struct {
 	ChecksTotal         string
 }
 
-func (h *HostScanSummary) HasAsset() (hasAsset bool) {
-	if h.Asset.UUID != "" {
-		hasAsset = true
-	}
-	return
-}
-
+// HostScanDetail struct
 type HostScanDetail struct {
 	IP               string
 	FQDN             string
@@ -109,6 +104,7 @@ type HostScanDetail struct {
 	PluginMap        map[string]Plugin
 }
 
+// Plugin struct
 type Plugin struct {
 	PluginID   string
 	Name       string
@@ -118,27 +114,36 @@ type Plugin struct {
 	Severity   string
 	Detail     PluginDetail
 }
+
+// PluginDetail struct
 type PluginDetail struct {
 	FunctionName          string
 	PluginPublicationDate string
 	PatchPublicationDate  string
 	Attribute             map[string]PluginDetailAttribute
 }
+
+// PluginDetailAttribute struct
 type PluginDetailAttribute struct {
 	Name  string
 	Value string
 }
+
+// PluginFamily struct
 type PluginFamily struct {
 	ID    string
 	Name  string
 	Count string
 }
+
+// PluginFamilyDetail struct
 type PluginFamilyDetail struct {
 	ID       string
 	Name     string
 	PluginID []string
 }
 
+// Asset struct
 type Asset struct {
 	TimeEnd                 string
 	ID                      string
@@ -188,6 +193,8 @@ type Asset struct {
 	Source                  []AssetSource
 	Vuln                    []AssetVuln // TODO: Convert to map!
 }
+
+// AssetVuln struct
 type AssetVuln struct {
 	PluginID     string
 	PluginName   string
@@ -198,6 +205,8 @@ type AssetVuln struct {
 	Detail       AssetVulnDetail
 	Output       []AssetVulnOutput
 }
+
+// AssetVulnDetail struct
 type AssetVulnDetail struct {
 	Description   string
 	Solution      string
@@ -211,6 +220,8 @@ type AssetVulnDetail struct {
 	SeeAlso       interface{}
 	VulnInfo      interface{}
 }
+
+// AssetVulnOutput struct
 type AssetVulnOutput struct {
 	PluginOutput string
 	States       []struct {
@@ -218,6 +229,8 @@ type AssetVulnOutput struct {
 		Result []AssetVulnResult
 	}
 }
+
+// AssetVulnResult struct
 type AssetVulnResult struct {
 	ApplicationProtocol string
 	TransportProtocol   string
@@ -225,15 +238,21 @@ type AssetVulnResult struct {
 	Severity            string
 	Assets              []interface{}
 }
+
+// AssetSevSummary struct
 type AssetSevSummary struct {
 	Total    string
 	Severity []AssetSev
 }
+
+// AssetSev struct
 type AssetSev struct {
 	Count string
 	Level string
 	Name  string
 }
+
+// AssetInterface struct
 type AssetInterface struct {
 	Name       string
 	IPV4       []string
@@ -241,11 +260,15 @@ type AssetInterface struct {
 	FQDN       []string
 	MACAddress []string
 }
+
+// AssetSource struct
 type AssetSource struct {
 	FirstSeenAt string
 	LastSeenAt  string
 	Name        string
 }
+
+// AssetTagDetail struct
 type AssetTagDetail struct {
 	UUID         string
 	CategoryName string
@@ -255,6 +278,7 @@ type AssetTagDetail struct {
 	Source       string
 }
 
+// TagValue struct
 type TagValue struct {
 	ContainerUUID       string
 	UUID                string
@@ -266,6 +290,8 @@ type TagValue struct {
 	CategoryName        string
 	CategoryDescription string
 }
+
+//TagCategory struct
 type TagCategory struct {
 	ContainerUUID string
 	UUID          string
@@ -274,6 +300,7 @@ type TagCategory struct {
 	Description   string
 }
 
+// Scanner struct
 type Scanner struct {
 	ID               string
 	UUID             string
@@ -291,6 +318,8 @@ type Scanner struct {
 	License          ScannerLicense
 	Agents           []ScannerAgent
 }
+
+// ScannerLicense struct
 type ScannerLicense struct {
 	Type         string
 	IPS          string
@@ -299,6 +328,8 @@ type ScannerLicense struct {
 	AgentsUsed   string
 	ScannersUsed string
 }
+
+// ScannerAgent struct
 type ScannerAgent struct {
 	ID          string
 	UUID        string
@@ -316,6 +347,8 @@ type ScannerAgent struct {
 	Groups      map[string]AgentGroup
 	Scanner     Scanner
 }
+
+// AgentGroup struct
 type AgentGroup struct {
 	ID          string
 	Name        string
@@ -324,6 +357,7 @@ type AgentGroup struct {
 	Agents      []ScannerAgent
 }
 
+// VulnExportStatus struct
 type VulnExportStatus struct {
 	Status          string
 	Chunks          []string
@@ -331,6 +365,7 @@ type VulnExportStatus struct {
 	ChunksCancelled []string
 }
 
+// AssetExportStatus struct
 type AssetExportStatus struct {
 	Status          string
 	Chunks          []string
@@ -338,6 +373,7 @@ type AssetExportStatus struct {
 	ChunksCancelled []string
 }
 
+// VulnExportChunk struct
 type VulnExportChunk struct {
 	Asset                VulnExportChunkAsset
 	Output               string
@@ -352,6 +388,8 @@ type VulnExportChunk struct {
 	LastFound            string
 	State                string
 }
+
+// VulnExportChunkAsset struct
 type VulnExportChunkAsset struct {
 	DeviceType               string
 	FQDN                     string
@@ -363,6 +401,8 @@ type VulnExportChunkAsset struct {
 	OperatingSystem          []string
 	Tracked                  bool
 }
+
+// VulnExportChunkPlugin struct
 type VulnExportChunkPlugin struct {
 	ID               string
 	Name             string
@@ -378,11 +418,15 @@ type VulnExportChunkPlugin struct {
 	Type             string
 	Version          string
 }
+
+// VulnExportChunkPort struct
 type VulnExportChunkPort struct {
 	Port     string
 	Protocol string
 	Service  string
 }
+
+// VulnExportChunkScan struct
 type VulnExportChunkScan struct {
 	CompletedAt  string
 	ScheduleUUID string

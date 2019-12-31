@@ -18,6 +18,7 @@ func NewFilter(config *config.Config) (filter *Filter) {
 	return
 }
 
+// AgentGroupsByRegex filters matching agent groups
 func (f *Filter) AgentGroupsByRegex(agents []AgentGroup, regex string) (filtered []AgentGroup) {
 	var r = regexp.MustCompile(regex)
 
@@ -29,6 +30,7 @@ func (f *Filter) AgentGroupsByRegex(agents []AgentGroup, regex string) (filtered
 	return filtered
 }
 
+// AgentsByRegex filters matching Agents matching regex
 func (f *Filter) AgentsByRegex(agents []ScannerAgent, regex string) (filtered []ScannerAgent) {
 	var r = regexp.MustCompile(regex)
 
@@ -42,6 +44,7 @@ func (f *Filter) AgentsByRegex(agents []ScannerAgent, regex string) (filtered []
 	return filtered
 }
 
+// AgentsByName filters Agents matching name
 func (f *Filter) AgentsByName(agents []ScannerAgent, name string) (filtered []ScannerAgent) {
 	for _, a := range agents {
 		if a.Name == name {
@@ -51,17 +54,21 @@ func (f *Filter) AgentsByName(agents []ScannerAgent, name string) (filtered []Sc
 	return filtered
 }
 
+// KeepOnlyGroupMembers filters only agents who have the agent group
 func (f *Filter) KeepOnlyGroupMembers(agents []ScannerAgent, group string) (filtered []ScannerAgent) {
 	shouldKeepMatch := true
 	filtered = GroupMembership(agents, group, shouldKeepMatch)
 	return filtered
 }
+
+// SkipGroupMembers keeps only agents not in group
 func (f *Filter) SkipGroupMembers(agents []ScannerAgent, group string) (filtered []ScannerAgent) {
 	shouldKeepMatch := false
 	filtered = GroupMembership(agents, group, shouldKeepMatch)
 	return filtered
 }
 
+// GroupMembership is a generic filter - keeps based on shouldKeep and if group match
 func GroupMembership(agents []ScannerAgent, group string, shouldKeepMatch bool) (filtered []ScannerAgent) {
 	for _, a := range agents {
 		if _, ok := a.Groups[group]; ok == shouldKeepMatch {
