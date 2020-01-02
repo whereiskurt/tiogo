@@ -61,9 +61,12 @@ type ScannerAgent struct {
 	Pagination Pagination
 }
 
+// ScannerAgentGroups struct
 type ScannerAgentGroups struct {
 	Groups []ScannerAgentGroup
 }
+
+// ScannerAgentGroup struct
 type ScannerAgentGroup struct {
 	ID           json.Number `json:"id"`
 	UUID         string      `json:"uuid"`
@@ -72,6 +75,8 @@ type ScannerAgentGroup struct {
 	LastModified json.Number `json:"last_modification_date"`
 	Created      json.Number `json:"creation_date"`
 }
+
+// Pagination struct
 type Pagination struct {
 	ScanDetailHistory
 	Total  json.Number `json:"total"`
@@ -83,10 +88,10 @@ type Pagination struct {
 	}
 }
 
-// https://cloud.tenable.com/api#/resources/scans/
+// ScansList struct // https://cloud.tenable.com/api#/resources/scans/
 type ScansList struct {
 	Folders []struct {
-		Id json.Number `json:"id"`
+		ID json.Number `json:"id"`
 	}
 	Scans     []ScanListItem `json:"scans"`
 	Timestamp json.Number    `json:"timestamp"`
@@ -115,13 +120,15 @@ type ScanListItem struct {
 	LastModifiedDate json.Number `json:"last_modification_date"`
 }
 
-// https://cloud.tenable.com/api#/resources/scans/{scanId}
+// ScanDetail struct https://cloud.tenable.com/api#/resources/scans/{scanId}
 type ScanDetail struct {
 	Info            ScanDetailInfo
 	Hosts           []ScanDetailHosts
 	Vulnerabilities []ScanDetailVulnerabilities
 	History         []ScanDetailHistory
 }
+
+// ScanDetailInfo struct
 type ScanDetailInfo struct {
 	ID           json.Number   `json:"object_id"`
 	UUID         string        `json:"uuid"`
@@ -141,12 +148,14 @@ type ScanDetailInfo struct {
 	PolicyName   string        `json:"policy"`
 }
 
+// AgentTarget struct
 type AgentTarget struct {
 	ID   json.Number
 	UUID string
 	Name string
 }
 
+// ScanDetailHosts struct
 type ScanDetailHosts struct {
 	ID               json.Number `json:"host_id"`
 	AssetID          json.Number `json:"asset_id"`
@@ -165,6 +174,8 @@ type ScanDetailHosts struct {
 	ChecksConsidered json.Number `json:"numchecksconsidered"`
 	ChecksTotal      json.Number `json:"totalchecksconsidered"`
 }
+
+// ScanDetailVulnerabilities struct
 type ScanDetailVulnerabilities struct {
 	ID       json.Number `json:"vuln_index"`
 	PluginID json.Number `json:"plugin_id"`
@@ -174,6 +185,8 @@ type ScanDetailVulnerabilities struct {
 	Count    json.Number `json:"count"`
 	Severity json.Number `json:"severity"`
 }
+
+// ScanDetailHistory struct
 type ScanDetailHistory struct {
 	HistoryID        json.Number `json:"history_id"`
 	UUID             string      `json:"uuid"`
@@ -183,12 +196,14 @@ type ScanDetailHistory struct {
 	CreationDate     json.Number `json:"creation_date"`
 }
 
-// http://eagain.net/articles/go-dynamic-json/
+// HostDetail struct // http://eagain.net/articles/go-dynamic-json/
 // https://cloud.tenable.com/api#/resources/scans/{id}/host/{host_id}
 type HostDetail struct {
 	Info            HostDetailInfo
 	Vulnerabilities []HostDetailVulnerabilities
 }
+
+// HostDetailInfo struct
 type HostDetailInfo struct {
 	HostStart       json.Number `json:"host_start"`       // becoming a number
 	HostEnd         json.Number `json:"host_end"`         // becoming a number
@@ -199,7 +214,7 @@ type HostDetailInfo struct {
 	HostIP          string      `json:"host-ip"`
 }
 
-// NOTE: This is needed for Marshal'ing back un-modified HotDetail object.
+// MarshalJSON for host detail infor // NOTE: This is needed for Marshal'ing back un-modified HotDetail object.
 //      I think there is some type confusion where it treats the json.Numbers
 //      as Date Strings... not sure what's up or why this is necessary entirely.
 func (hdi HostDetailInfo) MarshalJSON() ([]byte, error) {
@@ -224,10 +239,13 @@ func (hdi HostDetailInfo) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// HostDetailLegacyV2 struct from Tenable.io
 type HostDetailLegacyV2 struct {
 	Info            HostDetailInfoLegacyV2
 	Vulnerabilities []HostDetailVulnerabilities
 }
+
+// HostDetailInfoLegacyV2 struct from Tenable.io
 type HostDetailInfoLegacyV2 struct {
 	HostStart       string `json:"host_start"`
 	HostEnd         string `json:"host_end"`
@@ -238,32 +256,36 @@ type HostDetailInfoLegacyV2 struct {
 	HostIP          string `json:"host-ip"`
 }
 
+//HostDetailVulnerabilities struct from Tenable.io
 type HostDetailVulnerabilities struct {
-	HostId       json.Number `json:"host_id"`
+	HostID       json.Number `json:"host_id"`
 	HostName     string      `json:"hostname"`
-	PluginId     json.Number `json:"plugin_id"`
+	PluginID     json.Number `json:"plugin_id"`
 	PluginName   string      `json:"plugin_name"`
 	PluginFamily string      `json:"plugin_family"`
 	Count        json.Number `json:"count"`
 	Severity     json.Number `json:"severity"`
 }
 
+//PluginFamilies struct from Tenable.io
 type PluginFamilies struct {
 	Families []struct {
-		Id    json.Number `json:"id"`
+		ID    json.Number `json:"id"`
 		Name  string      `json:"name"`
 		Count json.Number `json:"count"`
 	}
 }
 
+//FamilyPlugins struct from Tenable.io
 type FamilyPlugins struct {
 	ID      json.Number `json:"id"`
 	Name    string      `json:"name"`
 	Plugins []Plugin
 }
 
-// https://cloud.tenable.com/api#/resources/plugins/plugin/{pluginId}
+// Plugin struct // https://cloud.tenable.com/api#/resources/plugins/plugin/{pluginId}
 // NOTE: A cache record would basically never goes stale.
+//Plugin struct from Tenable.io
 type Plugin struct {
 	ID         json.Number `json:"id"`
 	Name       string      `json:"name"`
@@ -274,9 +296,12 @@ type Plugin struct {
 	}
 }
 
+//TagCategories struct from Tenable.io
 type TagCategories struct {
 	Categories []TagCategory
 }
+
+//TagCategory struct from Tenable.io
 type TagCategory struct {
 	ContainerUUID string `json:"container_uuid"`
 	UUID          string `json:"uuid"`
@@ -288,9 +313,13 @@ type TagCategory struct {
 	Name          string `json:"name"`
 	Description   string `json:"description"`
 }
+
+//TagValues struct from Tenable.io
 type TagValues struct {
 	Values []TagValue
 }
+
+//TagValue struct from Tenable.io
 type TagValue struct {
 	ContainerUUID       string `json:"container_uuid"`
 	UUID                string `json:"uuid"`
@@ -307,8 +336,7 @@ type TagValue struct {
 	CategoryDescription string `json:"category_description"`
 }
 
-// This allows us to map HostID to the asset UUID.
-// NOTE: We retrieve from the '/private' ToURL space.
+//AssetHost struct from Tenable.io
 type AssetHost struct {
 	Assets []struct {
 		HostID     json.Number `json:"id"`
@@ -323,15 +351,19 @@ type AssetHost struct {
 		}
 	}
 }
+
+//AssetSearchResults struct from Tenable.io
 type AssetSearchResults struct {
 	Assets []AssetInfo
 	Total  json.Number `json:"total"`
 }
+
+//Asset struct from Tenable.io
 type Asset struct {
 	Info AssetInfo
 }
 
-// https://cloud.tenable.com/api#/resources/workbenches/asset-info
+//AssetInfo struct from Tenable.io // https://cloud.tenable.com/api#/resources/workbenches/asset-info
 type AssetInfo struct {
 	ID                      string   `json:"id"`
 	TimeEnd                 string   `json:"time_end"`
@@ -354,26 +386,26 @@ type AssetInfo struct {
 	HostName                []string `json:"hostname"`
 	AgentName               []string `json:"agent_name"`
 	BIOSUUID                []string `json:"bios_uuid"`
-	AWSEC2InstanceId        []string `json:"aws_ec2_instance_id"`
-	AWSEC2InstanceAMIId     []string `json:"aws_ec2_instance_ami_id"`
-	AWSOwnerId              []string `json:"aws_owner_id"`
+	AWSEC2InstanceID        []string `json:"aws_ec2_instance_id"`
+	AWSEC2InstanceAMIID     []string `json:"aws_ec2_instance_ami_id"`
+	AWSOwnerID              []string `json:"aws_owner_id"`
 	AWSAvailabilityZone     []string `json:"aws_availability_zone"`
 	AWSRegion               []string `json:"aws_region"`
 	AWSVPCID                []string `json:"aws_vpc_id"`
 	AWSEC2InstanceGroupName []string `json:"aws_ec2_instance_group_name"`
 	AWSEC2InstanceStateName []string `json:"aws_ec2_instance_state_name"`
 	AWSEC2InstanceType      []string `json:"aws_ec2_instance_type"`
-	AWSSubnetId             []string `json:"aws_subnet_id"`
+	AWSSubnetID             []string `json:"aws_subnet_id"`
 	AWSEC2ProductCode       []string `json:"aws_ec2_product_code"`
 	AWSEC2Name              []string `json:"aws_ec2_name"`
 	AzureVMId               []string `json:"azure_vm_id"`
-	AzureResourceId         []string `json:"azure_resource_id"`
+	AzureResourceID         []string `json:"azure_resource_id"`
 	SSHFingerPrint          []string `json:"ssh_fingerprint"`
 	McafeeEPOGUID           []string `json:"mcafee_epo_guid"`
 	McafeeEPOAgentGUID      []string `json:"mcafee_epo_agent_guid"`
-	QualysHostId            []string `json:"qualys_host_id"`
-	QualysAssetId           []string `json:"qualys_asset_id"`
-	ServiceNowSystemId      []string `json:"servicenow_sysid"`
+	QualysHostID            []string `json:"qualys_host_id"`
+	QualysAssetID           []string `json:"qualys_asset_id"`
+	ServiceNowSystemID      []string `json:"servicenow_sysid"`
 	Counts                  struct {
 		Vulnerabilities struct {
 			Total      json.Number `json:"total"`
@@ -414,7 +446,7 @@ type AssetInfo struct {
 	}
 }
 
-// GET /workbenches/assets/{asset_id}/vulnerabilities
+//AssetVuln struct from Tenable.io // GET /workbenches/assets/{asset_id}/vulnerabilities
 type AssetVuln struct {
 	Vulnerabilities []struct {
 		PluginID     json.Number `json:"plugin_id"`
@@ -426,7 +458,7 @@ type AssetVuln struct {
 	}
 }
 
-// GET /workbenches/assets/{asset_id}/vulnerabilities/{plugin_id}/info
+//AssetVulnInfo struct from Tenable.io // GET /workbenches/assets/{asset_id}/vulnerabilities/{plugin_id}/info
 type AssetVulnInfo struct {
 	Info struct {
 		Description   string      `json:"description"`
@@ -443,7 +475,7 @@ type AssetVulnInfo struct {
 	}
 }
 
-// GET /workbenches/assets/{asset_id}/vulnerabilities/{plugin_id}/outputs
+//AssetVulnOutput struct from Tenable.io // GET /workbenches/assets/{asset_id}/vulnerabilities/{plugin_id}/outputs
 type AssetVulnOutput struct {
 	Outputs []struct {
 		PluginOutput string `json:"plugin_output"`
@@ -454,6 +486,7 @@ type AssetVulnOutput struct {
 	}
 }
 
+//AssetVulnResult struct from Tenable.io
 type AssetVulnResult struct {
 	ApplicationProtocol string        `json:"application_protocol"`
 	TransportProtocol   string        `json:"transport_protocol"`
@@ -462,15 +495,20 @@ type AssetVulnResult struct {
 	Assets              []interface{} `json:"assets"`
 }
 
+//AssetExportStart struct from Tenable.io
 type AssetExportStart struct {
 	UUID string `json:"export_uuid"`
 }
+
+//AssetExportStatus struct from Tenable.io
 type AssetExportStatus struct {
 	Status          string        `json:"status"`
 	Chunks          []json.Number `json:"chunks_available"`
 	ChunksFailed    []json.Number `json:"chunks_failed"`
 	ChunksCancelled []json.Number `json:"chunks_cancelled"`
 }
+
+//AssetExportChunk struct from Tenable.io
 type AssetExportChunk struct {
 	UUID                    string   `json:"id"`
 	HasAgent                bool     `json:"has_agent"`
@@ -488,10 +526,10 @@ type AssetExportChunk struct {
 	LastAuthenticatedScanAt string   `json:"last_authenticated_scan_date"`
 	LastLicensedScanAt      string   `json:"last_licensed_scan_date"`
 	AzureVMId               string   `json:"azure_vm_id"`
-	AzureResourceId         string   `json:"azure_resource_id"`
+	AzureResourceID         string   `json:"azure_resource_id"`
 	AWSEC2InstanceAMIId     string   `json:"aws_ec2_instance_ami_id"`
-	AWSEC2InstanceId        string   `json:"aws_ec2_instance_id"`
-	AWSOwnerId              string   `json:"aws_owner_id"`
+	AWSEC2InstanceID        string   `json:"aws_ec2_instance_id"`
+	AWSOwnerID              string   `json:"aws_owner_id"`
 	AgentUUID               string   `json:"agent_uuid"`
 	BIOSUUID                string   `json:"bios_uuid"`
 	AWSAvailabilityZone     string   `json:"aws_availability_zone"`
@@ -500,7 +538,7 @@ type AssetExportChunk struct {
 	AWSEC2InstanceGroupName string   `json:"aws_ec2_instance_group_name"`
 	AWSEC2InstanceStateName string   `json:"aws_ec2_instance_state_name"`
 	AWSEC2InstanceType      string   `json:"aws_ec2_instance_type"`
-	AWSSubnetId             string   `json:"aws_subnet_id"`
+	AWSSubnetID             string   `json:"aws_subnet_id"`
 	AWSEC2ProductCode       string   `json:"aws_ec2_product_code"`
 	AWSEC2Name              string   `json:"aws_ec2_name"`
 	AgentNames              []string `json:"agent_names"`
@@ -516,9 +554,9 @@ type AssetExportChunk struct {
 	SystemType              []string `json:"system_types"`
 	HostName                []string `json:"hostnames"`
 	SSHFingerPrint          []string `json:"ssh_fingerprints"`
-	QualysAssetId           []string `json:"qualys_asset_id"`
-	QualysHostId            []string `json:"qualys_host_id"`
-	ServiceNowSystemId      []string `json:"servicenow_sysid"`
+	QualysAssetID           []string `json:"qualys_asset_id"`
+	QualysHostID            []string `json:"qualys_host_id"`
+	ServiceNowSystemID      []string `json:"servicenow_sysid"`
 	Sources                 []struct {
 		FirstSeenAt string `json:"first_seen"`
 		LastSeenAt  string `json:"last_seen"`
@@ -541,15 +579,20 @@ type AssetExportChunk struct {
 	}
 }
 
+//VulnExportStart struct from Tenable.io
 type VulnExportStart struct {
 	UUID string `json:"export_uuid"`
 }
+
+//VulnExportStatus struct from Tenable.io
 type VulnExportStatus struct {
 	Status          string        `json:"status"`
 	Chunks          []json.Number `json:"chunks_available"`
 	ChunksFailed    []json.Number `json:"chunks_failed"`
 	ChunksCancelled []json.Number `json:"chunks_cancelled"`
 }
+
+//VulnExportChunk struct from Tenable.io
 type VulnExportChunk struct {
 	Asset struct {
 		DeviceType               string   `json:"device_type"`
@@ -599,6 +642,7 @@ type VulnExportChunk struct {
 }
 
 // ExportFilter is shared and not the same for
+//ExportFilter struct from Tenable.io
 type ExportFilter struct {
 	ExportRequest string      `json:"export-request"`
 	Limit         json.Number `json:"chunk_size"`
@@ -609,12 +653,14 @@ type ExportFilter struct {
 }
 
 // ScansExportStart is outputed at successful scans export
+//ScansExportStart struct from Tenable.io
 type ScansExportStart struct {
 	FileUUID  string `json:"file"`
 	TempToken string `json:"temp_token"`
 }
 
 // ScansExportStatus returns 'ready' when done
+//ScansExportStatus struct from Tenable.io
 type ScansExportStatus struct {
 	Status string `json:"status"`
 }

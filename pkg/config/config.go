@@ -217,7 +217,7 @@ func (c *Config) UnmarshalViper() {
 func (c *Config) readWithViper() {
 	var err error
 
-	defaultFilename := filepath.Join(DefaultConfigFilename + "." + DefaultConfigType)
+	defaultFilename := filepath.Join(defaultConfigFilename + "." + defaultConfigType)
 	f, err := BinaryEmbedFolder.Open(defaultFilename)
 	defer f.Close()
 	err = viper.ReadConfig(f)
@@ -226,7 +226,7 @@ func (c *Config) readWithViper() {
 	}
 
 	filename := filepath.Join(c.HomeFolder, c.HomeFilename)
-	filename = filename + "." + DefaultConfigType
+	filename = filename + "." + defaultConfigType
 
 	viper.AddConfigPath(c.HomeFolder)
 	viper.SetConfigName(c.HomeFilename)
