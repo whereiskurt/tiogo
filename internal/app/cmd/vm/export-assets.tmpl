@@ -1,4 +1,6 @@
 {{define "exportAssetsUsage"}}
+{{- template "CommandHeader" . -}}
+
 Bulk Exports of Assets
 https://developer.tenable.com/reference#exports
 
@@ -43,6 +45,8 @@ Examples:
 {{end}}
 
 {{define "ExportAssetsStart"}}
+{{- template "CommandHeader" . -}}
+
 Successfully started asset export uuid='{{.ExportUUID}}'
 
 To review the status for 'FINISHED' and then get the export chunks:
@@ -56,6 +60,8 @@ To review the status for 'FINISHED' and then get the export chunks:
 
 
 {{define "ExportAssetsStatus"}}
+{{- template "CommandHeader" . -}}
+
 Requested asset status for uuid='{{.ExportUUID}}'.
 {{if eq .Status "FINISHED"}}
 Export status is "FINISHED"! You can retrieve the chunks:
@@ -70,6 +76,8 @@ Export status is currently '{{.Status}}', once it becomes 'FINISHED' you can get
 {{end}}
 
 {{define "ExportAssetsGet"}}
+{{- template "CommandHeader" . -}}
+
 Successfully retrieved chunks='{{.Chunks}} for uuid='{{.ExportUUID}}'.
 
 Options modifiers:

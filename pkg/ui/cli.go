@@ -126,6 +126,7 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 	var log = cli.Config.VM.Log
 	// TODO: Replace this with an 'index' concept - needs to be generated. vfsgen types/methods not visible.
 	var templateFiles []string
+	templateFiles = append(templateFiles, "tio.tmpl")
 	templateFiles = append(templateFiles, "vm/agent-groups.tmpl")
 	templateFiles = append(templateFiles, "vm/agents.tmpl")
 	templateFiles = append(templateFiles, "vm/cache.tmpl")

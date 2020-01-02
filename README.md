@@ -120,36 +120,7 @@ Use `tiogo` you can easily extract all of the vulnerabilities and assets into a 
 
 ```
 root@d173934e91b2:/tiogo# ./tio help export-vulns
-Bulk Exports of Vulnerabilities
-https://developer.tenable.com/reference#exports
 
-Usage:
-    tio vm export-vulns [ACTION ...] [OPTIONS]
-
-Action:
-    start, status, get, query
-
-Export Vulns Options:
-    Selection modifiers:
-    --uuid=[unique id]
-    --jqex=[jq expression]
-    --chunk=[chunk to get, defaults: ALL]
-    --critical, --high, --med[ium], --info  [severity to match for vulnerability]
-    --after=[YYYY-MM-DD HH:MM:SS +/-0000 TZ] [date boundaries, or set 'days']
-    --days=[number of days to go back to, instead of defining 'after']
-
-Output Modes:
-    --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
-
-Examples:
-    $ tio vm export-vulns start
-    $ tio vm export-vulns start --after="2019-01-01" --crit
-    $ tio vm export-vulns start --after="2019-01-01 00:00:00 -0400 EDT" --high,med,info
-    $ tio vm export-vulns start --days=31 --critical --high
-
-    $ tio vm export-vulns status
-    $ tio vm export-vulns get
-    $ tio vm export-vulns query --jqex="[.asset.ipv4, .asset.operating_system[0]]"
 ```
 
 ## Some details about the code:

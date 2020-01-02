@@ -1,6 +1,8 @@
-{{define "exportVulnsUsage"}}
+{{define "exportVulnsUsage" -}}
+{{- template "CommandHeader" . -}}
+
 Bulk Exports of Vulnerabilities
-{{ Gopher }}
+
 Usage:
     tio vm export-vulns [ACTION ...] [OPTIONS]
 
@@ -33,6 +35,7 @@ Examples:
 
 
 {{define "ExportVulnsStart"}}
+{{- template "CommandHeader" . -}}
 Successfully started vulnerability export uuid='{{.ExportUUID}}'
 
 Retrieving vulnerabilities since date of '{{.Since}}'
@@ -48,6 +51,7 @@ To review the status for 'FINISHED' and then get the export chunks:
 {{end}}
 
 {{define "ExportVulnsStatus"}}
+{{- template "CommandHeader" . -}}
 Requested vulns status for uuid='{{.ExportUUID}}'.
 {{if eq .Status "FINISHED"}}
 Export status is "FINISHED"! You can retrieve the chunks:

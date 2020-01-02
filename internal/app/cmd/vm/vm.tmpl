@@ -1,4 +1,4 @@
-{{define "vmUsage" -}}
+{{ define "CommandHeader" }}
 An interface into the Tenable.io API using Go!
 
 Version {{.ReleaseVersion}} {{.GitHash}}
@@ -6,6 +6,10 @@ Version {{.ReleaseVersion}} {{.GitHash}}
 {{- Gopher }}
 Find more information at:
     https://github.com/whereiskurt/tiogo/
+{{ end }}
+
+{{define "vmUsage" -}}
+{{- template "CommandHeader" . -}}
 
 Usage:
     tio [SUBCOMMAND] [ACTION ...] [OPTIONS]

@@ -1,17 +1,12 @@
 package internal
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
-	"text/template"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/whereiskurt/tiogo/internal/app/cmd"
 	cmdproxy "github.com/whereiskurt/tiogo/internal/app/cmd/proxy"
 	"github.com/whereiskurt/tiogo/internal/app/cmd/vm"
 	"github.com/whereiskurt/tiogo/pkg/config"
@@ -184,44 +179,8 @@ func (a *App) InvokeCLI() {
 // Usage outputs the help related to the usage of tio.go
 func (a *App) Usage() string {
 	versionMap := map[string]string{"ReleaseVersion": vm.ReleaseVersion, "GitHash": vm.GitHash}
-	return a.commandUsageTmpl("tioUsage", versionMap)
-}
-
-// usageTemplate renders the usage/help/man pages for a cmd
-func (a *App) commandUsageTmpl(name string, data interface{}) string {
-	var err error
-	var templateFiles []string
-
-	templateFiles = append(templateFiles, ApplicationName)
-
-	t := template.New("")
-
-	file, err := cmd.CmdHelpEmbed.Open("tio.tmpl")
-	if err != nil {
-		log.Fatal(err)
-		return ""
-	}
-
-	content, err := ioutil.ReadAll(file)
-	if err != nil {
-		log.Fatal(err)
-		return ""
-	}
-
-	t, err = t.Funcs(
-		template.FuncMap{
-			"Gopher": ui.Gopher,
-		},
-	).Parse(string(content))
-
-	var raw bytes.Buffer
-	err = t.ExecuteTemplate(&raw, name, data)
-	if err != nil {
-		a.Config.VM.Log.Fatalf("error executing help usage template for tiogo: %v", err)
-		return ""
-	}
-
-	return raw.String()
+	cli := ui.NewCLI(a.Config)
+	return cli.Render("tioUsage", versionMap)
 }
 
 func setDefaultRootCmd() {

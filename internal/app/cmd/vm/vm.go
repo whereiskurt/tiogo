@@ -11,9 +11,9 @@ import (
 
 var (
 	// ReleaseVersion is set by a --ldflags during a build/release
-	ReleaseVersion = "v0.0.1-development"
+	ReleaseVersion = "v0.2.2019-development"
 	// GitHash is set by a --ldflags during a build/release
-	GitHash = "0xhashhash"
+	GitHash = "0x0123abcd"
 )
 
 // VM holds the config and CLI references.
