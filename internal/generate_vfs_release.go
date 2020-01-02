@@ -1,10 +1,10 @@
-// Will generate a 'templates_generate.go' with all of the files under this folder
+// Will generate 'vfs_mock.go' files with everything under the specific path
 // This is necessary because a binary program can be run from anywhere on the filesystem and
 // may not have a relative folder './config/template/'.  Using vfsgen we create a static go file
 // with contents of the templates embedded.  This is done with build tags.
 package main
 
-//go:generate go run embed_generator.go
+//go:generate go run generate_vfs_release.go
 
 import (
 	"net/http"
@@ -16,6 +16,7 @@ import (
 // Runs VFSv
 func main() {
 
+	// Embeded config and jq folders
 	err := vfsgen.Generate(http.Dir("../config/"), vfsgen.Options{
 		Filename:     "../pkg/config/vfs_generated.go",
 		PackageName:  "config",
@@ -26,6 +27,7 @@ func main() {
 		logrus.Fatalln(err)
 	}
 
+	// Embed the CLI tmpl files i
 	err = vfsgen.Generate(http.Dir("app/cmd/"), vfsgen.Options{
 		Filename:     "app/cmd/vfs_generated.go",
 		PackageName:  "cmd",
