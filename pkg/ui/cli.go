@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io/ioutil"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -50,14 +51,15 @@ func Gopher() string {
 	return gopher
 }
 
-// AgentGroupsHeader will output a CSV header for AgentGroup[] passed
-func AgentGroupsHeader(ag []client.AgentGroup) (s string) {
+// AgentGroupHeader will output a CSV header for AgentGroup[] passed
+func AgentGroupHeader(ag []client.AgentGroup) (s string) {
 	var buf bytes.Buffer
 
 	var ss []string
 	for i := range ag {
 		ss = append(ss, ag[i].Name)
 	}
+	sort.Strings(ss)
 
 	w := csv.NewWriter(&buf)
 	if err := w.Write(ss); err != nil {
@@ -68,6 +70,40 @@ func AgentGroupsHeader(ag []client.AgentGroup) (s string) {
 	s = buf.String()
 	s = strings.TrimSpace(s)
 	return
+}
+
+// AgentGroupNameJoin takes an AgentGroup map and joins with sep
+func AgentGroupNameJoin(agent map[string]client.AgentGroup, sep string) string {
+	if agent == nil || len(agent) == 0 {
+		return ""
+	}
+
+	var ss []string
+	for _, v := range agent {
+		ss = append(ss, v.Name)
+	}
+	sort.Strings(ss)
+	return strings.Join(ss, sep)
+}
+
+// AgentGroupMembership returns an array of 1-or-0 for each agent group (ie. ["0","0","1","1","0"])
+func AgentGroupMembership(agent map[string]client.AgentGroup, groups []client.AgentGroup) (members []string) {
+
+	var ss []string
+	for _, g := range groups {
+		ss = append(ss, g.Name)
+	}
+	sort.Strings(ss)
+
+	for _, g := range ss {
+		// Check if g.Name is list of groups
+		if _, ok := agent[g]; ok {
+			members = append(members, "1")
+		} else {
+			members = append(members, "0")
+		}
+	}
+	return members
 }
 
 // CSVString takes ss[] strings and outputs a CSV string
@@ -85,48 +121,21 @@ func CSVString(ss []string) (s string) {
 	return
 }
 
-// StringsJoin takes an AgentGroup map and joins with sep
-func StringsJoin(agent map[string]client.AgentGroup, sep string) string {
-	if agent == nil || len(agent) == 0 {
-		return ""
-	}
-
-	// TODO: Introduce a sorting step for predictable header output
-	var ss []string
-	for k := range agent {
-		ss = append(ss, k)
-	}
-	return strings.Join(ss, sep)
-}
-
 // Base64 takes a raw string and Base64 encodes it
 func Base64(raw string) (encoded string) {
 	encoded = string(base64.StdEncoding.EncodeToString([]byte(raw)))
 	return
 }
 
-// GroupMembership returns an array of 1-or-0 for each agent group (ie. ["0","0","1","1","0"])
-func GroupMembership(agent map[string]client.AgentGroup, groups []client.AgentGroup) (members []string) {
-	for _, g := range groups {
-		// Check if g.Name is list of groups
-		if _, ok := agent[g.Name]; ok {
-			members = append(members, "1")
-		} else {
-			members = append(members, "0")
-		}
-	}
-	return members
-}
-
 // Render will output the UI templates as per the config bind the data.
 func (cli *CLI) Render(name string, data interface{}) (usage string) {
 	var raw bytes.Buffer
 	var err error
-
 	var log = cli.Config.VM.Log
-	// TODO: Replace this with an 'index' concept - needs to be generated. vfsgen types/methods not visible.
 	var templateFiles []string
+
 	templateFiles = append(templateFiles, "tio.tmpl")
+
 	templateFiles = append(templateFiles, "vm/agent-groups.tmpl")
 	templateFiles = append(templateFiles, "vm/agents.tmpl")
 	templateFiles = append(templateFiles, "vm/cache.tmpl")
@@ -136,6 +145,10 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 	templateFiles = append(templateFiles, "vm/scanners.tmpl")
 	templateFiles = append(templateFiles, "vm/scans.tmpl")
 	templateFiles = append(templateFiles, "vm/vm.tmpl")
+
+	templateFiles = append(templateFiles, "proxy/server.tmpl")
+	templateFiles = append(templateFiles, "proxy/start.tmpl")
+	templateFiles = append(templateFiles, "proxy/stop.tmpl")
 
 	t := template.New("")
 	for _, f := range templateFiles {
@@ -148,16 +161,16 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 
 		t, err = t.Funcs(
 			template.FuncMap{
-				"Gopher":            Gopher,
-				"AgentGroupsHeader": AgentGroupsHeader,
-				"GroupMembership":   GroupMembership,
-				"StringsJoin":       StringsJoin,
-				"StringsSplit":      strings.Split,
-				"ToUpper":           strings.ToUpper,
-				"ToLower":           strings.ToLower,
-				"Contains":          strings.Contains,
-				"CSVString":         CSVString,
-				"Base64":            Base64,
+				"Gopher":               Gopher,
+				"AgentGroupHeader":     AgentGroupHeader,
+				"AgentGroupMembership": AgentGroupMembership,
+				"AgentGroupNameJoin":   AgentGroupNameJoin,
+				"StringsSplit":         strings.Split,
+				"ToUpper":              strings.ToUpper,
+				"ToLower":              strings.ToLower,
+				"Contains":             strings.Contains,
+				"CSVString":            CSVString,
+				"Base64":               Base64,
 			},
 		).Parse(string(content))
 	}
