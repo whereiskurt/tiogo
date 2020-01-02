@@ -1,35 +1,37 @@
 # Welcome to tiogo!!
 
-### A modern CLI for Tenable.io written in Go - v0.2.2019 [20191225] :rocket:
+# A modern CLI for Tenable.io written in Go - v0.2.2019 [20191225] :rocket:
 
 [logo]: https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tio gopher wearing red santa hat and bowtie"
 
 ![alt text](https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tio gopher wearing red santa hat and bowtie")
 
-## A **C**ommand **L**ine **I**nterface to Tenable.io API
+# A **C**ommand **L**ine **I**nterface to Tenable.io API
 
 `tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. Currently working with the [Tenable.io vulnerability API](https://developer.tenable.com/reference) agents, agent-groups, export-vulns, export-assets, export-scans, scanners, scans
 
 The tool is written by KPH (@whereiskurt) and **is not supported or endorsed by Tenable in anyway.**
 
-## Overview
+# Overview
+The primary use case for `tiogo` is extracting vulns/assets/scans/agents into a SIEM or SOAR type system. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains all of the necessary libraries, templates and dependencies to provide a write-once run-anywhere approach.
 
 Using `tiogo` you can can quickly list your scans:
+------
 
 ```
   $ ./tio scans list
   $ ./tio scan details --id=1234
 ```
 
-Or output all of you agent gropus and agents
-
+Output all of you agent groups and agents
+------
 ```
   $ ./tio agent-groups
   $ ./tio agents list
 ```
 
 Export a scan and dump as JSON (from xml)
-
+------
 ```
   $ ./tio export-scans start --id=1234    ## Start an export of scan id 1234
   $ ./tio export-scans status --id=1234   ## Check the status
@@ -39,21 +41,19 @@ Export a scan and dump as JSON (from xml)
 ```
 
 Export vulnerabilities as JSON:
-
+------
 ```
   $ ./tio export-vulns start --days=365   ## Start vulns export of a years worth
   $ ./tio export-vulns status             ## Check the status
   ...                                     ##  ... wait until 'FINISHED'
   $ ./tio export-vulns get                ## Download chunks
-
+  $ ./tio export-vulns query              ## Dump JSON (--jqex=.)
 ```
 
-The primary use case for `tiogo` is extracting vulns/assets/scans/agents into a SIEM or SOAR type system. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains all of the necessary libraries, templates and dependencies to provide a write-once run-anywhere approach.
-
-## `Dockerfile`
+# `Dockerfile`
 
 Using the Dockerfile is a fast way to get 'up and running' if you already have Docker installed and working:
-
+------
 ```
 $ docker build --tag tiogo:v0.2.2019 .
 ... [tiogo builds and verbosely outputs]
@@ -105,17 +105,13 @@ Output Modes:
       --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
 VM Actions and Examples:
-    $ tio cache clear all
-
+    $ tio agents
     $ tio agent-groups
     $ tio scans
-    $ tio agents
-    $ tio help agents
-
     $ tio export-vulns [start|status|get]
     $ tio export-assets [start|status|get]
-
     $ tio export-scans [start|status|get] --id=123
+    $ tio cache clear all
 ```
 
 ## UserHomeDir and `.tiogo/cache/`
