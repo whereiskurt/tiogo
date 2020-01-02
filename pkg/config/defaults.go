@@ -50,6 +50,7 @@ const DefaultServerCacheFolder = ".tiogo/cache/server/"
 const DefaultServerCacheResponse = true
 const DefaultServerCacheLookup = true
 
+// SetToDefaults will use local values to set reasonable defaults
 func (c *Config) SetToDefaults() {
 	// Find the User's home folder
 	folder, err := home.Dir()
@@ -86,6 +87,8 @@ func (c *Config) SetToDefaults() {
 	c.DefaultServerStart = true
 
 }
+
+// SetLogFilename will set the ServerConfig log and duplicate to STDOUT
 func (c *ServerConfig) SetLogFilename(filename string) {
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
@@ -99,6 +102,8 @@ func (c *ServerConfig) SetLogFilename(filename string) {
 	}
 	c.Log.SetOutput(mw)
 }
+
+// SetLogFilename will set the VMConfig log and duplicate to STDOUT
 func (c *VMConfig) SetLogFilename(filename string) {
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
@@ -113,12 +118,15 @@ func (c *VMConfig) SetLogFilename(filename string) {
 	c.Log.SetOutput(mw)
 }
 
+// LogFilename will set the ServerConfig logging filename
 func (c *ServerConfig) LogFilename() string {
 	dts := time.Now().Format("20060102")
 	name := fmt.Sprintf("server.%s.log", dts)
 	file := filepath.Join(".", c.Config.LogFolder, name)
 	return file
 }
+
+// LogFilename will set the VMConfig logging filename
 func (c *VMConfig) LogFilename() string {
 	dts := time.Now().Format("20060102")
 	name := fmt.Sprintf("client.%s.log", dts)

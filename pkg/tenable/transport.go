@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+// HTTP - todo delete this?
 var HTTP = httpMethodTypes{
 	Get:    httpMethodType("Get"),
 	Delete: httpMethodType("Delete"),
@@ -140,7 +141,7 @@ func (t *Transport) Get(url string, skipOnHit bool, writeOnReturn bool) ([]byte,
 	return body, status, err
 }
 
-// Get will HTTP POST for the url provided, returning the body, status, and error associated with the call.
+// Post will HTTP POST for the url provided, returning the body, status, and error associated with the call.
 func (t *Transport) Post(url string, data string, datatype string) ([]byte, int, error) {
 	var req *http.Request
 	var resp *http.Response
@@ -175,7 +176,7 @@ func (t *Transport) Post(url string, data string, datatype string) ([]byte, int,
 	return body, status, err
 }
 
-// Get will HTTP PUT for the url provided, returning the body, status, and error associated with the call.
+// Put will HTTP PUT for the url provided, returning the body, status, and error associated with the call.
 func (t *Transport) Put(url string, data string, datatype string) ([]byte, int, error) {
 	var req *http.Request
 	var resp *http.Response
@@ -209,7 +210,7 @@ func (t *Transport) Put(url string, data string, datatype string) ([]byte, int, 
 	return body, status, err
 }
 
-// Get will HTTP DELETE for the url provided, returning the body, status, and error associated with the call.
+// Delete will HTTP DELETE for the url provided, returning the body, status, and error associated with the call.
 func (t *Transport) Delete(url string) ([]byte, int, error) {
 	var req *http.Request
 	var resp *http.Response

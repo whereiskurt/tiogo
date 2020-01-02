@@ -50,6 +50,7 @@ func Gopher() string {
 	return gopher
 }
 
+// AgentGroupsHeader will output a CSV header for AgentGroup[] passed
 func AgentGroupsHeader(ag []client.AgentGroup) (s string) {
 	var buf bytes.Buffer
 
@@ -69,6 +70,7 @@ func AgentGroupsHeader(ag []client.AgentGroup) (s string) {
 	return
 }
 
+// CSVString takes ss[] strings and outputs a CSV string
 func CSVString(ss []string) (s string) {
 	var buf bytes.Buffer
 
@@ -83,12 +85,13 @@ func CSVString(ss []string) (s string) {
 	return
 }
 
+// StringsJoin takes an AgentGroup map and joins with sep
 func StringsJoin(agent map[string]client.AgentGroup, sep string) string {
-
 	if agent == nil || len(agent) == 0 {
 		return ""
 	}
 
+	// TODO: Introduce a sorting step for predictable header output
 	var ss []string
 	for k := range agent {
 		ss = append(ss, k)
@@ -96,6 +99,7 @@ func StringsJoin(agent map[string]client.AgentGroup, sep string) string {
 	return strings.Join(ss, sep)
 }
 
+// Base64 takes a raw string and Base64 encodes it
 func Base64(raw string) (encoded string) {
 	encoded = string(base64.StdEncoding.EncodeToString([]byte(raw)))
 	return
@@ -166,28 +170,33 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 	return
 }
 
+// Println wraps printing to STDOUT
 func (cli *CLI) Println(line string) {
 	fmt.Println(line)
 	return
 }
 
+// Fatal wraps log.Fatalf
 func (cli *CLI) Fatal(line string) {
 	fmt.Println(line)
 	cli.Config.VM.Log.Fatalf(line)
 	return
 }
 
+// Fatalf wraps log.Fatal
 func (cli *CLI) Fatalf(line string, params ...interface{}) {
 	cli.Fatal(fmt.Sprintf(line, params...))
 	return
 }
 
+// Error wraps log.Error
 func (cli *CLI) Error(line string) {
 	cli.Config.VM.Log.Error(line)
 	fmt.Println(line)
 	return
 }
 
+// Errorf wraps log.Errorf
 func (cli *CLI) Errorf(line string, params ...interface{}) {
 	cli.Error(fmt.Sprintf(line, params...))
 	return
