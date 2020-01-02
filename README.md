@@ -1,26 +1,24 @@
-# Welcome to tiogo!!
-
-# A modern CLI for Tenable.io written in Go - v0.2.2019 [20191225] :rocket:
+# Welcome to tiogo! [v0.2.2019 :rocket:!!]
 
 [logo]: https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tio gopher wearing red santa hat and bowtie"
 
 ![alt text](https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tio gopher wearing red santa hat and bowtie")
 
-# A **C**ommand **L**ine **I**nterface to Tenable.io API
+# **C**ommand **L**ine **I**nterface to [Tenable.io](https://cloud.tenable.com)
 
-`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. Currently working with the [Tenable.io vulnerability API](https://developer.tenable.com/reference) agents, agent-groups, export-vulns, export-assets, export-scans, scanners, scans
+`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. Currently working with the [Tenable.io vulnerability API](https://developer.tenable.com/reference) you can make various calls to extract data for agents, agent-groups, export-vulns, export-assets, export-scans, scanners, and scans.
 
 The tool is written by KPH (@whereiskurt) and **is not supported or endorsed by Tenable in anyway.**
 
 # Overview
-The primary use case for `tiogo` is extracting vulns/assets/scans/agents into a SIEM or SOAR type system. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains all of the necessary libraries, templates and dependencies to provide a write-once run-anywhere approach.
+The primary use case for `tiogo` is extracting vulns/assets/scans/agents into a SIEM or SOAR system. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains all of the necessary libraries, templates and dependencies to provide a write-once run-anywhere approach.
 
 Using `tiogo` you can can quickly list your scans:
 ------
 
 ```
   $ ./tio scans list
-  $ ./tio scan details --id=1234
+  $ ./tio scan detail]zs --id=1234
 ```
 
 Output all of you agent groups and agents
