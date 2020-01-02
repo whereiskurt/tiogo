@@ -1,9 +1,9 @@
 FROM golang
 
-ARG releaseVersion="v0.2.5"
+ARG releaseVersion="v0.2.2019"
 ENV VERSION=$releaseVersion
 
-## Go supports 'cross-complication' for many platforms - which is super hawt!
+## Go supports 'cross-complication' for many platforms - change goos=windows,linux,
 ##   (i.e. set to 'windows' and get an .exe)
 
 ## Setting these finals controls binary that is outputed.
@@ -17,10 +17,10 @@ ENV GOARCH=$goarch
 ## Here's how to get a build going using this docker file:
 ##
 ## Using docker:
-##    $ docker build --tag tiogo:v0.2 .
+##    $ docker build --tag tiogo:v0.2.2019 .
 ##     ... (build output)
 ##
-##    $ docker run --tty --interactive --rm tiogo:v0.2
+##    $ docker run --tty --interactive --rm tiogo:v0.2.2019
 ##     ... (docker drops you into working folder with a binary already built. :-)
 ##
 ##    root@4f51ab2342123:/tiogo# ./tio help
@@ -49,6 +49,10 @@ RUN go generate -tags release ./...
 ## 3B. Execute the release using
 RUN go test -tags release  -v ./...
 
+## Update debian pacakges and grab jq :-)
+RUN DEBIAN_FRONTEND=noninteractive apt update
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install jq
+
 ## -1 == -ONE!!!111
 RUN GIT_HASH=$(git rev-list -1 master | cut -b1-8) && go build \
     -tags release \
@@ -58,8 +62,5 @@ RUN GIT_HASH=$(git rev-list -1 master | cut -b1-8) && go build \
     -o ./tio \
     cmd/tio.go
 
-## 4. Invoke tio helps for demonstration :-)
-RUN ./tio vm help
+## 4. Invoke tio vm helps for demonstration :-)
 RUN ./tio help
-RUN ./tio help agents
-RUN ./tio help eport-vulns

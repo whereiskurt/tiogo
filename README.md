@@ -1,17 +1,14 @@
 # Welcome to tiogo!!
 
-### A modern CLI for Tenable.io written in Go - v0.0.1225 [20191225] :rocket:
+### A modern CLI for Tenable.io written in Go - v0.2.2019 [20191225] :rocket:
 
-[logo]: https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tiogopher"
+[logo]: https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tio gopher wearing red santa hat and bowtie"
 
-![alt text](https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tiogopher")
-
-## Mid-release
-I'm hoping to complete this realease shortly! :-) 
+![alt text](https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tio gopher wearing red santa hat and bowtie")
 
 ## A **C**ommand **L**ine **I**nterface to Tenable.io API
 
-`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. It currently only supports a small set of the [Tenable.io vulnerability API](https://developer.tenable.com/reference) around agents, agent-groups, export-vuls and export-assets.
+`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. It currently only supports a set of the [Tenable.io vulnerability API](https://developer.tenable.com/reference) around agents, agent-groups, export-vulns, export-assets, export-scans, scanners, scans
 
 The tool is written by KPH (@whereiskurt) and **is not supported or endorsed by Tenable in anyway.**
 
@@ -26,10 +23,10 @@ Alternatively, `tiogo` is a **C**ommand **L**ine **I**nterface (**CLI**) to inte
 Using the Dockerfile is a fast way to get 'up and running' if you already have Docker installed and working:
 
 ```
-$ docker build --tag tiogo:v0.1 .
+$ docker build --tag tiogo:v0.2.2019 .
 ... [tiogo builds and verbosely outputs]
 
-$ docker run --tty --interactive --rm tiogo:v0.1
+$ docker run --tty --interactive --rm tiogo:v0.2.2019
 root@4f51ab2342123:/tiogo# ./tio help
 ```
 
@@ -38,57 +35,55 @@ root@4f51ab2342123:/tiogo# ./tio help
 `tiogo` currently only supports the Vulnerability Management APIs and the defaults to `vm`.
 
 ```
-root@d173934e91b2:/tiogo# ./tio help
-
+root@69e1a9f2bbb2:/tiogo# ./tio help
 An interface into the Tenable.io API using Go!
 
-Version v0.1.0 132471e4
-	         ,_---~~~~~----._
-	  _,,_,*^____      _____''*g*\"*,
-	 / __/ /'     ^.  /      \ ^@q   f
-	[  @f | @))    |  | @))   l  0 _/
-	 \'/   \~____ / __ \_____/    \
-	  |           _l__l_           I
-	  }          [______]           I
-	  ]            | | |            |
-	  ]             ~ ~             |
-	  |                            |
+Version v0.2.2019 71fee112
+                 ,_---~~~~~----._
+          _,,_,*^____      _____''*g*\"*,
+         / __/ /'     ^.  /      \ ^@q   f
+        [  @f | @))    |  | @))   l  0 _/
+         \'/   \~____ / __ \_____/    \
+          |           _l__l_           I
+          }          [______]           I
+          ]            | | |            |
+          ]             ~ ~             |
+          |                            |
 
-	[[@https://gist.github.com/belbomemo]]
+        [[@https://gist.github.com/belbomemo]]
 
 Find more information at:
     https://github.com/whereiskurt/tiogo/
 
 Usage:
-    tio [COMMAND] [SUBCOMMAND] [ACTION ...] [OPTIONS]
+    tio [SUBCOMMAND] [ACTION ...] [OPTIONS]
 
-Commands:
-    vm       Commands for Tenable.io Vulnerability Management [default, can be omitted]
-    proxy   Commands for local proxy and HTTP server instance
+Sub-commands:
+    help, agents, agent-groups, scans, scanners, export-vulns, export-assets, export-scans, cache
 
-Sub-command:
-    vm:
-      help, scanners, agents, agent-groups, scans, export-vulns
+VM Options:
+    Selection modifiers:
+      --id=[unique id]
+      --name=[string]
+      --regex=[regular expression]
+      --jqex=[jq expression]
 
-    proxy:
-      start, stop
+Output Modes:
+      --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+      --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
-Global Options:
-    Verbosity:
-      --silent,  -s     Set logging/output level [level1]
-      --quiet,   -q     Set logging/output level [level2]
-      --info,    -v     Set logging/output level [level3-default]
-      --debug,          Set logging/output level [level4]
-      --trace,          Output to STDOUT and to log file [level5]
-      --level=3         Sets the output verbosity level numerically [default]
+VM Actions and Examples:
+    $ tio cache clear all
 
-For more help:
-    $ tio help scanners
-    $ tio help scans
+    $ tio agent-groups
+    $ tio scans
+    $ tio agents
     $ tio help agents
-    $ tio help agent-groups
-    $ tio help export-assets
-    $ tio help export-vulns
+
+    $ tio export-vulns [start|status|get]
+    $ tio export-assets [start|status|get]
+
+    $ tio export-scans [start|status|get] --id=123
 ```
 
 ## UserHomeDir and `.tiogo/cache/`
@@ -125,7 +120,6 @@ Use `tiogo` you can easily extract all of the vulnerabilities and assets into a 
 
 ```
 root@d173934e91b2:/tiogo# ./tio help export-vulns
-
 Bulk Exports of Vulnerabilities
 https://developer.tenable.com/reference#exports
 
@@ -140,28 +134,22 @@ Export Vulns Options:
     --uuid=[unique id]
     --jqex=[jq expression]
     --chunk=[chunk to get, defaults: ALL]
-    --critical, --high, --medium, --info  [severity to match for vulnerability]
-    --before=[YYYY-MM-DD HH:MM:SS +/-0000 TZ], --after=[YYYY-MM-DD HH:MM:SS +/-0000 TZ] [date boundaries]
-    --days=[number of days to bound query to]
+    --critical, --high, --med[ium], --info  [severity to match for vulnerability]
+    --after=[YYYY-MM-DD HH:MM:SS +/-0000 TZ] [date boundaries, or set 'days']
+    --days=[number of days to go back to, instead of defining 'after']
 
 Output Modes:
     --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
 Examples:
-    $ tio export-vulns start
-    $ tio export-vulns start --after="2019-01-01" --critical
-    $ tio export-vulns start --after="2019-01-01 00:00:00 -0400 EDT"
-    $ tio export-vulns start --before=="2019-01-31" --critical --high
-    $ tio export-vulns start --before="2019-01-31" --days=31 --critical --high
-    $ tio export-vulns start --after=2019-01-01 --days=31
+    $ tio vm export-vulns start
+    $ tio vm export-vulns start --after="2019-01-01" --crit
+    $ tio vm export-vulns start --after="2019-01-01 00:00:00 -0400 EDT" --high,med,info
+    $ tio vm export-vulns start --days=31 --critical --high
 
-    $ tio export-vulns status
-    $ tio export-vulns get
-    $ tio export-vulns query --jqex="[.asset.ipv4, .asset.operating_system[0]]"
-
-    $ tio export-scans --name "Enterprise-ComplianceScan"
-    $ tio export-scans --name "Enterprise-ComplianceScan" --before=today
-    $ tio export-scans --name "Enterprise-ComplianceScan" --before=2019-09-27
+    $ tio vm export-vulns status
+    $ tio vm export-vulns get
+    $ tio vm export-vulns query --jqex="[.asset.ipv4, .asset.operating_system[0]]"
 ```
 
 ## Some details about the code:

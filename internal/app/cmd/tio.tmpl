@@ -16,7 +16,7 @@ Commands:
 
 Sub-command:
     vm:
-      help, scanners, agents, agent-groups, scans, export-assets, export-vulns, export-scans
+      help, agents, agent-groups, scans, scanners, export-vulns, export-assets, export-scans, cache 
 
     proxy:
       start, stop
@@ -31,10 +31,10 @@ Global Options:
       --level=3         Sets the output verbosity level numerically [default]
 
 For more help:
-    $ tio help scanners
     $ tio help agents
-    $ tio help agent-groups
-    $ tio help export-vulns
     $ tio help scans
+    $ tio help [export-scans|export-vulns|export-assets]
+    $ tio help scanners
+    $ tio help agent-groups
 
 {{end}}

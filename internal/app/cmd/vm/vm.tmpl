@@ -11,7 +11,7 @@ Usage:
     tio [SUBCOMMAND] [ACTION ...] [OPTIONS]
 
 Sub-commands:
-    help, scanners, agents, agent-groups, export-vulns, cache (#TODO: scans)
+    help, agents, agent-groups, scans, scanners, export-vulns, export-assets, export-scans, cache 
 
 VM Options:
     Selection modifiers:
@@ -25,10 +25,13 @@ Output Modes:
       --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
 VM Actions and Examples:
-    $ tio vm help agents
-    $ tio vm help agent-groups
-    $ tio vm help scanners
-    $ tio vm help export-vulns
-    $ tio vm help export-assets
-
+    $ tio cache clear all
+    $ tio agent-groups
+    $ tio scans
+    $ tio agents
+    $ tio help agents
+    
+    $ tio export-scans [start|status|get] --id=123
+    $ tio export-vulns [start|status|get]
+    $ tio export-assets [start|status|get]
 {{end}}

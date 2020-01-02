@@ -1,7 +1,6 @@
 {{define "exportVulnsUsage"}}
 Bulk Exports of Vulnerabilities
-https://developer.tenable.com/reference#exports
-
+{{ Gopher }}
 Usage:
     tio vm export-vulns [ACTION ...] [OPTIONS]
 
@@ -22,13 +21,14 @@ Output Modes:
 
 Examples:
     $ tio vm export-vulns start
-    $ tio vm export-vulns start --after="2019-01-01" --crit
-    $ tio vm export-vulns start --after="2019-01-01 00:00:00 -0400 EDT" --high,med,info
-    $ tio vm export-vulns start --days=31 --critical --high
+    $ tio vm export-vulns start --after="2019-01-01"
+    $ tio vm export-vulns start --after="2019-01-01 00:00:00 -0400 EDT"
+    $ tio vm export-vulns start --days=31 
 
     $ tio vm export-vulns status
     $ tio vm export-vulns get
     $ tio vm export-vulns query --jqex="[.asset.ipv4, .asset.operating_system[0]]"
+    $ tio vm export-vulns query --critical --high
 {{end}}
 
 
