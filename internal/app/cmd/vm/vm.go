@@ -6,6 +6,7 @@ import (
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"github.com/whereiskurt/tiogo/pkg/ui"
+	"os"
 	"strings"
 )
 
@@ -38,31 +39,34 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 
 	versionMap := map[string]string{"ReleaseVersion": vm.Config.VM.ReleaseVersion, "GitHash": vm.Config.VM.GitHash}
 
+	// Always output the Gopher and version number
+	fmt.Fprintf(os.Stderr, cli.Render("CommandHeader", versionMap))
+
 	if len(args) == 0 {
-		fmt.Println(cli.Render("vmUsage", versionMap))
+		fmt.Fprintf(os.Stderr, cli.Render("vmUsage", versionMap))
 		return
 	}
 
 	helpType := strings.ToLower(args[0])
 	switch helpType {
 	case "scanners", "scanner":
-		fmt.Println(cli.Render("scannersUsage", versionMap))
+		fmt.Fprintf(os.Stderr, cli.Render("scannersUsage", versionMap))
 	case "agent-groups", "agent-group":
-		fmt.Print(cli.Render("agentGroupsUsage", versionMap))
+		fmt.Fprintf(os.Stderr, cli.Render("agentGroupsUsage", versionMap))
 	case "agents", "agent":
-		fmt.Print(cli.Render("agentsUsage", versionMap))
+		fmt.Fprintf(os.Stderr, cli.Render("agentsUsage", versionMap))
 	case "scans", "scan":
-		fmt.Print(cli.Render("scansUsage", versionMap))
+		fmt.Fprintf(os.Stderr, cli.Render("scansUsage", versionMap))
 	case "export-vulns", "export-vuln":
-		fmt.Print(cli.Render("exportVulnsUsage", versionMap))
+		fmt.Fprintf(os.Stderr, cli.Render("exportVulnsUsage", versionMap))
 	case "export-assets", "export-asset":
-		fmt.Print(cli.Render("exportAssetsUsage", versionMap))
+		fmt.Fprintf(os.Stderr, cli.Render("exportAssetsUsage", versionMap))
 	case "export-scans", "export-scan":
-		fmt.Print(cli.Render("exportScansUsage", versionMap))
+		fmt.Fprintf(os.Stderr, cli.Render("exportScansUsage", versionMap))
 	case "cache":
-		fmt.Print(cli.Render("cacheUsage", versionMap))
+		fmt.Fprintf(os.Stderr, cli.Render("cacheUsage", versionMap))
 	default:
-		fmt.Println(cli.Render("vmUsage", versionMap))
+		fmt.Fprintf(os.Stderr, cli.Render("vmUsage", versionMap))
 	}
 
 	return
