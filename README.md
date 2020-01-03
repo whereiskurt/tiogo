@@ -17,8 +17,9 @@ Using `tiogo` you can can quickly list your scans:
 ------
 
 ```
-  $ ./tio scans list
-  $ ./tio scan detail]zs --id=1234
+  $ ./tio scanners                     ## Output scanner detail with IP addresses 
+  $ ./tio scans                        ## Output all scans
+  $ ./tio scans detail --id=1234       ## Output scan details for Scan ID '1234'
 ```
 
 Output all of you agent groups and agents

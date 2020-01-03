@@ -16,8 +16,6 @@ import (
 )
 
 var (
-	// ApplicationName is referenced for the usage help.
-	ApplicationName = "tiogo"
 	// CommandList entry[0] becomes default when a 'command' is omitted
 	CommandList = []string{"vm", "proxy"}
 )
@@ -164,23 +162,23 @@ func (a *App) InvokeCLI() {
 		proxy.EnableCache(a.Config.Server.CacheFolder, a.Config.Server.CacheKey)
 		proxy.EnableDefaultRouter()
 		go proxy.ListenAndServe()
+		defer cmdproxy.Stop(a.Config, a.Metrics)
 	}
 
 	// Call Cobra Execute which will PreRun and select the Command to execute.
 	_ = a.RootCmd.Execute()
-
-	if shouldServer {
-		defer cmdproxy.Stop(a.Config, a.Metrics)
-	}
 
 	return
 }
 
 // Usage outputs the help related to the usage of tio.go
 func (a *App) Usage() string {
-	versionMap := map[string]string{"ReleaseVersion": vm.ReleaseVersion, "GitHash": vm.GitHash}
 	cli := ui.NewCLI(a.Config)
-	return cli.Render("tioUsage", versionMap)
+	versionMap := map[string]string{"ReleaseVersion": vm.ReleaseVersion, "GitHash": vm.GitHash}
+	fmt.Fprintf(os.Stderr, cli.Render("CommandHeader", versionMap))
+	fmt.Fprintf(os.Stderr, cli.Render("tioUsage", versionMap))
+
+	return "\x00"
 }
 
 func setDefaultRootCmd() {

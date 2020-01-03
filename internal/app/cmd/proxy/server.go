@@ -2,11 +2,14 @@ package proxy
 
 import (
 	"fmt"
+	"net"
+	"os"
+
 	"github.com/spf13/cobra"
+	"github.com/whereiskurt/tiogo/internal/app/cmd/vm"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"github.com/whereiskurt/tiogo/pkg/ui"
-	"net"
 )
 
 // Server holds the config and CLI references.
@@ -27,7 +30,10 @@ func NewServer(config *config.Config, metrics *metrics.Metrics) (s Server) {
 // ServerHelp with no params will show the help
 func (s *Server) ServerHelp(cmd *cobra.Command, args []string) {
 	cli := ui.NewCLI(s.Config)
-	fmt.Println(cli.Render("serverUsage", nil))
+	versionMap := map[string]string{"ReleaseVersion": vm.ReleaseVersion, "GitHash": vm.GitHash}
+
+	fmt.Fprintf(os.Stderr, cli.Render("serverUsage", versionMap))
+
 	return
 }
 
