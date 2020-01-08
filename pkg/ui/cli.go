@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"sort"
 	"strings"
 	"text/template"
@@ -28,7 +29,13 @@ func NewCLI(c *config.Config) (cli CLI) {
 
 // DrawGopher outputs a text gopher to stdout
 func (cli *CLI) DrawGopher() {
-	fmt.Println(Gopher())
+	fmt.Fprintf(os.Stderr, Gopher())
+	return
+}
+
+// DrawVersion outputs a text gopher to stdout
+func (cli *CLI) DrawVersion(version string, hash string) {
+	fmt.Fprintf(os.Stderr, fmt.Sprintf("tiogo version %s (%s)", version, hash))
 	return
 }
 

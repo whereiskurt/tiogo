@@ -33,7 +33,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	a.Config = config
 	a.Metrics = mmetrics
 	a.RootCmd = new(cobra.Command)
-	a.DefaultUsage = a.Usage()
+	//a.DefaultUsage = a.Usage()
 
 	// Ensure before any command is run we Unmarshal and Validate the Config values.
 	// NOTE: we need to set the PreRun BEFORE making other commands below.

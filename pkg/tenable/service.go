@@ -12,6 +12,9 @@ import (
 	"gopkg.in/matryer/try.v1"
 )
 
+// EndPointType wraps EndPointType into a string
+type EndPointType string
+
 // EndPoints are callable URLs that get mapped get/post/put/delete templates, cacheable file name
 var EndPoints = endPointTypes{
 	VulnsExportStart:   EndPointType("VulnsExportStart"),

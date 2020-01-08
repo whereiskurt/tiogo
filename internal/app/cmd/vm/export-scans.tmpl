@@ -35,7 +35,7 @@ Examples:
 {{end}}
 
 {{define "ExportScansStart"}}
-{{- template "CommandHeader" . -}}
+
 Successfully started scans export uuid='{{.FileUUID}}'
 
 To review the status for 'READY' and then get the prepared file:
@@ -48,7 +48,7 @@ To review the status for 'READY' and then get the prepared file:
 {{end}}
 
 {{define "ExportScansStatus"}}
-{{- template "CommandHeader" . -}}
+
 Requested export-scans status for uuid='{{.FileUUID}} scanid='{{.ScanID}}' histid='{{.HistoryID}}'
 {{if eq .Status "READY"}}
 Export status is "READY"! You can retrieve the download:
@@ -63,7 +63,6 @@ Export status is currently '{{.Status}}', once it becomes 'READY' you can get th
 {{end}}
 
 {{define "ExportScansGet"}}
-{{- template "CommandHeader" . -}}
 Successfully retrieved export-scans file in format "{{.Format}}" for uuid='{{.FileUUID}}' scanid='{{.ScanID}}' histid='{{.HistoryID}}'.
 
 Downloaded file '{{.Filename}}'

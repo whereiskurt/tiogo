@@ -10,9 +10,6 @@ import (
 // DefaultRetryIntervals values in here we control the re-try of the Service
 var DefaultRetryIntervals = []int{0, 500, 500, 500, 500, 1000, 1000, 1000, 1000, 1000, 3000}
 
-// EndPointType wraps EndPointType into a string
-type EndPointType string
-
 func (c EndPointType) String() string {
 	return "pkg.tenable.endpoints." + string(c)
 }
