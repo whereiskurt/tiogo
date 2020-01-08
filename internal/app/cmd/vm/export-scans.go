@@ -62,7 +62,7 @@ func (vm *VM) ExportScansHelp(cmd *cobra.Command, args []string) {
 	return
 }
 
-func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, ac actionType) {
+func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, action actionType) {
 	log := vm.Config.VM.EnableLogging()
 
 	a := client.NewAdapter(vm.Config, vm.Metrics)
@@ -119,7 +119,7 @@ func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, ac actionType
 
 		}
 
-		switch ac {
+		switch action {
 		case actions.ExportScanStart:
 			export, err := a.ScansExportStart(&s, histid, format, true, true)
 			if err != nil {
