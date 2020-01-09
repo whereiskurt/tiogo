@@ -43,6 +43,8 @@ const defaultServerCacheFolder = ".tiogo/cache/server/"
 const defaultServerCacheResponse = true
 const defaultServerCacheLookup = true
 
+const defaultChapters = "vuln_by_plugin" // vuln_by_host, vuln_hosts_summary
+
 // SetToDefaults will use local values to set reasonable defaults
 func (c *Config) SetToDefaults() {
 	// Find the User's home folder
@@ -75,6 +77,8 @@ func (c *Config) SetToDefaults() {
 	c.ConfigFilename = defaultConfigFilename
 
 	c.VM.ExportLimit = "5000" // Default asset and vulnerability export size (num_assets and chunk_size) ;-)
+
+	c.VM.Chapters = defaultChapters
 
 	c.DefaultServerStart = true
 }

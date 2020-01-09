@@ -327,7 +327,7 @@ func (c *Converter) ToScansExportStart(format string, raw []byte) (converted Sca
 		return converted, err
 	}
 
-	converted.FileUUID = src.FileUUID
+	converted.FileUUID = string(src.FileUUID)
 	converted.TempToken = src.TempToken
 	converted.Format = format
 	return converted, err

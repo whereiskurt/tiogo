@@ -88,6 +88,8 @@ func (vm *VM) ScansDetail(cmd *cobra.Command, args []string) {
 	log.Infof("tiogo scan detail command:")
 
 	cli := ui.NewCLI(vm.Config)
+	cli.DrawGopher()
+
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 
 	scans, err := a.Scans(true, true)
@@ -114,8 +116,6 @@ func (vm *VM) ScansDetail(cmd *cobra.Command, args []string) {
 		log.Errorf("error: couldn't match a scans")
 		return
 	}
-
-	cli.DrawGopher()
 
 	for i := range scans {
 		details, err := a.ScanDetails(&scans[i], true, true)

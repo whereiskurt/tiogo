@@ -54,7 +54,9 @@ func Gopher() string {
 	  |                            |   
 	
 	[[@https://gist.github.com/belbomemo]]
-	`
+
+`
+
 	return gopher
 }
 

@@ -653,10 +653,11 @@ type ExportFilter struct {
 }
 
 // ScansExportStart is outputed at successful scans export
+// Note: FileUUID is a uuid other times it's an unquoted number! (ie. pdf)
 //ScansExportStart struct from Tenable.io
 type ScansExportStart struct {
-	FileUUID  string `json:"file"`
-	TempToken string `json:"temp_token"`
+	FileUUID  DownloadFileID `json:"file"`
+	TempToken string         `json:"temp_token"`
 }
 
 // ScansExportStatus returns 'ready' when done
@@ -667,5 +668,29 @@ type ScansExportStatus struct {
 
 // ScansExportStartPost returns 'ready' when done
 type ScansExportStartPost struct {
-	Format string `json:"format"`
+	Format   string `json:"format"`
+	Chapters string `json:"chapters"`
+}
+
+// DownloadFileID allows us to create customer marshal/unmarshal code for this type
+// that isn't always quoted/unquoted
+type DownloadFileID string
+
+// MarshalJSON will JSONinfy DownloadFileID
+func (f DownloadFileID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(f))
+}
+
+// UnmarshalJSON will allow us to decode JSON numbers as strings
+func (f *DownloadFileID) UnmarshalJSON(data []byte) (err error) {
+	if data[0] == '"' {
+		var s string
+		err = json.Unmarshal(data, &s)
+		*f = DownloadFileID(s)
+	} else {
+		var v json.Number
+		err = json.Unmarshal(data, &v)
+		*f = DownloadFileID(v)
+	}
+	return err
 }

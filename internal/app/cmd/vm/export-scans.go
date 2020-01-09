@@ -3,11 +3,10 @@ package vm
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
-
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
 	"github.com/whereiskurt/tiogo/pkg/ui"
+	"strconv"
 )
 
 type actionType string
@@ -56,7 +55,6 @@ func (vm *VM) ExportScansHelp(cmd *cobra.Command, args []string) {
 
 	cli.DrawVersion(ReleaseVersion, GitHash)
 	cli.DrawGopher()
-
 	cli.Println(cli.Render("exportScansUsage", nil))
 
 	return
@@ -75,10 +73,15 @@ func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, action action
 	scans = vm.FilterScans(a, &scans)
 
 	histid := vm.Config.VM.HistoryID
+
 	var format = "nessus"
-	if vm.Config.VM.OutputCSV == true {
+	if vm.Config.VM.OutputPDF == true {
+		format = "pdf"
+	} else if vm.Config.VM.OutputCSV == true {
 		format = "csv"
 	}
+
+	var chapters = vm.Config.VM.Chapters
 
 	var offset = 0
 	if vm.Config.VM.Offset != "" && histid == "" {
@@ -121,41 +124,44 @@ func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, action action
 
 		switch action {
 		case actions.ExportScanStart:
-			export, err := a.ScansExportStart(&s, histid, format, true, true)
+			export, err := a.ScansExportStart(&s, histid, format, chapters, true, true)
 			if err != nil {
 				log.Errorf("error: couldn't start export-scans: %v", err)
 				continue
 			}
 
-			cli.Println(cli.Render("ExportScansStart", map[string]string{"Format": format, "FileUUID": export.FileUUID, "ScanID": s.ScanID, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
+			cli.Println(cli.Render("ExportScansStart", map[string]string{"Chapters": chapters, "Format": format, "FileUUID": export.FileUUID, "ScanID": s.ScanID, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
 			break
 		case actions.ExportScanStatus:
-			export, err := a.ScansExportStatus(&s, histid, format, true, true) //Use cache=true,true don't clobe last READY with "ERROR"
+			export, err := a.ScansExportStatus(&s, histid, format, chapters, true, true) //Use cache=true,true don't clobe last READY with "ERROR"
 			if err != nil {
 				log.Errorf("error: couldn't get status for export-scans: %v", err)
 				continue
 			}
 			if export.Status != "READY" { // We'll try again if the status isn't ready.
-				export, err = a.ScansExportStatus(&s, histid, format, false, true)
+				export, err = a.ScansExportStatus(&s, histid, format, chapters, false, true)
 				if err != nil {
 					log.Errorf("error: couldn't get status for export-scans: %v", err)
 					continue
 				}
 			}
 
-			cli.Println(cli.Render("ExportScansStatus", map[string]string{"Format": format, "FileUUID": export.FileUUID, "Status": export.Status, "ScanID": s.ScanID, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
+			cli.Println(cli.Render("ExportScansStatus", map[string]string{"Format": format, "FileUUID": export.FileUUID, "Status": export.Status, "ScanID": s.ScanID, "ScanName": s.Name, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
 			break
 		case actions.ExportScanGet:
-			export, err := a.ScansExportGet(&s, histid, format, true, true)
+			export, err := a.ScansExportGet(&s, histid, format, chapters, true, true)
 			if err != nil {
 				log.Errorf("error: couldn't start export-scans: %v", err)
 				continue
 			}
-
-			cli.Println(cli.Render("ExportScansGet", map[string]string{"Format": format, "Filename": export.SourceFile.CachedFileName, "FileUUID": export.SourceFile.FileUUID, "ScanID": s.ScanID, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
+			var template = "ExportScansGet"
+			if format == "pdf" {
+				template = "ExportScansGetPDF"
+			}
+			cli.Println(cli.Render(template, map[string]string{"Format": format, "Filename": export.SourceFile.CachedFileName, "FileUUID": export.SourceFile.FileUUID, "ScanID": s.ScanID, "ScanName": s.Name, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
 			break
 		case actions.ExportScanQuery:
-			export, err := a.ScansExportGet(&s, histid, format, true, true)
+			export, err := a.ScansExportGet(&s, histid, format, chapters, true, true)
 			if err != nil {
 				log.Errorf("error: couldn't get export-scans: %v", err)
 				continue

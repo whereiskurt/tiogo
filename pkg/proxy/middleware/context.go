@@ -145,20 +145,20 @@ func ChunkID(r *http.Request) string {
 }
 
 // Format pulls the param from the request/contextmap
-func Format(r *http.Request) string {
+func Format(r *http.Request) (format string, chapters string) {
 	bb, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Errorf("couldn't read scan export body: %v", err)
-		return ""
+		return "", ""
 	}
 
 	var body tenable.ScansExportStartPost
 	err = json.Unmarshal(bb, &body)
 	if err != nil {
-		return ""
+		return "", ""
 	}
 
-	return body.Format
+	return body.Format, body.Chapters
 }
 
 // ExportCtx pulls the param from the request/contextmap

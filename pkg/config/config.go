@@ -52,6 +52,8 @@ type VMConfig struct {
 	MetricsFolder string
 	OutputCSV     bool
 	OutputJSON    bool
+	OutputPDF     bool
+	Chapters      string
 	Log           *log.Logger
 	ID            string
 	Name          string

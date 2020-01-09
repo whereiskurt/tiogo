@@ -20,17 +20,15 @@ Examples:
     ## offset 1 (previous scan) and a specific history id 13545223
     $ tio vm export-scans start --id=1234    
     $ tio vm export-scans start --id=1234 --offset=1   
-    $ tio vm export-scans start --id=1234 --history=123456789
+    $ tio vm export-scans start --id=1234 --offset=1 --pdf  
     
     ## Check this status of the started exports
     $ tio vm export-scans status --id=1234
-    $ tio vm export-scans status --id=1234 --offset=1
-    $ tio vm export-scans status --id=1234 --history=123456789
-    
+    $ tio vm export-scans status --id=1234 --offset=1 --pdf    
     ## Download the export-scans file from Tenable.io
     $ tio vm export-scans get --id=1234
     $ tio vm export-scans get --id=1234 --offset=1
-    $ tio vm export-scans get --id=1234 --history=123456789
+    $ tio vm export-scans get --id=1234 --offset=1 --pdf   
     
 {{end}}
 
@@ -74,5 +72,17 @@ Use export-scans query to output the scan:
 
     ## Query exported scans for ALL scans at offset 0 (current)
     $ tio vm export-scans query  
+
+{{end}}
+
+{{define "ExportScansGetPDF"}}
+Successfully retrieved export-scans PDF for '{{.ScanName}}' uuid='{{.FileUUID}}' scanid='{{.ScanID}}' histid='{{.HistoryID}}'.
+
+Downloaded raw file '{{.Filename}}'
+
+Copy the PDF to somewhere local:
+
+    ## Linux
+    cp '{{.Filename}}' ./{{.ScanName}}.{{.ScanID}}.pdf
 
 {{end}}

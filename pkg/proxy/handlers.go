@@ -304,8 +304,8 @@ func (s *Server) ScansExportStart(w http.ResponseWriter, r *http.Request) {
 	pp.f = func(t tenable.Service) ([]byte, error) {
 		scanid := middleware.ScanID(r) // We use chi apped UUI
 		histid := middleware.HistoryID(r)
-		format := middleware.Format(r)
-		return t.ScansExportStart(scanid, histid, format)
+		format, chapters := middleware.Format(r)
+		return t.ScansExportStart(scanid, histid, format, chapters)
 	}
 	s.CachedTenableCall(pp)
 }

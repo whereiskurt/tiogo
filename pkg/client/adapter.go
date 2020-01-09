@@ -651,13 +651,13 @@ func (a *Adapter) ScanDetails(s *Scan, skipOnHit bool, writeOnReturn bool) (deta
 }
 
 // ScansExportStart extract scan for histuuid
-func (a *Adapter) ScansExportStart(s *Scan, histid string, format string, skipOnHit bool, writeOnReturn bool) (ScansExportStart, error) {
+func (a *Adapter) ScansExportStart(s *Scan, histid string, format string, chapters string, skipOnHit bool, writeOnReturn bool) (ScansExportStart, error) {
 	var export ScansExportStart
 
 	a.Metrics.ClientInc(metrics.EndPoints.ScansExportStart, metrics.Methods.Service.Get)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	raw, err := u.ScansExportStart(s.ScanID, histid, format, skipOnHit, writeOnReturn)
+	raw, err := u.ScansExportStart(s.ScanID, histid, format, chapters, skipOnHit, writeOnReturn)
 	if err != nil {
 		a.Config.VM.Log.Errorf("error: failed to get the scan export: %v", err)
 		return export, err
@@ -670,11 +670,11 @@ func (a *Adapter) ScansExportStart(s *Scan, histid string, format string, skipOn
 }
 
 // ScansExportStatus gets the status of the export-scan that was started
-func (a *Adapter) ScansExportStatus(s *Scan, histid string, format string, skipOnHit bool, writeOnReturn bool) (ScansExportStatus, error) {
+func (a *Adapter) ScansExportStatus(s *Scan, histid string, format string, chapters string, skipOnHit bool, writeOnReturn bool) (ScansExportStatus, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.ScansExportStatus, metrics.Methods.Service.Get)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	started, err := a.ScansExportStart(s, histid, format, skipOnHit, writeOnReturn)
+	started, err := a.ScansExportStart(s, histid, format, chapters, skipOnHit, writeOnReturn)
 	if err != nil {
 		return ScansExportStatus{}, err
 	}
@@ -695,11 +695,11 @@ func (a *Adapter) ScansExportStatus(s *Scan, histid string, format string, skipO
 }
 
 // ScansExportGet downloads the prepared
-func (a *Adapter) ScansExportGet(s *Scan, histid string, format string, skipOnHit bool, writeOnReturn bool) (ScansExportGet, error) {
+func (a *Adapter) ScansExportGet(s *Scan, histid string, format string, chapters string, skipOnHit bool, writeOnReturn bool) (ScansExportGet, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.ScansExportGet, metrics.Methods.Service.Get)
 	u := NewUnmarshal(a.Config, a.Metrics)
 
-	status, err := a.ScansExportStatus(s, histid, format, skipOnHit, writeOnReturn)
+	status, err := a.ScansExportStatus(s, histid, format, chapters, skipOnHit, writeOnReturn)
 	if err != nil {
 		return ScansExportGet{}, err
 	}
@@ -713,9 +713,13 @@ func (a *Adapter) ScansExportGet(s *Scan, histid string, format string, skipOnHi
 		return ScansExportGet{}, err
 	}
 
+	var export ScansExportGet
+
 	convert := NewConvert()
 	// DTO from Tenable.io
-	export, err := convert.ToScansExportGet(&raw)
+	if format == "nessus" {
+		export, err = convert.ToScansExportGet(&raw)
+	}
 
 	// Store the scan indentifiers with export
 	export.ScanID = s.ScanID

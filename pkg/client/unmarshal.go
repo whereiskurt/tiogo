@@ -170,10 +170,10 @@ func (u *Unmarshal) ScanDetails(uuid string, skipOnHit bool, writeOnReturn bool)
 }
 
 // ScansExportStart creates request with limit and lastAssessed based on Config
-func (u *Unmarshal) ScansExportStart(scanid string, histid string, format string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+func (u *Unmarshal) ScansExportStart(scanid string, histid string, format string, chapters string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
 	s := u.service(skipOnHit, writeOnReturn)
 
-	raw, err := s.ScansExportStart(scanid, histid, format)
+	raw, err := s.ScansExportStart(scanid, histid, format, chapters)
 	return raw, err
 }
 

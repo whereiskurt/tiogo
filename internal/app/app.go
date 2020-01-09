@@ -33,7 +33,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	a.Config = config
 	a.Metrics = mmetrics
 	a.RootCmd = new(cobra.Command)
-	//a.DefaultUsage = a.Usage()
+	// a.DefaultUsage = a.Usage()
 
 	// Ensure before any command is run we Unmarshal and Validate the Config values.
 	// NOTE: we need to set the PreRun BEFORE making other commands below.
@@ -43,100 +43,100 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 		a.Config.ValidateOrFatal() // and validate.
 	}
 
-	makeString("VerboseLevel", &a.Config.VerboseLevel, []string{"level"}, a.RootCmd)
-	makeBool("VerboseLevel1", &a.Config.VerboseLevel1, []string{"s", "silent"}, a.RootCmd)
-	makeBool("VerboseLevel2", &a.Config.VerboseLevel2, []string{"q", "quiet"}, a.RootCmd)
-	makeBool("VerboseLevel3", &a.Config.VerboseLevel3, []string{"v", "info"}, a.RootCmd)
-	makeBool("VerboseLevel4", &a.Config.VerboseLevel4, []string{"debug"}, a.RootCmd)
-	makeBool("VerboseLevel5", &a.Config.VerboseLevel5, []string{"trace"}, a.RootCmd)
+	// Both 'vm' and 'proxy' have verbose levels
+	flagS("VerboseLevel", &a.Config.VerboseLevel, []string{"level"}, a.RootCmd)
+	flagB("VerboseLevel1", &a.Config.VerboseLevel1, []string{"s", "silent"}, a.RootCmd)
+	flagB("VerboseLevel2", &a.Config.VerboseLevel2, []string{"q", "quiet"}, a.RootCmd)
+	flagB("VerboseLevel3", &a.Config.VerboseLevel3, []string{"v", "info"}, a.RootCmd)
+	flagB("VerboseLevel4", &a.Config.VerboseLevel4, []string{"debug"}, a.RootCmd)
+	flagB("VerboseLevel5", &a.Config.VerboseLevel5, []string{"trace"}, a.RootCmd)
 
+	// Define the proxy command ie. "proxy start", "proxy stop"
 	proxy := cmdproxy.NewServer(a.Config, a.Metrics)
-	proxyCmd := makeCommand("proxy", proxy.ServerHelp, a.RootCmd)
-	_ = makeCommand("help", proxy.ServerHelp, proxyCmd)
-	_ = makeCommand("start", proxy.Start, proxyCmd)
-	_ = makeCommand("stop", proxy.Stop, proxyCmd)
+	proxyCmd := command("proxy", proxy.ServerHelp, a.RootCmd)
+	subcommand("help", proxy.ServerHelp, proxyCmd)
+	subcommand("start", proxy.Start, proxyCmd)
+	subcommand("stop", proxy.Stop, proxyCmd)
 
+	// Define the 'vm' command ie 'vm scans list' 'vm agents list'
 	app := vm.NewVM(a.Config, a.Metrics)
-	appCmd := makeCommand("vm", app.Help, a.RootCmd)
-	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, appCmd)
-	makeString("UUID", &a.Config.VM.UUID, []string{"uuid"}, appCmd)
-	makeString("Name", &a.Config.VM.Name, []string{"n", "name"}, appCmd)
-	makeString("Regex", &a.Config.VM.Regex, []string{"regex"}, appCmd)
-	makeString("JQex", &a.Config.VM.JQex, []string{"jqex"}, appCmd)
-	makeBool("CSV", &a.Config.VM.OutputCSV, []string{"csv"}, appCmd)
-	makeBool("JSON", &a.Config.VM.OutputJSON, []string{"json"}, appCmd)
 
-	makeBool("Critical", &a.Config.VM.Critical, []string{"critical", "crit"}, appCmd)
-	makeBool("High", &a.Config.VM.High, []string{"high"}, appCmd)
-	makeBool("Medium", &a.Config.VM.Medium, []string{"medium", "med"}, appCmd)
-	makeBool("Info", &a.Config.VM.Info, []string{"info", "low"}, appCmd)
+	vmCmd := command("vm", app.Help, a.RootCmd)
+	subcommand("help", app.Help, vmCmd)
+	flagS("ID", &a.Config.VM.ID, []string{"i", "id"}, vmCmd)
+	flagS("UUID", &a.Config.VM.UUID, []string{"uuid"}, vmCmd)
+	flagS("Name", &a.Config.VM.Name, []string{"n", "name"}, vmCmd)
+	flagS("Regex", &a.Config.VM.Regex, []string{"regex"}, vmCmd)
+	flagS("JQex", &a.Config.VM.JQex, []string{"jqex"}, vmCmd)
+	flagB("CSV", &a.Config.VM.OutputCSV, []string{"csv"}, vmCmd)
+	flagB("JSON", &a.Config.VM.OutputJSON, []string{"json"}, vmCmd)
+	flagB("Critical", &a.Config.VM.Critical, []string{"critical", "crit"}, vmCmd)
+	flagB("High", &a.Config.VM.High, []string{"high"}, vmCmd)
+	flagB("Medium", &a.Config.VM.Medium, []string{"medium", "med"}, vmCmd)
+	flagB("Info", &a.Config.VM.Info, []string{"info", "low"}, vmCmd)
 
-	_ = makeCommand("help", app.Help, appCmd)
+	exportVulnsCmd := command("export-vuln", app.ExportVulnsHelp, vmCmd)
+	subcommand("start", app.ExportVulnsStart, exportVulnsCmd)
+	subcommand("status", app.ExportVulnsStatus, exportVulnsCmd)
+	subcommand("get", app.ExportVulnsGet, exportVulnsCmd)
+	subcommand("query", app.ExportVulnsQuery, exportVulnsCmd)
+	flagS("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportVulnsCmd)
+	flagS("Chunk", &a.Config.VM.Chunk, []string{"chunk", "chunks"}, exportVulnsCmd)
+	flagS("BeforeDate", &a.Config.VM.BeforeDate, []string{"before"}, exportVulnsCmd)
+	flagS("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportVulnsCmd)
+	flagS("Days", &a.Config.VM.Days, []string{"days"}, exportVulnsCmd)
 
-	exportVulnsCmd := makeCommand("export-vuln", app.ExportVulnsHelp, appCmd)
-	makeString("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportVulnsCmd)
-	_ = makeCommand("start", app.ExportVulnsStart, exportVulnsCmd)
-	_ = makeCommand("status", app.ExportVulnsStatus, exportVulnsCmd)
-	_ = makeCommand("get", app.ExportVulnsGet, exportVulnsCmd)
-	_ = makeCommand("query", app.ExportVulnsQuery, exportVulnsCmd)
-	makeString("Chunk", &a.Config.VM.Chunk, []string{"chunk", "chunks"}, exportVulnsCmd)
-	makeString("BeforeDate", &a.Config.VM.BeforeDate, []string{"before"}, exportVulnsCmd)
-	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportVulnsCmd)
-	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportVulnsCmd)
+	exportAssetsCmd := command("export-asset", app.ExportAssetsHelp, vmCmd)
+	subcommand("start", app.ExportAssetsStart, exportAssetsCmd)
+	subcommand("status", app.ExportAssetsStatus, exportAssetsCmd)
+	subcommand("get", app.ExportAssetsGet, exportAssetsCmd)
+	subcommand("query", app.ExportAssetsQuery, exportAssetsCmd)
+	flagS("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportAssetsCmd)
+	flagS("Chunk", &a.Config.VM.Chunk, []string{"chunk", "chunks"}, exportAssetsCmd)
+	flagS("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportAssetsCmd)
+	flagS("Days", &a.Config.VM.Days, []string{"days"}, exportAssetsCmd)
 
-	exportAssetsCmd := makeCommand("export-asset", app.ExportAssetsHelp, appCmd)
-	makeString("ExportLimit", &a.Config.VM.ExportLimit, []string{"limit", "size", "export-limit"}, exportAssetsCmd)
-	_ = makeCommand("start", app.ExportAssetsStart, exportAssetsCmd)
-	_ = makeCommand("status", app.ExportAssetsStatus, exportAssetsCmd)
-	_ = makeCommand("get", app.ExportAssetsGet, exportAssetsCmd)
-	_ = makeCommand("query", app.ExportAssetsQuery, exportAssetsCmd)
-	makeString("Chunk", &a.Config.VM.Chunk, []string{"chunk", "chunks"}, exportAssetsCmd)
-	makeString("AfterDate", &a.Config.VM.AfterDate, []string{"after"}, exportAssetsCmd)
-	makeString("Days", &a.Config.VM.Days, []string{"days"}, exportAssetsCmd)
+	scannersCmd := command("scanner", app.ScannersList, vmCmd)
+	subcommand("list", app.ScannersList, scannersCmd)
 
-	scannersCmd := makeCommand("scanner", app.ScannersList, appCmd)
-	_ = makeCommand("list", app.ScannersList, scannersCmd)
+	agentsCmd := command("agent", app.AgentsList, vmCmd)
+	subcommand("list", app.AgentsList, agentsCmd)
+	subcommand("group", app.AgentsGroup, agentsCmd)
+	subcommand("ungroup", app.AgentsUngroup, agentsCmd)
+	flagB("WithoutGroupName", &a.Config.VM.WithoutGroupName, []string{"without-group", "no-groups"}, agentsCmd)
+	flagS("GroupName", &a.Config.VM.GroupName, []string{"group", "groupname", "group-name"}, agentsCmd)
 
-	agentsCmd := makeCommand("agent", app.AgentsList, appCmd)
-	_ = makeCommand("list", app.AgentsList, agentsCmd)
-	_ = makeCommand("group", app.AgentsGroup, agentsCmd)
-	_ = makeCommand("ungroup", app.AgentsUngroup, agentsCmd)
+	aGroupsCmd := command("agent-group", app.AgentGroupsList, vmCmd)
+	subcommand("list", app.AgentGroupsList, aGroupsCmd)
 
-	makeBool("WithoutGroupName", &a.Config.VM.WithoutGroupName, []string{"without-group", "no-groups"}, agentsCmd)
-	makeString("GroupName", &a.Config.VM.GroupName, []string{"group", "groupname", "group-name"}, agentsCmd)
+	cacheCmd := command("cache", app.CacheInfo, vmCmd)
+	subcommand("list", app.CacheInfo, cacheCmd)
 
-	aGroupsCmd := makeCommand("agent-group", app.AgentGroupsList, appCmd)
-	_ = makeCommand("list", app.AgentGroupsList, aGroupsCmd)
-
-	cacheCmd := makeCommand("cache", app.CacheInfo, appCmd)
-	_ = makeCommand("list", app.CacheInfo, cacheCmd)
-	cacheClearCmd := makeCommand("clear", app.CacheClear, cacheCmd)
 	//TODO: Make all safe by adding '--all' parameter to remove historical/export outputs too
-	_ = makeCommand("all", app.CacheClearAll, cacheClearCmd)
-	_ = makeCommand("agents", app.CacheClearAgents, cacheClearCmd)
-	_ = makeCommand("scans", app.CacheClearScans, cacheClearCmd)
-	_ = makeCommand("exports", app.CacheClearExports, cacheClearCmd)
+	cacheClearCmd := command("clear", app.CacheClear, cacheCmd)
+	subcommand("all", app.CacheClearAll, cacheClearCmd)
+	subcommand("agents", app.CacheClearAgents, cacheClearCmd)
+	subcommand("scans", app.CacheClearScans, cacheClearCmd)
+	subcommand("exports", app.CacheClearExports, cacheClearCmd)
 
-	scansCmd := makeCommand("scan", app.ScansList, appCmd)
-	_ = makeCommand("list", app.ScansList, scansCmd)
-	_ = makeCommand("detail", app.ScansDetail, scansCmd)
-	_ = makeCommand("host", app.ScansHosts, scansCmd)
-	_ = makeCommand("plugin", app.ScansPlugins, scansCmd)
-	_ = makeCommand("query", app.ScansQuery, scansCmd)
-	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, scansCmd)
-	makeString("UUID", &a.Config.VM.UUID, []string{"uuid"}, scansCmd)
-	makeString("HistoryUUID", &a.Config.VM.HistoryUUID, []string{"history", "history_uuid"}, scansCmd)
-	makeString("Offset", &a.Config.VM.Offset, []string{"offset"}, scansCmd)
+	scansCmd := command("scan", app.ScansList, vmCmd)
+	subcommand("list", app.ScansList, scansCmd)
+	subcommand("detail", app.ScansDetail, scansCmd)
+	subcommand("host", app.ScansHosts, scansCmd)
+	subcommand("plugin", app.ScansPlugins, scansCmd)
+	subcommand("query", app.ScansQuery, scansCmd)
+	flagS("HistoryUUID", &a.Config.VM.HistoryUUID, []string{"history", "history_uuid"}, scansCmd)
+	flagS("Offset", &a.Config.VM.Offset, []string{"offset"}, scansCmd)
 
-	exportScansCmd := makeCommand("export-scans", app.ExportScansHelp, appCmd)
-	_ = makeCommand("start", app.ExportScansStart, exportScansCmd)
-	_ = makeCommand("status", app.ExportScansStatus, exportScansCmd)
-	_ = makeCommand("get", app.ExportScansGet, exportScansCmd)
-	_ = makeCommand("query", app.ExportScansQuery, exportScansCmd)
-	makeString("ID", &a.Config.VM.ID, []string{"i", "id"}, exportScansCmd)
-	makeString("UUID", &a.Config.VM.UUID, []string{"uuid"}, exportScansCmd)
-	makeString("HistoryUUID", &a.Config.VM.HistoryUUID, []string{"history", "history_uuid"}, exportScansCmd)
-	makeString("Offset", &a.Config.VM.Offset, []string{"offset"}, exportScansCmd)
+	exportScansCmd := command("export-scans", app.ExportScansHelp, vmCmd)
+	subcommand("start", app.ExportScansStart, exportScansCmd)
+	subcommand("status", app.ExportScansStatus, exportScansCmd)
+	subcommand("get", app.ExportScansGet, exportScansCmd)
+	subcommand("query", app.ExportScansQuery, exportScansCmd)
+	flagS("HistoryUUID", &a.Config.VM.HistoryUUID, []string{"history", "history_uuid"}, exportScansCmd)
+	flagS("Offset", &a.Config.VM.Offset, []string{"offset"}, exportScansCmd)
+	flagB("PDF", &a.Config.VM.OutputPDF, []string{"pdf"}, exportScansCmd)
+	flagS("Chapters", &a.Config.VM.Chapters, []string{"chapter"}, exportScansCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
@@ -211,13 +211,20 @@ func contains(a []string, x string) bool {
 	}
 	return false
 }
-func makeCommand(s string, run func(*cobra.Command, []string), parent *cobra.Command) (child *cobra.Command) {
+
+func command(s string, run func(*cobra.Command, []string), parent *cobra.Command) *cobra.Command {
 	alias := []string{fmt.Sprintf("%ss", s)} // Add a pluralized alias
-	child = &cobra.Command{Use: s, Run: run, PreRun: parent.PreRun, Aliases: alias}
+	child := &cobra.Command{Use: s, Run: run, PreRun: parent.PreRun, Aliases: alias}
 	parent.AddCommand(child)
+	return child
+}
+
+func subcommand(s string, run func(*cobra.Command, []string), parent *cobra.Command) {
+	command(s, run, parent)
 	return
 }
-func makeBool(name string, ref *bool, aliases []string, cob *cobra.Command) {
+
+func flagB(name string, ref *bool, aliases []string, cob *cobra.Command) {
 	cob.PersistentFlags().BoolVar(ref, name, *ref, "")
 	_ = viper.BindPFlag(name, cob.PersistentFlags().Lookup(name))
 	if len(aliases) > 0 && len(aliases[0]) == 1 {
@@ -231,7 +238,7 @@ func makeBool(name string, ref *bool, aliases []string, cob *cobra.Command) {
 
 	return
 }
-func makeString(name string, ref *string, aliases []string, cob *cobra.Command) {
+func flagS(name string, ref *string, aliases []string, cob *cobra.Command) {
 	cob.PersistentFlags().StringVar(ref, name, *ref, "")
 	_ = viper.BindPFlag(name, cob.PersistentFlags().Lookup(name))
 	if len(aliases) > 0 && len(aliases[0]) == 1 {
