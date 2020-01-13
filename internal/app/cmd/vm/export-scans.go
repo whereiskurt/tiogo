@@ -3,10 +3,13 @@ package vm
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"strconv"
+
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
 	"github.com/whereiskurt/tiogo/pkg/ui"
-	"strconv"
 )
 
 type actionType string
@@ -149,16 +152,23 @@ func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, action action
 			cli.Println(cli.Render("ExportScansStatus", map[string]string{"Format": format, "FileUUID": export.FileUUID, "Status": export.Status, "ScanID": s.ScanID, "ScanName": s.Name, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
 			break
 		case actions.ExportScanGet:
+
 			export, err := a.ScansExportGet(&s, histid, format, chapters, true, true)
 			if err != nil {
 				log.Errorf("error: couldn't start export-scans: %v", err)
 				continue
 			}
+
+			//Copy the file we got to the local folder if possible
+			var src = export.SourceFile.CachedFileName
+			var tgt = fmt.Sprintf("scanid.%v.history.%v.offset.%v.%s", export.ScanID, export.HistoryID, offset, format)
+			vm.copyToFile(src, tgt)
+
 			var template = "ExportScansGet"
 			if format == "pdf" {
 				template = "ExportScansGetPDF"
 			}
-			cli.Println(cli.Render(template, map[string]string{"Format": format, "Filename": export.SourceFile.CachedFileName, "FileUUID": export.SourceFile.FileUUID, "ScanID": s.ScanID, "ScanName": s.Name, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
+			cli.Println(cli.Render(template, map[string]string{"Format": format, "LocalCopy": tgt, "Filename": src, "FileUUID": export.SourceFile.FileUUID, "ScanID": s.ScanID, "ScanName": s.Name, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
 			break
 		case actions.ExportScanQuery:
 			export, err := a.ScansExportGet(&s, histid, format, chapters, true, true)
@@ -179,4 +189,28 @@ func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, action action
 
 	}
 	return
+}
+
+func (vm *VM) copyToFile(srcName string, tgtName string) error {
+	var log = vm.Config.VM.Log
+
+	srcFile, err := os.Open(srcName)
+	defer srcFile.Close()
+	if err == nil {
+		destFile, err := os.Create(tgtName)
+		defer destFile.Close()
+		if err == nil {
+			_, err = io.Copy(destFile, srcFile)
+			err = destFile.Sync()
+			if err != nil {
+				log.Warnf("Couldn't copy '%s' to local file '%s'", srcName, tgtName)
+			}
+		} else {
+			log.Warnf("Can't copy file to '%s' : %v", srcName, tgtName)
+		}
+	} else {
+		log.Fatalf("Outputted cache file does not exist: %v", err)
+	}
+
+	return err
 }

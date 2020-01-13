@@ -172,7 +172,7 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 
 	EndPoints.ScansExportStart: {
 		URL:           "/scans/{{.ScanID}}/export?history_id={{.HistoryID}}&fileType=",
-		CacheFilename: "/scans/export/{{.ScanID}}/{{.HistoryID}}/start.json",
+		CacheFilename: "/scans/export/{{.ScanID}}/{{.HistoryID}}/start.{{.Format}}.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Post: {`{ "format" : "{{.Format}}" {{if eq .Format "pdf"}}, "chapters": "{{.Chapters}}" {{end}} } `},
 		},

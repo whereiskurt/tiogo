@@ -1,4 +1,4 @@
-// Will generate 'vfs_mock.go' files with everything under the specific path
+// Will generate 'vfs_generated.go' files with everything under the specific path
 // This is necessary because a binary program can be run from anywhere on the filesystem and
 // may not have a relative folder './config/template/'.  Using vfsgen we create a static go file
 // with contents of the templates embedded.  This is done with build tags.

@@ -29,14 +29,49 @@ Output all of you agent groups and agents
   $ ./tio agents list
 ```
 
-Export a scan and dump as JSON (from xml)
+Export Scans (--offset=0,1,...) CSV/PDF/Nessus/JSON
 ------
 ```
-  $ ./tio export-scans start --id=1234    ## Start an export of scan id 1234
-  $ ./tio export-scans status --id=1234   ## Check the status
-  ...                                     ##  ... wait until 'READY'
-  $ ./tio export-scans get --id=1234      ## Get the created export
-  $ ./tio export-scans query --id=1234    ## Dump JSON from Nesus format (XML)
+  ## START
+  ## Start export current scan results in Neuss format (xml)
+  $ ./tio export-scans start --id=1234            
+  ## Start export previous scan results in Nessus format (xml)
+  $ ./tio export-scans start --offset=1 --id=1234 
+  ## Start export previous previous scan results in Nessus format (xml)
+  $ ./tio export-scans start --offset=2 --id=1234
+  
+  ## CSV and PDF
+  $ ./tio export-scans start --id=1234 --csv           
+  $ ./tio export-scans start --id=1234 --csv --offset=1
+  $ ./tio export-scans start --id=1234 --csv --offset=2
+  
+  $ ./tio export-scans start --id=1234 --pdf   
+  $ ./tio export-scans start --id=1234 --pdf --offset=1
+  $ ./tio export-scans start --id=1234 --pdf --offset=2
+
+  ## STATUS
+  $ ./tio export-scans status --id=1234            
+  $ ./tio export-scans status --id=1234 --csv 
+  $ ./tio export-scans status --id=1234 --pdf 
+  $ ./tio export-scans status --id=1234 --offset=1 
+  $ ./tio export-scans status --id=1234 --csv --offset=1
+  $ ./tio export-scans status --id=1234 --pdf --offset=2
+
+  ## DOWNLOAD
+  $ ./tio export-scans get --id=1234         
+  $ ./tio export-scans get --id=1234 --csv   
+  $ ./tio export-scans get --id=1234 --csv --offset=1
+  $ ./tio export-scans get --id=1234 --csv --offset=2
+
+  $ ./tio export-scans get --id=1234 --pdf
+  $ ./tio export-scans get --id=1234 --pdf --offset=1
+  $ ./tio export-scans get --id=1234 --pdf --offset=2
+  
+  ## Convert Nessus XML to JSON
+  $ ./tio export-scans query --id=1234 > scan.1234.offset.0.json 
+  $ ./tio export-scans query --id=1234 --offset=1 > scan.1234.offset.1.json 
+  $ ./tio export-scans query --id=1234 --offset=2 > scan.1234.offset.2.json 
+
 ```
 
 Export vulnerabilities as JSON:
