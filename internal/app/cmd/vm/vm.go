@@ -12,7 +12,7 @@ import (
 
 var (
 	// ReleaseVersion is set by a --ldflags during a build/release
-	ReleaseVersion = "v0.2.2019-development"
+	ReleaseVersion = "v0.3.2020-development"
 	// GitHash is set by a --ldflags during a build/release
 	GitHash = "0x0123abcd"
 )

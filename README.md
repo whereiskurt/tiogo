@@ -14,7 +14,7 @@ Tool written by @whereiskurt and **is not supported or endorsed by Tenable in an
 
 # Overview
 
-The current primary use case for `tiogo` is extracting vulns/assets/scans/agents into a SIEM or SOAR system. Because `tiogo` is written in Golang it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains an embeded `jq` binary, the necessary libraries, templates and dependencies to provide a write-once and run-anywhere.
+The current primary use case for `tiogo vm` is extracting vulns/assets/scans/agents into a SIEM or SOAR system. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains an embeded `jq` binary, the necessary libraries, templates and dependencies to provide a write-once and run-anywhere.
 
 ## List your scanners, scan definitions and previous scan run details:
 
