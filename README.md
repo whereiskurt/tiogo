@@ -1,4 +1,4 @@
-# Welcome to tiogo! [v0.2.2019 :rocket:!!]
+# Welcome to tiogo! [v0.3.2020 :rocket:!!]
 
 [logo]: https://github.com/whereiskurt/tiogo/blob/master/docs/images/tiogo.logo.small.png "tio gopher wearing red santa hat and bowtie"
 
