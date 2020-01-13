@@ -54,8 +54,10 @@ Exports of scans/assets/vulnerabilities have a `[start/status/get]` lifecycle. W
   $ ./tio export-scans start --id=1234 --csv --offset=2
 
   $ ./tio export-scans start --id=1234 --pdf
-  $ ./tio export-scans start --id=1234 --pdf --offset=1
-  $ ./tio export-scans start --id=1234 --pdf --offset=2
+  $ ./tio export-scans start --id=1234 --pdf --offset=0 --chapter=vuln_by_asset
+
+  $ ./tio export-scans start --id=1234 --pdf --offset=1 --chapter=vuln_by_host
+  $ ./tio export-scans start --id=1234 --pdf --offset=2 --chapter=vuln_by_host
 
   ###########################
   ## STATUS

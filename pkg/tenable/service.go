@@ -171,8 +171,8 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 	},
 
 	EndPoints.ScansExportStart: {
-		URL:           "/scans/{{.ScanID}}/export?history_id={{.HistoryID}}&fileType=",
-		CacheFilename: "/scans/export/{{.ScanID}}/{{.HistoryID}}/start.{{.Format}}.json",
+		URL:           `/scans/{{.ScanID}}/export?history_id={{.HistoryID}}&fileType=`,
+		CacheFilename: `/scans/export/{{.ScanID}}/{{.HistoryID}}/start.{{.Format}}{{if eq .Format "pdf"}}.{{.Chapters}}{{end}}.json`,
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Post: {`{ "format" : "{{.Format}}" {{if eq .Format "pdf"}}, "chapters": "{{.Chapters}}" {{end}} } `},
 		},

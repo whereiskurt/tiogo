@@ -161,7 +161,7 @@ func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, action action
 
 			//Copy the file we got to the local folder if possible
 			var src = export.SourceFile.CachedFileName
-			var tgt = fmt.Sprintf("scanid.%v.history.%v.offset.%v.%s", export.ScanID, export.HistoryID, offset, format)
+			var tgt = fmt.Sprintf("scan.id.%v.history.%v.offset.%v.%s.%s", export.ScanID, export.HistoryID, offset, chapters, format)
 			vm.copyToFile(src, tgt)
 
 			var template = "ExportScansGetNessus"

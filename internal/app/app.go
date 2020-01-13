@@ -33,7 +33,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	a.Config = config
 	a.Metrics = mmetrics
 	a.RootCmd = new(cobra.Command)
-	// a.DefaultUsage = a.Usage()
+	a.DefaultUsage = a.Usage()
 
 	// Ensure before any command is run we Unmarshal and Validate the Config values.
 	// NOTE: we need to set the PreRun BEFORE making other commands below.
@@ -173,10 +173,12 @@ func (a *App) InvokeCLI() {
 
 // Usage outputs the help related to the usage of tio.go
 func (a *App) Usage() string {
-	cli := ui.NewCLI(a.Config)
-	versionMap := map[string]string{"ReleaseVersion": vm.ReleaseVersion, "GitHash": vm.GitHash}
-	fmt.Fprintf(os.Stderr, cli.Render("CommandHeader", versionMap))
-	fmt.Fprintf(os.Stderr, cli.Render("tioUsage", versionMap))
+	if len(os.Args) < 2 {
+		cli := ui.NewCLI(a.Config)
+		versionMap := map[string]string{"ReleaseVersion": vm.ReleaseVersion, "GitHash": vm.GitHash}
+		fmt.Fprintf(os.Stderr, cli.Render("CommandHeader", versionMap))
+		fmt.Fprintf(os.Stderr, cli.Render("tioUsage", versionMap))
+	}
 
 	return "\x00"
 }

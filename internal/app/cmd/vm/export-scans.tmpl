@@ -18,14 +18,15 @@ Export Scans Options:
 Examples:
     ## Start examples of an export for scan id 1234 offset 0 (current scan)
     ## offset 1 (previous scan) and a specific history id 13545223
-    $ tio vm export-scans start --id=1234    
-    $ tio vm export-scans start --id=1234 --offset=1   
-    $ tio vm export-scans start --id=1234 --offset=1 --pdf  
+    $ tio vm export-scans start --id=1234 
+    $ tio vm export-scans start --id=1234 --csv
+    $ tio vm export-scans start --id=1234 --offset=1 --pdf --chapter=vuln_by_asset
+    $ tio vm export-scans start --id=1234 --offset=1 --pdf --chapter=vuln_by_host
     
     ## Check this status of the started exports
     $ tio vm export-scans status --id=1234
-    $ tio vm export-scans status --id=1234 --offset=1 --pdf    
-    $ tio vm export-scans status --id=1234 --offset=1 --csv    
+    $ tio vm export-scans status --id=1234 --offset=1 --pdf 
+    $ tio vm export-scans status --id=1234 --offset=1 --csv
 
     ## Download the export-scans file from Tenable.io
     $ tio vm export-scans get --id=1234
@@ -74,5 +75,5 @@ Successfully retrieved export-scans {{.Format}} for '{{.ScanName}}'
 
 Cached downloaded raw file to '{{.CacheFilename}}'
 
-Saved a copy to '{{.CacheFilename}}':
+Saved a local copy to '{{.Filename}}':
 {{end}}
