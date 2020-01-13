@@ -145,7 +145,7 @@ root@4f51ab2342123:/tiogo# ./tio help
 root@69e1a9f2bbb2:/tiogo# ./tio help
 An interface into the Tenable.io API using Go!
 
-Version v0.2.2019 71fee112
+Version v0.3.2020 0521bb94
                  ,_---~~~~~----._
           _,,_,*^____      _____''*g*\"*,
          / __/ /'     ^.  /      \ ^@q   f
