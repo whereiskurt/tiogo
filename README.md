@@ -13,24 +13,25 @@ The tool is written by KPH (@whereiskurt) and **is not supported or endorsed by 
 # Overview
 The primary use case for `tiogo` is extracting vulns/assets/scans/agents into a SIEM or SOAR system. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains all of the necessary libraries, templates and dependencies to provide a write-once run-anywhere approach.
 
-Using `tiogo` you can can quickly list your scans:
+List your scanners, scan definitions and previous scan run details:
 ------
 
 ```
   $ ./tio scanners                     ## Output scanner detail with IP addresses 
-  $ ./tio scans                        ## Output all scans
-  $ ./tio scans detail --id=1234       ## Output scan details for Scan ID '1234'
+  $ ./tio scans                        ## Output all scans defined
+  $ ./tio scans detail --id=1234       ## Output scan run details for Scan ID '1234'
 ```
 
-Output all of you agent groups and agents
+Agent Group and Agent Lists
 ------
 ```
-  $ ./tio agent-groups
-  $ ./tio agents list
+  $ ./tio agent-groups > agent-groups.20200101.csv
+  $ ./tio agents list > agent.list.20200101.csv
 ```
 
-Export Scans (--offset=0,1,...) CSV/PDF/Nessus/JSON
+Scans Export (JSON/Nessus/CSV/PDF)
 ------
+Exports have a `[start/status/get]` lifecycle. We `start` our export, then check the `status` and then `get` the export. When a scan has run more than once using an `--offset=[0,1,2...]` will get previous results (ie. historical). The default `--offset=0` can be ommited and the current scan will be retrieved.
 ```
   ########################### 
   ## START
@@ -83,20 +84,32 @@ Export Scans (--offset=0,1,...) CSV/PDF/Nessus/JSON
   $ ./tio export-scans get --id=1234 --pdf --offset=1
   $ ./tio export-scans get --id=1234 --pdf --offset=2
   
-  ## Convert Nessus XML to JSON
-  $ ./tio export-scans query --id=1234 > scan.1234.offset.0.json 
-  $ ./tio export-scans query --id=1234 --offset=1 > scan.1234.offset.1.json 
-  $ ./tio export-scans query --id=1234 --offset=2 > scan.1234.offset.2.json 
+  ## Convert Nessus XML to JSON using query
+  $ ./tio export-scans query --id=1234 > scan.1234.offset.0.nessus.json 
+  $ ./tio export-scans query --id=1234 --offset=1 > scan.1234.offset.1.nessus.json 
+  $ ./tio export-scans query --id=1234 --offset=2 > scan.1234.offset.2.nessus.json 
 ```
 
-Export vulnerabilities as JSON:
+Vulnerabilities Export (JSON):
 ------
+Exports have a `[start/status/get]` lifecycle. We `start` our export, then check the `status` and then `get` the export. Using `query` allows a `--jqex=<expression>` to be executed on the exported JSON.
 ```
-  $ ./tio export-vulns start --days=365   ## Start vulns export of a years worth
+  $ ./tio export-vulns start --days=365   ## Export 365 days of captured vulns
   $ ./tio export-vulns status             ## Check the status
   ...                                     ##  ... wait until 'FINISHED'
-  $ ./tio export-vulns get                ## Download chunks
+  $ ./tio export-vulns get                ## Download all the chunks
   $ ./tio export-vulns query              ## Dump JSON (--jqex=.)
+```
+
+Assets Export (JSON):
+------
+Exports have a `[start/status/get]` lifecycle. We `start` our export, then check the `status` and then `get` the export. Using `query` allows a `--jqex=<expression>` to be executed on the exported JSON.
+```
+  $ ./tio export-assets start  ## Start vulns export of a years worth
+  $ ./tio export-assets status ## Check the status
+  ...                          ##  ... wait until 'FINISHED'
+  $ ./tio export-assets get    ## Download chunks
+  $ ./tio export-assets query  ## Dump JSON (--jqex=.)
 ```
 
 # `Dockerfile`
