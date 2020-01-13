@@ -1,6 +1,6 @@
 FROM golang
 
-ARG releaseVersion="v0.2.2019"
+ARG releaseVersion="v0.3.2020"
 ENV VERSION=$releaseVersion
 
 ## Go supports 'cross-complication' for many platforms - change goos=windows,linux,
@@ -17,10 +17,10 @@ ENV GOARCH=$goarch
 ## Here's how to get a build going using this docker file:
 ##
 ## Using docker:
-##    $ docker build --tag tiogo:v0.2.2019 .
+##    $ docker build --tag tiogo:v0.3.2020 .
 ##     ... (build output)
 ##
-##    $ docker run --tty --interactive --rm tiogo:v0.2.2019
+##    $ docker run --tty --interactive --rm tiogo:v0.3.2020
 ##     ... (docker drops you into working folder with a binary already built. :-)
 ##
 ##    root@4f51ab2342123:/tiogo# ./tio help
