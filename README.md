@@ -6,93 +6,101 @@
 
 # **C**ommand **L**ine **I**nterface to [Tenable.io](https://cloud.tenable.com)
 
-`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. Currently working with the [Tenable.io vulnerability API](https://developer.tenable.com/reference) you can make various calls to extract data for agents, agent-groups, export-vulns, export-assets, export-scans, scanners, and scans.
+`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. `tiogo vm` implements calls to the [Tenable.io Vulnerability API](https://developer.tenable.com/reference) to extract agents & agent-groups, scanners, scans (including historical), vulnerabilities, and assets.
 
-The tool is written by KPH (@whereiskurt) and **is not supported or endorsed by Tenable in anyway.**
+Written by @whereiskurt and **is not supported or endorsed by Tenable in anyway.**
 
 # Overview
-The primary use case for `tiogo` is extracting vulns/assets/scans/agents into a SIEM or SOAR system. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains all of the necessary libraries, templates and dependencies to provide a write-once run-anywhere approach.
 
-List your scanners, scan definitions and previous scan run details:
-------
+The current primary use case for `tiogo` is extracting vulns/assets/scans/agents into a SIEM or SOAR system. Because `tiogo` is written in Golang it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains all of the necessary libraries, templates and dependencies to provide a write-once run-anywhere approach.
+
+## List your scanners, scan definitions and previous scan run details:
 
 ```
-  $ ./tio scanners                     ## Output scanner detail with IP addresses 
+  $ ./tio scanners                     ## Output scanner detail with IP addresses
   $ ./tio scans                        ## Output all scans defined
   $ ./tio scans detail --id=1234       ## Output scan run details for Scan ID '1234'
 ```
 
-Agent Group and Agent Lists
-------
+## Agent Group and Agent Lists
+
 ```
   $ ./tio agent-groups > agent-groups.20200101.csv
   $ ./tio agents list > agent.list.20200101.csv
 ```
 
-Scans Export (JSON/Nessus/CSV/PDF)
-------
-Exports have a `[start/status/get]` lifecycle. We `start` our export, then check the `status` and then `get` the export. When a scan has run more than once using an `--offset=[0,1,2...]` will get previous results (ie. historical). The default `--offset=0` can be ommited and the current scan will be retrieved.
+## Scans Export (JSON/Nessus/CSV/PDF)
+
+Exports of scans/assets/vulnerabilities have a `[start/status/get]` lifecycle. We `export-scans start` our export, then check the `export-scans status` and then `export-scans get` the export. When a scan has run more than once using an `--offset=[0,1,2...]` will get previous results (ie. historical). The default `--offset=0` can be ommited and the current scan will be retrieved.
+
 ```
-  ########################### 
+  ###########################
   ## START
-  ########################### 
-  ## Start export current scan results in Neuss format (xml)
-  $ ./tio export-scans start --id=1234            
-  
-  ## Start export previous scan results in Nessus format (xml)
-  $ ./tio export-scans start --offset=1 --id=1234 
-  
-  ## Start export previous previous scan results in Nessus format (xml)
+  ###########################
+  ## Begin export of current scan results in Neuss format (xml)
+  $ ./tio export-scans start --id=1234
+
+  ## Begin export of previous scan results in Nessus format (xml)
+  $ ./tio export-scans start --offset=1 --id=1234
+
+  ## Begin export of historical (previous previous) scan results in Nessus format (xml)
   $ ./tio export-scans start --offset=2 --id=1234
-  
-  ## CSV and PDF [--offset=0,1,2]
-  $ ./tio export-scans start --id=1234 --csv           
+
+  ## CSV and PDF [--csv, --pdf]
+  $ ./tio export-scans start --id=1234 --csv
   $ ./tio export-scans start --id=1234 --csv --offset=1
   $ ./tio export-scans start --id=1234 --csv --offset=2
 
-  $ ./tio export-scans start --id=1234 --pdf   
+  $ ./tio export-scans start --id=1234 --pdf
   $ ./tio export-scans start --id=1234 --pdf --offset=1
   $ ./tio export-scans start --id=1234 --pdf --offset=2
 
-  ########################### 
+  ###########################
   ## STATUS
-  ########################### 
-  $ ./tio export-scans status --id=1234            
-  $ ./tio export-scans status --id=1234 --csv 
-  $ ./tio export-scans status --id=1234 --pdf 
-  
-  $ ./tio export-scans status --id=1234 --offset=1 
+  ###########################
+  $ ./tio export-scans status --id=1234
+  $ ./tio export-scans status --id=1234 --csv
+  $ ./tio export-scans status --id=1234 --pdf
+
+  $ ./tio export-scans status --id=1234 --offset=1
   $ ./tio export-scans status --id=1234 --csv --offset=1
   $ ./tio export-scans status --id=1234 --pdf --offset=1
-  
-  $ ./tio export-scans status --id=1234 --offset=2 
+
+  $ ./tio export-scans status --id=1234 --offset=2
   $ ./tio export-scans status --id=1234 --csv --offset=2
   $ ./tio export-scans status --id=1234 --pdf --offset=2
 
-  ########################### 
+  ###########################
   ## DOWNLOAD
-  ########################### 
-  $ ./tio export-scans get --id=1234         
+  ###########################
+  ## Nessus XML format
+  $ ./tio export-scans get --id=1234
   $ ./tio export-scans get --id=1234 --offset=1
   $ ./tio export-scans get --id=1234 --offset=2
 
-  $ ./tio export-scans get --id=1234 --csv   
+  ## JSON (from Nessus XML)
+  $ ./tio export-scans query --id=1234 > scan.1234.offset.0.nessus.json
+
+  ## CSV
+  $ ./tio export-scans get --id=1234 --csv
   $ ./tio export-scans get --id=1234 --csv --offset=1
   $ ./tio export-scans get --id=1234 --csv --offset=2
 
+  ## PDF
   $ ./tio export-scans get --id=1234 --pdf
   $ ./tio export-scans get --id=1234 --pdf --offset=1
   $ ./tio export-scans get --id=1234 --pdf --offset=2
-  
+
   ## Convert Nessus XML to JSON using query
-  $ ./tio export-scans query --id=1234 > scan.1234.offset.0.nessus.json 
-  $ ./tio export-scans query --id=1234 --offset=1 > scan.1234.offset.1.nessus.json 
-  $ ./tio export-scans query --id=1234 --offset=2 > scan.1234.offset.2.nessus.json 
+  $ ./tio export-scans query --id=1234 > scan.1234.offset.0.nessus.json
+  $ ./tio export-scans query --id=1234 --offset=1 > scan.1234.offset.1.nessus.json
+  $ ./tio export-scans query --id=1234 --offset=2 > scan.1234.offset.2.nessus.json
 ```
 
-Vulnerabilities Export (JSON):
-------
-Exports have a `[start/status/get]` lifecycle. We `start` our export, then check the `status` and then `get` the export. Using `query` allows a `--jqex=<expression>` to be executed on the exported JSON.
+## Vulnerabilities Export (JSON):
+
+Exports of scans/assets/vulnerabilities have a `[start/status/get]` lifecycle. We `export-vulns start` our export, then check the `export-vulns status` and then `export-vulns get` the export. Using `export-vulns query` allows a `--jqex=<expression>` to be executed on the exported JSON.
+
 ```
   $ ./tio export-vulns start --days=365   ## Export 365 days of captured vulns
   $ ./tio export-vulns status             ## Check the status
@@ -101,9 +109,10 @@ Exports have a `[start/status/get]` lifecycle. We `start` our export, then check
   $ ./tio export-vulns query              ## Dump JSON (--jqex=.)
 ```
 
-Assets Export (JSON):
-------
-Exports have a `[start/status/get]` lifecycle. We `start` our export, then check the `status` and then `get` the export. Using `query` allows a `--jqex=<expression>` to be executed on the exported JSON.
+## Assets Export (JSON):
+
+Exports have a `[start/status/get]` lifecycle. We `export-assets start` our export, then check the `export-assets status` and then `export-assets get` the export. Using `export-assets query` allows a `--jqex=<expression>` to be executed on the exported JSON.
+
 ```
   $ ./tio export-assets start  ## Start vulns export of a years worth
   $ ./tio export-assets status ## Check the status
@@ -114,8 +123,8 @@ Exports have a `[start/status/get]` lifecycle. We `start` our export, then check
 
 # `Dockerfile`
 
-Using the Dockerfile is a fast way to get 'up and running' if you already have Docker installed and working:
-------
+## Using the Dockerfile is a fast way to get 'up and running' if you already have Docker installed and working:
+
 ```
 $ docker build --tag tiogo:v0.2.2019 .
 ... [tiogo builds and verbosely outputs]
