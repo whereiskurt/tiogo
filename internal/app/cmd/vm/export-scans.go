@@ -179,7 +179,7 @@ func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, action action
 
 			json, err := json.Marshal(export)
 			if err != nil {
-				log.Errorf("Error marshalling to JSON", err)
+				log.Errorf("Error marshalling to JSON: %+v", err)
 				return
 			}
 
