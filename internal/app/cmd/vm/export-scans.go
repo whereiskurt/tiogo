@@ -164,11 +164,11 @@ func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, action action
 			var tgt = fmt.Sprintf("scanid.%v.history.%v.offset.%v.%s", export.ScanID, export.HistoryID, offset, format)
 			vm.copyToFile(src, tgt)
 
-			var template = "ExportScansGet"
-			if format == "pdf" {
-				template = "ExportScansGetPDF"
+			var template = "ExportScansGetNessus"
+			if format != "nessus" {
+				template = "ExportScansGet"
 			}
-			cli.Println(cli.Render(template, map[string]string{"Format": format, "LocalCopy": tgt, "Filename": src, "FileUUID": export.SourceFile.FileUUID, "ScanID": s.ScanID, "ScanName": s.Name, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
+			cli.Println(cli.Render(template, map[string]string{"Format": format, "Filename": tgt, "CacheFilename": src, "FileUUID": export.SourceFile.FileUUID, "ScanID": s.ScanID, "ScanName": s.Name, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
 			break
 		case actions.ExportScanQuery:
 			export, err := a.ScansExportGet(&s, histid, format, chapters, true, true)
