@@ -6,13 +6,15 @@
 
 # **C**ommand **L**ine **I**nterface to [Tenable.io](https://cloud.tenable.com)
 
-`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. `tiogo vm` implements calls to the [Tenable.io Vulnerability API](https://developer.tenable.com/reference) to extract agents & agent-groups, scanners, scans (including historical), vulnerabilities, and assets.
+`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go.
 
-Written by @whereiskurt and **is not supported or endorsed by Tenable in anyway.**
+`tiogo vm` currently implements calls to the [Tenable.io Vulnerability API](https://developer.tenable.com/reference) focused on data extracts such as agents, agent-groups, scanners, scans (current/past), vulnerabilities, and assets.
+
+Tool written by @whereiskurt and **is not supported or endorsed by Tenable in anyway.**
 
 # Overview
 
-The current primary use case for `tiogo` is extracting vulns/assets/scans/agents into a SIEM or SOAR system. Because `tiogo` is written in Golang it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains all of the necessary libraries, templates and dependencies to provide a write-once run-anywhere approach.
+The current primary use case for `tiogo` is extracting vulns/assets/scans/agents into a SIEM or SOAR system. Because `tiogo` is written in Golang it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains an embeded `jq` binary, the necessary libraries, templates and dependencies to provide a write-once and run-anywhere.
 
 ## List your scanners, scan definitions and previous scan run details:
 
