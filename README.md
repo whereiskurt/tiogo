@@ -226,6 +226,44 @@ root@d173934e91b2:/tiogo# ./tio help export-vulns
 
 ```
 
+# CLI -> Client ->  Local Proxy -> Tenable.io
+This code is actually three major components CLI/config, Proxy Server and Client:
+
+```
+ +---------------------------+
+ |1)Command Line Invocation  |
+ |1a).tio.yaml Configuration |
+ |1b) Command Line Parameters|
+ +---------------------------+
+        |1                |
+        V                 |
+ +--------------+         |2
+ |2)Proxy Server+<---+    |
+ +--------------+    |    |
+     |               |3   |
+     v 4             |    v
+ +------------+   +--------+
+ |4)Tenable.io|   |3)Client|
+ +------------+   +--------+
+```
+I original conceived of this design while working on [tio-cli](https://github.com/whereiskurt/tio-cli/) when Tenable.io backend services were changing frequently and I need a way to insulate my client queries from the Tenable.io responses.  Now things are (more) stable and I'm considering no longer maintaining the Proxy Server.
+
+# CLI -> Client -> Tenable.io
+You can already acheive the whole 'local proxy' just by pointing the client at `BaseURL` to `cloud.tenable.io` and setting the `DefaultServerStart` to `false` will make the call chain look like this:
+```
+ +---------------------------+
+ |1)Command Line Invocation  |
+ |1a).tio.yaml Configuration |
+ |1b) Command Line Parameters|
+ +---------------------------+
+                        |
+                        |1
+                        v
+ +------------+     +--------+
+ |3)Tenable.io|<----|2)Client|
+ +------------+  2  +--------+
+```
+
 ## Some details about the code:
 
 I've [curated a YouTube playlist](https://www.youtube.com/playlist?list=PLa1qVAzg1FHthbIaRRbLyA4sNE4PmLmn6) of videos which help explain how I ended up with this structure and 'why things are the way they are.' I've leveraged 'best practices' I've seen and that have been explicted called out by others. Of course **THERE ARE SOME WRINKLES** and few **PURELY DEMONSTRATION** portions of code. I hope to be able to keep improving on this.
