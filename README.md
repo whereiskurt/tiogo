@@ -166,7 +166,7 @@ Find more information at:
     https://github.com/whereiskurt/tiogo/
 
 Usage:
-    tio [SUBCOMMAND] [ACTION ...] [OPTIONS]
+    tio [vm] [SUBCOMMAND] [ACTION ...] [OPTIONS]
 
 Sub-commands:
     help, agents, agent-groups, scans, scanners, export-vulns, export-assets, export-scans, cache
