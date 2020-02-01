@@ -230,38 +230,51 @@ root@d173934e91b2:/tiogo# ./tio help export-vulns
 This code is actually three major components CLI/config, Proxy Server and Client:
 
 ```
- +---------------------------+
- |1)Command Line Invocation  |
- |1a).tio.yaml Configuration |
- |1b) Command Line Parameters|
- +---------------------------+
-        |1                |
-        V                 |
- +--------------+         |2
- |2)Proxy Server+<---+    |
- +--------------+    |    |
-     |               |3   |
-     v 4             |    v
- +------------+   +--------+
- |4)Tenable.io|   |3)Client|
- +------------+   +--------+
++                                +             +                    +              +
+| 1) ./tio.go is called, reads   | 2) Start a  |                    |              |
+|    YAML configuration file     |     Proxy   |                    |              |
+| +----------------------------+ |    Server   |                    |              |
+| |                            | |             | +--------------+   |              |
+| |  Command Line Invocation   +----------------->              |   |              |
+| | (.tio.yaml configuration)  | | +--------+  | | Proxy Server |   | +----------+ |
+| |                            +---> Client +---->              +----->Tenable.io| |
+| |                            <---+        <----+              <-----+          | |
+| |                            | | +--------+  | +--------------+   | +----------+ |
+| +----------------------------+ |             |                    |              |
+|                                |             |                    |              |
+|                                |3) Use Client|  4) Relay calls    |              |
+|                                |to make calls|  to Tenable.io     |              |
+|                                |to proxy     |                    |              |
+|                                |             |                    |              |
+|                                |             |                    |              |
++                                +             +                    +              +
+
+
 ```
 I original conceived of this design while working on [tio-cli](https://github.com/whereiskurt/tio-cli/) when Tenable.io backend services were changing frequently and I need a way to insulate my client queries from the Tenable.io responses.  Now things are (more) stable and I'm considering no longer maintaining the Proxy Server.
 
 # CLI -> Client -> Tenable.io
 You can already acheive the whole 'local proxy' just by pointing the client at `BaseURL` to `cloud.tenable.io` and setting the `DefaultServerStart` to `false` will make the call chain look like this:
 ```
- +---------------------------+
- |1)Command Line Invocation  |
- |1a).tio.yaml Configuration |
- |1b) Command Line Parameters|
- +---------------------------+
-                        |
-                        |1
-                        v
- +------------+     +--------+
- |3)Tenable.io|<----|2)Client|
- +------------+  2  +--------+
++                                +             +                    +              +
+| 1) ./tio.go is called, reads   | 2) Start a  |                    |              |
+|    YAML configuration file     |     Proxy   |                    |              |
+| +----------------------------+ |    Server   |                    |              |
+| |                            | |             |                    |              |
+| |  Command Line Invocation   +---------------+                    |              |
+| | (.tio.yaml configuration)  | | +--------+  |                    | +----------+ |
+| |                            +---> Client +------------------------->Tenable.io| |
+| |                            <---+        <-------------------------+          | |
+| |                            | | +--------+  |                    | +----------+ |
+| +----------------------------+ |             |                    |              |
+|                                | 3) Call     |                    |              |
+|                                | Tenable.io  |                    |              |
+|                                | API direct  |                    |              |
+|                                |             |                    |              |
+|                                |             |                    |              |
+|                                |             |                    |              |
++                                +             +                    +              +
+
 ```
 
 ## Some details about the code:
