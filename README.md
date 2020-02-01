@@ -225,41 +225,37 @@ Use `tiogo` you can easily extract all of the vulnerabilities and assets into a 
 root@d173934e91b2:/tiogo# ./tio help export-vulns
 
 ```
-
-# CLI -> Client ->  Local Proxy -> Tenable.io
+# Design
+## CLI -> Client ->  Local Proxy -> Tenable.io
 This code is actually three major components CLI/config, Proxy Server and Client:
 
 ```
 +                                +             +                    +              +
-| 1) ./tio.go is called, reads   | 2) Start a  |                    |              |
-|    YAML configuration file     |     Proxy   |                    |              |
-| +----------------------------+ |    Server   |                    |              |
+| 1) ./tio.go is called, reads   |             |  2) Start a Proxy  |              |
+|    YAML configuration file     |             |       Server       |              |
+| +----------------------------+ |             |                    |              |
 | |                            | |             | +--------------+   |              |
 | |  Command Line Invocation   +----------------->              |   |              |
 | | (.tio.yaml configuration)  | | +--------+  | | Proxy Server |   | +----------+ |
 | |                            +---> Client +---->              +----->Tenable.io| |
 | |                            <---+        <----+              <-----+          | |
 | |                            | | +--------+  | +--------------+   | +----------+ |
-| +----------------------------+ |             |                    |              |
-|                                |             |                    |              |
-|                                |3) Use Client|  4) Relay calls    |              |
-|                                |to make calls|  to Tenable.io     |              |
+| +----------------------------+ |             |  4) Relay calls    |              |
+|                                |3) Use Client|  to Tenable.io     |              |
+|                                |to make calls|                    |              |
 |                                |to proxy     |                    |              |
-|                                |             |                    |              |
-|                                |             |                    |              |
 +                                +             +                    +              +
-
 
 ```
 I original conceived of this design while working on [tio-cli](https://github.com/whereiskurt/tio-cli/) when Tenable.io backend services were changing frequently and I need a way to insulate my client queries from the Tenable.io responses.  Now things are (more) stable and I'm considering no longer maintaining the Proxy Server.
 
-# CLI -> Client -> Tenable.io
+## CLI -> Client -> Tenable.io
 You can already acheive the whole 'local proxy' just by pointing the client at `BaseURL` to `cloud.tenable.io` and setting the `DefaultServerStart` to `false` will make the call chain look like this:
 ```
 +                                +             +                    +              +
-| 1) ./tio.go is called, reads   | 2) Start a  |                    |              |
-|    YAML configuration file     |     Proxy   |                    |              |
-| +----------------------------+ |    Server   |                    |              |
+| 1) ./tio.go is called, reads   |             |                    |              |
+|    YAML configuration file     |             |                    |              |
+| +----------------------------+ |             |                    |              |
 | |                            | |             |                    |              |
 | |  Command Line Invocation   +---------------+                    |              |
 | | (.tio.yaml configuration)  | | +--------+  |                    | +----------+ |
@@ -267,9 +263,10 @@ You can already acheive the whole 'local proxy' just by pointing the client at `
 | |                            <---+        <-------------------------+          | |
 | |                            | | +--------+  |                    | +----------+ |
 | +----------------------------+ |             |                    |              |
-|                                | 3) Call     |                    |              |
-|                                | Tenable.io  |                    |              |
-|                                | API direct  |                    |              |
+|                                | 2)Use Client|                    |              |
+|                                |   to call   |                    |              |
+|                                |  Tenable.io |                    |              |
+|                                |  API direct |                    |              |
 |                                |             |                    |              |
 |                                |             |                    |              |
 |                                |             |                    |              |
