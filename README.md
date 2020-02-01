@@ -6,14 +6,17 @@
 
 # **C**ommand **L**ine **I**nterface to [Tenable.io](https://cloud.tenable.com)
 
-`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go.
+`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. It follows a general CLI principals of:
+```
+   ./tio [COMMAND] [SUB-COMMAND] [ACTION] [PARAMS]
+```
+The `tiogo vm` command currently implements calls to the [Tenable.io Vulnerability API](https://developer.tenable.com/reference) focused on data extracts such as agents, agent-groups, scanners, scans (current/past), vulnerabilities, and assets. Sub-commands such as `export-scans` and `export-assets` make the the `start/status/get` actions easy, requiring minimal parameters. And Sub-commands for `scanners/scans/agents/agent-groups` all default to `list` actions and `--csv` outputs except where `--json` makes more sense. :-)
 
-`tiogo vm` currently implements calls to the [Tenable.io Vulnerability API](https://developer.tenable.com/reference) focused on data extracts such as agents, agent-groups, scanners, scans (current/past), vulnerabilities, and assets.
+Tenable offers a variety of for Tenable.io APIs including Web Scanning and Containers. Those APIs may be implmented in the future as `ws` or `container` commands. Today only `vm` exists and is the default and can be ommitted.
 
 Tool written by @whereiskurt and **is not supported or endorsed by Tenable in anyway.**
 
 # Overview
-
 The current primary use case for `tiogo vm` is extracting vulns/assets/scans/agents into a SIEM or SOAR system. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains an embeded `jq` binary, the necessary libraries, templates and dependencies to provide a write-once and run-anywhere.
 
 ## List your scanners, scan definitions and previous scan run details:
@@ -130,10 +133,10 @@ Exports have a `[start/status/get]` lifecycle. We `export-assets start` our expo
 ## Using the Dockerfile is a fast way to get 'up and running' if you already have Docker installed and working:
 
 ```
-$ docker build --tag tiogo:v0.2.2019 .
+$ docker build --tag tiogo:v0.3.2020 .
 ... [tiogo builds and verbosely outputs]
 
-$ docker run --tty --interactive --rm tiogo:v0.2.2019
+$ docker run --tty --interactive --rm tiogo:v0.3.2020
 root@4f51ab2342123:/tiogo# ./tio help
 ```
 
