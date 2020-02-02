@@ -6,13 +6,15 @@
 
 # **C**ommand **L**ine **I**nterface to [Tenable.io](https://cloud.tenable.com)
 
-`tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. It follows a general CLI principals of:
+`tio` is a command line tool for interacting with the Tenable.io API, written in Go. It follows a general CLI principals of:
 
 ```
    ./tio [COMMAND] [SUB-COMMAND] [ACTION] [PARAMS]
 ```
 
-The `tiogo vm` command currently implements calls to the [Tenable.io Vulnerability API](https://developer.tenable.com/reference) focused on data extracts such as agents, agent-groups, scanners, scans (current/past), vulnerabilities, and assets. Sub-commands such as `export-scans` and `export-assets` make the the `start/status/get` actions easy, requiring minimal parameters. And Sub-commands for `scanners/scans/agents/agent-groups` all default to `list` actions and `--csv` outputs except where `--json` makes more sense. :-)
+The `tio vm` command currently implements calls to the [Tenable.io Vulnerability API](https://developer.tenable.com/reference) focused on data extracts such as agents, agent-groups, scanners, scans (current/past), vulnerabilities, and assets. Sub-commands such as `export-scans` and `export-assets` make the the `start/status/get` actions easy, requiring minimal parameters. And Sub-commands for `scanners/scans/agents/agent-groups` all default to `list` actions and `--csv` outputs except where `--json` makes more sense. :-)
+
+As of v0.4.0 tagging assets is supported in a variety of ways including (see below.)
 
 Tenable offers a variety of for Tenable.io APIs including Web Scanning and Containers. Those APIs may be implmented in the future as `ws` or `container` commands. Today only `vm` exists and is the default and can be ommitted.
 
@@ -58,7 +60,15 @@ $ ./tio export-assets status
 $ ./tio export-assets get
 
 ## Scans just needs a ScanID
-$ ./tio start export-scans start|status|get --id=1234
+$ ./tio start export-scans start|status|get|tag --id=1234
+```
+
+## Tagging Assets by Scan
+
+```
+## Apply tags to all assets found in the scan.
+$ ./tio export-scans tag --id=1234 --tag="owner:Sales,platform:Server,exposure:External"
+
 ```
 
 ## Scans Export (JSON/Nessus/CSV/PDF)
@@ -129,6 +139,10 @@ Exports of scans/assets/vulnerabilities have a `[start/status/get]` lifecycle. W
   $ ./tio export-scans query --id=1234 > scan.1234.offset.0.nessus.json
   $ ./tio export-scans query --id=1234 --offset=1 > scan.1234.offset.1.nessus.json
   $ ./tio export-scans query --id=1234 --offset=2 > scan.1234.offset.2.nessus.json
+
+  ## Apply Asset tags to all hosts found in this scan
+  $ ./tio export-scans tag --id=1234 --tag="owner:Sales,platform:Server,exposure:External"
+
 ```
 
 ## Vulnerabilities Export (JSON):
@@ -147,24 +161,25 @@ Exports of scans/assets/vulnerabilities have a `[start/status/get]` lifecycle. W
 
 Exports have a `[start/status/get]` lifecycle. We `export-assets start` our export, then check the `export-assets status` and then `export-assets get` the export. Using `export-assets query` allows a `--jqex=<expression>` to be executed on the exported JSON.
 
-```
-  $ ./tio export-assets start  ## Start vulns export of a years worth
-  $ ./tio export-assets status ## Check the status
-  ...                          ##  ... wait until 'FINISHED'
-  $ ./tio export-assets get    ## Download chunks
-  $ ./tio export-assets query  ## Dump JSON (--jqex=.)
+````
+  $ ./tio export-assets start    ## Start vulns export of a years worth
+  $ ./tio export-assets status   ## Check the status
+  ...                            ##  ... wait until 'FINISHED'
+  $ ./tio export-assets get      ## Download chunks
 ```
 
 # `Dockerfile`
 
 ## Using the Dockerfile is a fast way to get 'up and running' if you already have Docker installed and working:
 
-```
-$ docker build --tag tiogo:v0.3.2020 .
+````
+
+\$ docker build --tag tiogo:v0.3.2020 .
 ... [tiogo builds and verbosely outputs]
 
-$ docker run --tty --interactive --rm tiogo:v0.3.2020
+\$ docker run --tty --interactive --rm tiogo:v0.3.2020
 root@4f51ab2342123:/tiogo# ./tio help
+
 ```
 
 ## `> go run cmd\tio.go help`
@@ -172,6 +187,7 @@ root@4f51ab2342123:/tiogo# ./tio help
 `tiogo` currently only supports the Vulnerability Management APIs and the defaults to `vm`.
 
 ```
+
 root@69e1a9f2bbb2:/tiogo# ./tio help
 An interface into the Tenable.io API using Go!
 
@@ -190,33 +206,34 @@ Version v0.3.2020 0521bb94
         [[@https://gist.github.com/belbomemo]]
 
 Find more information at:
-    https://github.com/whereiskurt/tiogo/
+https://github.com/whereiskurt/tiogo/
 
 Usage:
-    tio [vm] [SUBCOMMAND] [ACTION ...] [OPTIONS]
+tio [vm][subcommand] [ACTION ...][options]
 
 Sub-commands:
-    help, agents, agent-groups, scans, scanners, export-vulns, export-assets, export-scans, cache
+help, agents, agent-groups, scans, scanners, export-vulns, export-assets, export-scans, cache
 
 VM Options:
-    Selection modifiers:
-      --id=[unique id]
-      --name=[string]
-      --regex=[regular expression]
-      --jqex=[jq expression]
+Selection modifiers:
+--id=[unique id]
+--name=[string]
+--regex=[regular expression]
+--jqex=[jq expression]
 
 Output Modes:
-      --csv   Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
-      --json  Set table outputs to JSON [ie. good for integrations and jq manipulations.]
+--csv Set table outputs to comma separated files [ie. good for Excel + Splunk, etc.]
+--json Set table outputs to JSON [ie. good for integrations and jq manipulations.]
 
 VM Actions and Examples:
-    $ tio agents
+$ tio agents
     $ tio agent-groups
-    $ tio scans
+$ tio scans
     $ tio export-vulns [start|status|get]
-    $ tio export-assets [start|status|get]
+$ tio export-assets [start|status|get]
     $ tio export-scans [start|status|get] --id=123
-    $ tio cache clear all
+\$ tio cache clear all
+
 ```
 
 ## UserHomeDir and `.tiogo/cache/`
@@ -224,23 +241,25 @@ VM Actions and Examples:
 When you run `tiogo` for the first time it will ask you for your AccessKey and SecretKey:
 
 ```
-  root@d173934e91b2:/tiogo# ./tio agent-groups
 
-  WARN: User configuration file '/root/.tiogo.v1.yaml' not found.
+root@d173934e91b2:/tiogo# ./tio agent-groups
 
-  Tenable.io access keys and secret keys are required for all endpoints.
-  You must provide X-ApiKeys header 'accessKey' and 'secretKey' values.
-  For complete details see: https://developer.tenable.com/
+WARN: User configuration file '/root/.tiogo.v1.yaml' not found.
 
-  Enter Tenable.io'AccessKey': df9db9a933d7480be0a902fa1f5df9db9a933d7df9db9a933d7480be02f5ab21
-  Enter Tenable.io'SecretKey': 575fd980bc3685d575fd980bc3685d575fd980bc3685d575fd980bc3685df5ab
+Tenable.io access keys and secret keys are required for all endpoints.
+You must provide X-ApiKeys header 'accessKey' and 'secretKey' values.
+For complete details see: https://developer.tenable.com/
 
-  Save configuration file? [yes or default:yes]: yes
+Enter Tenable.io'AccessKey': df9db9a933d7480be0a902fa1f5df9db9a933d7df9db9a933d7480be02f5ab21
+Enter Tenable.io'SecretKey': 575fd980bc3685d575fd980bc3685d575fd980bc3685d575fd980bc3685df5ab
 
-  Creating default configuration file '/root/.tiogo.v1.yaml' ...
-  Done!
+Save configuration file? [yes or default:yes]: yes
 
-  Successfully wrote user configuration file '/root/.tiogo.v1.yaml'.
+Creating default configuration file '/root/.tiogo.v1.yaml' ...
+Done!
+
+Successfully wrote user configuration file '/root/.tiogo.v1.yaml'.
+
 ```
 
 Saving create configuration file in your user's homefolder `.tiogo.v1.yaml` and ultimately create a `.tiogo/cache/` folder hierarchy. The cache folder contains all of the raw JSON returned from Tenable.io under `.tiogo/cache/server/*`
@@ -252,6 +271,7 @@ Saving create configuration file in your user's homefolder `.tiogo.v1.yaml` and 
 Use `tiogo` you can easily extract all of the vulnerabilities and assets into a collection of files, and query them using built JSON query processor `jq`.
 
 ```
+
 root@d173934e91b2:/tiogo# ./tio help export-vulns
 
 ```
@@ -262,7 +282,6 @@ root@d173934e91b2:/tiogo# ./tio help export-vulns
 
 This code is actually three major components CLI/config, Proxy Server and Client:
 
-```
 +                                +             +                    +              +
 | 1) ./tio.go is called, reads   |             |  2) Start a Proxy  |              |
 |    YAML configuration file     |             |       Server       |              |
@@ -277,9 +296,7 @@ This code is actually three major components CLI/config, Proxy Server and Client
 |                                |3) Use Client|  to Tenable.io     |              |
 |                                |to make calls|                    |              |
 |                                |to proxy     |                    |              |
-+                                +             +                    +              +
-
-```
++          
 
 I original conceived of this design while working on [tio-cli](https://github.com/whereiskurt/tio-cli/) when Tenable.io backend services were changing frequently and I need a way to insulate my client queries from the Tenable.io responses. Now things are (more) stable and I'm considering no longer maintaining the Proxy Server.
 
@@ -309,7 +326,6 @@ You can already acheive the whole 'local proxy' bypass just by pointing the clie
 +                                +             +                    +              +
 
 ```
-
 ## Some details about the code:
 
 I've [curated a YouTube playlist](https://www.youtube.com/playlist?list=PLa1qVAzg1FHthbIaRRbLyA4sNE4PmLmn6) of videos which help explain how I ended up with this structure and 'why things are the way they are.' I've leveraged 'best practices' I've seen and that have been explicted called out by others. Of course **THERE ARE SOME WRINKLES** and few **PURELY DEMONSTRATION** portions of code. I hope to be able to keep improving on this.
@@ -333,3 +349,4 @@ I've [curated a YouTube playlist](https://www.youtube.com/playlist?list=PLa1qVAz
 - [x] An example Dockerfile and build recipe `(docs/recipe/)` for a docker workflow
   - Use `docker build --tag tiogo:bulid .` to create a full golang image
   - Use `docker run -it --rm tiogo:build` to work from with the container
+```
