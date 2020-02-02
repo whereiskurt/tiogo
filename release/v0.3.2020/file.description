@@ -1,0 +1,4 @@
+sha512.sums:           ASCII text
+tio.darwin.amd64:      Mach-O 64-bit x86_64 executable
+tio.linux.am64:        ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, not stripped
+tio.windows.amd64.exe: PE32+ executable (console) x86-64 (stripped to external PDB), for MS Windows

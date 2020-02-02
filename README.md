@@ -7,9 +7,11 @@
 # **C**ommand **L**ine **I**nterface to [Tenable.io](https://cloud.tenable.com)
 
 `tiogo` is a command line tool for interacting with the Tenable.io API, written in Go. It follows a general CLI principals of:
+
 ```
    ./tio [COMMAND] [SUB-COMMAND] [ACTION] [PARAMS]
 ```
+
 The `tiogo vm` command currently implements calls to the [Tenable.io Vulnerability API](https://developer.tenable.com/reference) focused on data extracts such as agents, agent-groups, scanners, scans (current/past), vulnerabilities, and assets. Sub-commands such as `export-scans` and `export-assets` make the the `start/status/get` actions easy, requiring minimal parameters. And Sub-commands for `scanners/scans/agents/agent-groups` all default to `list` actions and `--csv` outputs except where `--json` makes more sense. :-)
 
 Tenable offers a variety of for Tenable.io APIs including Web Scanning and Containers. Those APIs may be implmented in the future as `ws` or `container` commands. Today only `vm` exists and is the default and can be ommitted.
@@ -17,11 +19,17 @@ Tenable offers a variety of for Tenable.io APIs including Web Scanning and Conta
 Tool written by @whereiskurt and **is not supported or endorsed by Tenable in anyway.**
 
 # Overview
-The current primary use case for `tiogo vm` is extracting vulns/assets/scans/agents into a SIEM or SOAR system. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains an embeded `jq` binary, the necessary libraries, templates and dependencies to provide a write-once and run-anywhere.
+
+The current primary use case for the `tiogo vm` command is extracting vulns/assets/scans/agents into a SIEM or SOAR system. Because `tiogo` is written in Go it can be complied into a standalone binary for any platform (windows/linux/osx). The binary contains an embeded `jq` binary, the necessary libraries, templates and dependencies to provide a write-once and run-anywhere.
 
 ## List your scanners, scan definitions and previous scan run details:
 
 ```
+  ## Showing `vm` command, it's default and optional.
+  $ ./tio vm scanners                  ## Output scanner detail with IP addresses
+  $ ./tio vm scans                     ## Output all scans defined
+
+  ## `vm` command not needed, and ommitted
   $ ./tio scanners                     ## Output scanner detail with IP addresses
   $ ./tio scans                        ## Output all scans defined
   $ ./tio scans detail --id=1234       ## Output scan run details for Scan ID '1234'
@@ -228,8 +236,11 @@ Use `tiogo` you can easily extract all of the vulnerabilities and assets into a 
 root@d173934e91b2:/tiogo# ./tio help export-vulns
 
 ```
+
 # Design
-## CLI -> Client ->  Local Proxy -> Tenable.io
+
+## CLI -> Client -> Local Proxy -> Tenable.io
+
 This code is actually three major components CLI/config, Proxy Server and Client:
 
 ```
@@ -250,10 +261,13 @@ This code is actually three major components CLI/config, Proxy Server and Client
 +                                +             +                    +              +
 
 ```
-I original conceived of this design while working on [tio-cli](https://github.com/whereiskurt/tio-cli/) when Tenable.io backend services were changing frequently and I need a way to insulate my client queries from the Tenable.io responses.  Now things are (more) stable and I'm considering no longer maintaining the Proxy Server.
+
+I original conceived of this design while working on [tio-cli](https://github.com/whereiskurt/tio-cli/) when Tenable.io backend services were changing frequently and I need a way to insulate my client queries from the Tenable.io responses. Now things are (more) stable and I'm considering no longer maintaining the Proxy Server.
 
 ## CLI -> Client -> Tenable.io
+
 You can already acheive the whole 'local proxy' just by pointing the client at `BaseURL` to `cloud.tenable.io` and setting the `DefaultServerStart` to `false` will make the call chain look like this:
+
 ```
 +                                +             +                    +              +
 | 1) ./tio.go is called, reads   |             |                    |              |
