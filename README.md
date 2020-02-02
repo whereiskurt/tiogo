@@ -42,12 +42,17 @@ The current primary use case for the `tiogo vm` command is extracting vulns/asse
   $ ./tio agents list > agent.list.20200101.csv
 ```
 
-## Exports (assets/vulns/scans)
+## Exports (vulns/assets/scans)
 
 ```
 ## No parameters needed defaults to last 365 days
-$ ./tio export-vulns start|status|get
-$ ./tio help export-assets start|status|get
+$ ./tio export-vulns start
+$ ./tio export-vulns status
+$ ./tio export-vulns get
+
+$ ./tio export-assets start
+$ ./tio export-assets status
+$ ./tio export-assets get
 
 ## Scans just needs a ScanID
 $ ./tio start export-scans start|status|get --id=1234
