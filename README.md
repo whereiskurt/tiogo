@@ -16,7 +16,7 @@ The `tiogo vm` command currently implements calls to the [Tenable.io Vulnerabili
 
 Tenable offers a variety of for Tenable.io APIs including Web Scanning and Containers. Those APIs may be implmented in the future as `ws` or `container` commands. Today only `vm` exists and is the default and can be ommitted.
 
-I've precompiled versions in the 'releases/vX.Y.Z' folder for Windows, Linux and OSX. It's the same outputs from the `Dockerfile` using `GOOS=windows/linux/dawin` with `GOARCH=amd64`.
+There are precompiled versions in the ['releases/vX.Y.Z'](https://github.com/whereiskurt/tiogo/tree/master/release/v0.3.2020) folder for Windows, Linux and OSX. It's the same outputs from the `Dockerfile` using `GOOS=windows/linux/dawin` with `GOARCH=amd64`.
 
 This tool is written and maintained by @whereiskurt and **is not officially supported or endorsed by Tenable in anyway.**
 
