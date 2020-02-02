@@ -282,7 +282,7 @@ I original conceived of this design while working on [tio-cli](https://github.co
 
 ## CLI -> Client -> Tenable.io
 
-You can already acheive the whole 'local proxy' just by pointing the client at `BaseURL` to `cloud.tenable.io` and setting the `DefaultServerStart` to `false` will make the call chain look like this:
+You can already acheive the whole 'local proxy' bypass just by pointing the client at `BaseURL` to `cloud.tenable.io` and setting the `DefaultServerStart` to `false` will make the call chain look like this:
 
 ```
 +                                +             +                    +              +
