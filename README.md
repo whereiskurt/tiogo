@@ -16,7 +16,9 @@ The `tiogo vm` command currently implements calls to the [Tenable.io Vulnerabili
 
 Tenable offers a variety of for Tenable.io APIs including Web Scanning and Containers. Those APIs may be implmented in the future as `ws` or `container` commands. Today only `vm` exists and is the default and can be ommitted.
 
-Tool written by @whereiskurt and **is not supported or endorsed by Tenable in anyway.**
+I've precompiled versions in the 'releases/vX.Y.Z' folder for Windows, Linux and OSX. It's the same outputs from the `Dockerfile` using `GOOS=windows/linux/dawin` with `GOARCH=amd64`.
+
+This tool is written and maintained by @whereiskurt and **is not officially supported or endorsed by Tenable in anyway.**
 
 # Overview
 
@@ -28,6 +30,7 @@ The current primary use case for the `tiogo vm` command is extracting vulns/asse
   ## Showing `vm` command, it's default and optional.
   $ ./tio vm scanners                  ## Output scanner detail with IP addresses
   $ ./tio vm scans                     ## Output all scans defined
+  $ ./tio vm scans detail --id=1234    ## Output scan run details for Scan ID '1234'
 
   ## `vm` command not needed, and ommitted
   $ ./tio scanners                     ## Output scanner detail with IP addresses
