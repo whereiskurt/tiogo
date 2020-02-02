@@ -42,6 +42,17 @@ The current primary use case for the `tiogo vm` command is extracting vulns/asse
   $ ./tio agents list > agent.list.20200101.csv
 ```
 
+## Exports (assets/vulns/scans)
+
+```
+## No parameters needed defaults to last 365 days
+$ ./tio export-vulns start|status|get
+$ ./tio help export-assets start|status|get
+
+## Scans just needs a ScanID
+$ ./tio start export-scans start|status|get --id=1234
+```
+
 ## Scans Export (JSON/Nessus/CSV/PDF)
 
 Exports of scans/assets/vulnerabilities have a `[start/status/get]` lifecycle. We `export-scans start` our export, then check the `export-scans status` and then `export-scans get` the export. When a scan has run more than once using an `--offset=[0,1,2...]` will get previous results (ie. historical). The default `--offset=0` can be ommited and the current scan will be retrieved.
