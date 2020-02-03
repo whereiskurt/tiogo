@@ -298,7 +298,7 @@ This code is actually three major components CLI/config, Proxy Server and Client
 |     3) Use Client to make      |             |  4) Relay calls    |              |
 |        calls to Tenable.io     |             |     to Tenable.io  |              |
 |                                |             |                    |              |
-+          
+```
 
 I original conceived of this design while working on [tio-cli](https://github.com/whereiskurt/tio-cli/) when Tenable.io backend services were changing frequently and I need a way to insulate my client queries from the Tenable.io responses. Now things are (more) stable and I'm considering no longer maintaining the Proxy Server.
 
