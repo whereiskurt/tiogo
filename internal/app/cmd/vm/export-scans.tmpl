@@ -34,9 +34,8 @@ Examples:
     $ tio export-scans get --id=1234 --offset=1 --pdf   
     $ tio export-scans get --id=1234 --offset=1 --csv  
     
-    ## Apply tags to all assets found in the scan.
+    ## Apply tags to all assets found in the scan. NOTE: need to do start/status/get before this
     $ ./tio export-scans tag --id=1234 --tag="owner:Sales,platform:Server,exposure:External"
-
 {{end}}
 
 {{define "ExportScansStart"}}
