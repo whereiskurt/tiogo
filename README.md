@@ -166,7 +166,7 @@ Exports of scans/assets/vulnerabilities have a `[start/status/get]` lifecycle. W
 
 Exports have a `[start/status/get]` lifecycle. We `export-assets start` our export, then check the `export-assets status` and then `export-assets get` the export. Using `export-assets query` allows a `--jqex=<expression>` to be executed on the exported JSON.
 
-````
+```
   $ ./tio export-assets start    ## Start vulns export of a years worth
   $ ./tio export-assets status   ## Check the status
   ...                            ##  ... wait until 'FINISHED'
@@ -177,14 +177,12 @@ Exports have a `[start/status/get]` lifecycle. We `export-assets start` our expo
 
 ## Using the Dockerfile is a fast way to get 'up and running' if you already have Docker installed and working:
 
-````
-
+```
 \$ docker build --tag tiogo:v0.3.2020 .
 ... [tiogo builds and verbosely outputs]
 
 \$ docker run --tty --interactive --rm tiogo:v0.3.2020
 root@4f51ab2342123:/tiogo# ./tio help
-
 ```
 
 ## `> go run cmd\tio.go help`
@@ -192,7 +190,6 @@ root@4f51ab2342123:/tiogo# ./tio help
 `tiogo` currently only supports the Vulnerability Management APIs and the defaults to `vm`.
 
 ```
-
 root@69e1a9f2bbb2:/tiogo# ./tio help
 An interface into the Tenable.io API using Go!
 
@@ -207,6 +204,7 @@ Version v0.3.2020 0521bb94
           ]            | | |            |
           ]             ~ ~             |
           |                            |
+
         [[@https://gist.github.com/belbomemo]]
 
 Find more information at:
@@ -275,7 +273,6 @@ Saving create configuration file in your user's homefolder `.tiogo.v1.yaml` and 
 Use `tiogo` you can easily extract all of the vulnerabilities and assets into a collection of files, and query them using built JSON query processor `jq`.
 
 ```
-
 root@d173934e91b2:/tiogo# ./tio help export-vulns
 
 ```
@@ -286,6 +283,7 @@ root@d173934e91b2:/tiogo# ./tio help export-vulns
 
 This code is actually three major components CLI/config, Proxy Server and Client:
 
+```
 +                                +             +                    +              +
 | 1) ./tio.go is called, reads   |             |  2) Start a Proxy  |              |
 |    YAML configuration file     |             |       Server       |              |
