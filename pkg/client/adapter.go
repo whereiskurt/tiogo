@@ -5,11 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/whereiskurt/tiogo/pkg/cache"
-	"github.com/whereiskurt/tiogo/pkg/config"
-	"github.com/whereiskurt/tiogo/pkg/metrics"
-	"github.com/whereiskurt/tiogo/pkg/tenable"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -19,6 +14,12 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/whereiskurt/tiogo/pkg/cache"
+	"github.com/whereiskurt/tiogo/pkg/config"
+	"github.com/whereiskurt/tiogo/pkg/metrics"
+	"github.com/whereiskurt/tiogo/pkg/tenable"
 )
 
 // Adapter is used to call ACME services and convert them to Gopher/Things in Go structures we like.
@@ -731,4 +732,46 @@ func (a *Adapter) ScansExportGet(s *Scan, histid string, format string, chapters
 	export.SourceFile.CachedFileName = filename
 
 	return export, err
+}
+
+// TagValueCreate will make a new category:value, and return a TagValue UUID
+func (a *Adapter) TagValueCreate(category string, value string, skipOnHit bool, writeOnReturn bool) (TagValue, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.TagValueCreate, metrics.Methods.Service.Get)
+	u := NewUnmarshal(a.Config, a.Metrics)
+
+	var tag TagValue
+	raw, err := u.TagValueCreate(category, value, skipOnHit, writeOnReturn)
+	if err != nil {
+		// This happens when we've already created this category:value pair
+		if strings.Contains(string(raw), "Duplicate tag value") {
+			// TODO: Make call to get TagValues, and return the TagValueUUID
+			//raw, err = u.GetTagValue(category, value, skipOnHit, writeOnReturn)
+			//1) Get category:value uuid
+			//2) Populate tag with values
+		}
+
+		return tag, err
+	}
+	convert := NewConvert()
+
+	tag, err = convert.ToTagValue(&raw)
+
+	return tag, err
+}
+
+// TagBulkApply will chunk [] into 1000 units and submit.
+func (a *Adapter) TagBulkApply(assetUUID []string, tagUUID []string) (jobID string, err error) {
+	a.Metrics.ClientInc(metrics.EndPoints.TagValueCreate, metrics.Methods.Service.Get)
+	u := NewUnmarshal(a.Config, a.Metrics)
+
+	raw, err := u.TagBulkApply(assetUUID, tagUUID, false, false)
+	if err != nil {
+		log.Fatalf("error: bbbbfailed to TagBulkApply: %v:%v", raw, err)
+		return "", nil
+	}
+
+	convert := NewConvert()
+	jobID, err = convert.ToTagTagBulkJobID(&raw)
+
+	return jobID, err
 }

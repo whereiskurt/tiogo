@@ -53,10 +53,28 @@ func (vm *VM) CacheClearAll(cmd *cobra.Command, args []string) {
 	vm.CacheClearAgents(cmd, args)
 	vm.CacheClearScans(cmd, args)
 	vm.CacheClearExports(cmd, args)
+	vm.CacheClearTags(cmd, args)
 
 	cli.Println(fmt.Sprintf("Done."))
 
 	return
+}
+
+//CacheClearTags removes folders to do tagging uuids etc
+func (vm *VM) CacheClearTags(cmd *cobra.Command, args []string) {
+	log := vm.setupLog()
+	filename := tenable.ServiceMap[tenable.EndPoints.TagBulkApply].CacheFilename
+
+	cpath := filepath.Join(vm.Config.VM.CacheFolder, client.DefaultServiceFolder, filename, "../")
+	cdir := filepath.Dir(cpath)
+	log.Debugf("Delete cache folder: os.RemoveAll(%s)", cdir)
+	os.RemoveAll(cdir)
+
+	cpath = filepath.Join(vm.Config.Server.CacheFolder, filename, "../")
+	cdir = filepath.Dir(cpath)
+	log.Debugf("Delete cache folder: os.RemoveAll(%s)", cdir)
+	os.RemoveAll(cdir)
+
 }
 
 // CacheClearExports will empty  folders for all past exports (vulns/assets/etc.)

@@ -192,3 +192,19 @@ func (u *Unmarshal) ScansExportGet(scanid string, fileuuid string, skipOnHit boo
 	raw, err := s.ScansExportGet(scanid, fileuuid)
 	return raw, err
 }
+
+// TagValueCreate creates new tag category (if necessary) and new value for that category
+func (u *Unmarshal) TagValueCreate(category string, value string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+	s := u.service(skipOnHit, writeOnReturn)
+
+	raw, err := s.TagCategoryValueCreate(category, value)
+	return raw, err
+}
+
+// TagBulkApply creates new tag category (if necessary) and new value for that category
+func (u *Unmarshal) TagBulkApply(assetUUID []string, tagUUID []string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+	s := u.service(skipOnHit, writeOnReturn)
+
+	raw, err := s.TagBulkApply(assetUUID, tagUUID)
+	return raw, err
+}

@@ -280,15 +280,12 @@ type AssetTagDetail struct {
 
 // TagValue struct
 type TagValue struct {
-	ContainerUUID       string
 	UUID                string
-	ModelName           string
-	Value               string
-	Description         string
-	Type                string
 	CategoryUUID        string
 	CategoryName        string
 	CategoryDescription string
+	Value               string
+	Description         string
 }
 
 //TagCategory struct

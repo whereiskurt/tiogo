@@ -6,7 +6,7 @@ Usage:
     tio vm export-scans [ACTION ...] [OPTIONS]
 
 Action:
-    start, status, get, query
+    start, status, get, query, tag
 
 Export Scans Options:
     Selection modifiers:
@@ -18,22 +18,25 @@ Export Scans Options:
 Examples:
     ## Start examples of an export for scan id 1234 offset 0 (current scan)
     ## offset 1 (previous scan) and a specific history id 13545223
-    $ tio vm export-scans start --id=1234 
-    $ tio vm export-scans start --id=1234 --csv
-    $ tio vm export-scans start --id=1234 --offset=1 --pdf --chapter=vuln_by_asset
-    $ tio vm export-scans start --id=1234 --offset=1 --pdf --chapter=vuln_by_host
+    $ tio export-scans start --id=1234 
+    $ tio export-scans start --id=1234 --csv
+    $ tio export-scans start --id=1234 --offset=1 --pdf --chapter=vuln_by_asset
+    $ tio export-scans start --id=1234 --offset=1 --pdf --chapter=vuln_by_host
     
     ## Check this status of the started exports
-    $ tio vm export-scans status --id=1234
-    $ tio vm export-scans status --id=1234 --offset=1 --pdf 
-    $ tio vm export-scans status --id=1234 --offset=1 --csv
+    $ tio export-scans status --id=1234
+    $ tio export-scans status --id=1234 --offset=1 --pdf 
+    $ tio export-scans status --id=1234 --offset=1 --csv
 
     ## Download the export-scans file from Tenable.io
-    $ tio vm export-scans get --id=1234
-    $ tio vm export-scans get --id=1234 --offset=1
-    $ tio vm export-scans get --id=1234 --offset=1 --pdf   
-    $ tio vm export-scans get --id=1234 --offset=1 --csv  
+    $ tio export-scans get --id=1234
+    $ tio export-scans get --id=1234 --offset=1
+    $ tio export-scans get --id=1234 --offset=1 --pdf   
+    $ tio export-scans get --id=1234 --offset=1 --csv  
     
+    ## Apply tags to all assets found in the scan.
+    $ ./tio export-scans tag --id=1234 --tag="owner:Sales,platform:Server,exposure:External"
+
 {{end}}
 
 {{define "ExportScansStart"}}
@@ -42,10 +45,10 @@ Successfully started scans export uuid='{{.FileUUID}}'
 To review the status for 'READY' and then get the prepared file:
 
   ## Check this status of the started exports
-  $ tio vm export-scans status --id={{.ScanID}} --history={{.HistoryID}} --format={{.Format}}
+  $ tio export-scans status --id={{.ScanID}} --history={{.HistoryID}} --format={{.Format}}
 
   ## Download the export-scan from Tenable.io (once 'READY')
-  $ tio vm export-scans get --id={{.ScanID}} --history={{.HistoryID}} --format={{.Format}}
+  $ tio export-scans get --id={{.ScanID}} --history={{.HistoryID}} --format={{.Format}}
 {{end}}
 
 {{define "ExportScansStatus"}}
@@ -56,17 +59,17 @@ Export status is "READY"! You can retrieve the download:
 Export status is currently '{{.Status}}', once it becomes 'READY' you can get the file:
 {{- end}}
     ## Retrieve the download. NOTE: Fails unless status is 'READY'
-    $ tio vm export-scans get --id={{.ScanID}} --history={{.HistoryID}}
+    $ tio export-scans get --id={{.ScanID}} --history={{.HistoryID}}
 
     ## Retrieve the file NOTE: Fails unless status is 'READY'
-    $ tio vm export-scans get --id={{.ScanID}} --history={{.HistoryID}}
+    $ tio export-scans get --id={{.ScanID}} --history={{.HistoryID}}
 {{end}}
 
 {{define "ExportScansGetNessus"}}
 To use export-scans query convert Nessus XML to JSON
 
   ## Query downloaded export scans
-  $ tio vm export-scans query --id={{.ScanID}} --history={{.HistoryID}} > nessus.json
+  $ tio export-scans query --id={{.ScanID}} --history={{.HistoryID}} > nessus.json
 {{end}}
 
 {{define "ExportScansGet"}}
@@ -76,4 +79,12 @@ Successfully retrieved export-scans {{.Format}} for '{{.ScanName}}'
 Cached downloaded raw file to '{{.CacheFilename}}'
 
 Saved a local copy to '{{.Filename}}':
+{{end}}
+
+{{define "ExportScansTagsApply"}}
+Applying tags from scanid='{{.ScanID}}',histid='{{.HistoryID}}'.offset='{{.Offset}} -- job id '{{.JobID}}'
+{{end}}
+
+{{define "ExportScansTagsUnapply"}}
+Unapplying tags from scanid='{{.ScanID}}',histid='{{.HistoryID}}'.offset='{{.Offset}} -- job id '{{.JobID}}'
 {{end}}

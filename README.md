@@ -9,7 +9,7 @@
 `tio` is a command line tool for interacting with the Tenable.io API, written in Go. It follows a general CLI principals of:
 
 ```
-   ./tio [COMMAND] [SUB-COMMAND] [ACTION] [PARAMS]
+   ./tio [command] [SUBCOMMAND] [ACTION] [flags]
 ```
 
 The `tio vm` command currently implements calls to the [Tenable.io Vulnerability API](https://developer.tenable.com/reference) focused on data extracts such as agents, agent-groups, scanners, scans (current/past), vulnerabilities, and assets. Sub-commands such as `export-scans` and `export-assets` make the the `start/status/get` actions easy, requiring minimal parameters. And Sub-commands for `scanners/scans/agents/agent-groups` all default to `list` actions and `--csv` outputs except where `--json` makes more sense. :-)
@@ -28,10 +28,15 @@ The current primary use case for the `tiogo vm` command is extracting vulns/asse
 
 ## List your scanners, scan definitions and previous scan run details:
 
+A folder called `log/` is created in your working directory and `log/client.YYYYMMDD.log` will have the details of your executions. Add the parameter `--trace` to see echo'd out to STDOUT
+
 ```
   ## Showing `vm` command, it's default and optional.
   $ ./tio vm scanners                  ## Output scanner detail with IP addresses
+  $ ./tio vm scanners --trace          ## Output scanner detail with IP addresses, and lots of debugging.
+
   $ ./tio vm scans                     ## Output all scans defined
+  $ ./tio vm scans --trace             ## Output all scans defined
   $ ./tio vm scans detail --id=1234    ## Output scan run details for Scan ID '1234'
 
   ## `vm` command not needed, and ommitted
@@ -202,7 +207,6 @@ Version v0.3.2020 0521bb94
           ]            | | |            |
           ]             ~ ~             |
           |                            |
-
         [[@https://gist.github.com/belbomemo]]
 
 Find more information at:
@@ -287,15 +291,15 @@ This code is actually three major components CLI/config, Proxy Server and Client
 |    YAML configuration file     |             |       Server       |              |
 | +----------------------------+ |             |                    |              |
 | |                            | |             | +--------------+   |              |
-| |  Command Line Invocation   +----------------->              |   |              |
+| |  Command Line Invocation   +---------------->|              |   |              |
 | | (.tio.yaml configuration)  | | +--------+  | | Proxy Server |   | +----------+ |
-| |                            +---> Client +---->              +----->Tenable.io| |
-| |                            <---+        <----+              <-----+          | |
+| |                            |-->| Client |--->|              +---->|Tenable.io| |
+| |                            |<--|        |<---|              <-----|          | |
 | |                            | | +--------+  | +--------------+   | +----------+ |
-| +----------------------------+ |             |  4) Relay calls    |              |
-|                                |3) Use Client|  to Tenable.io     |              |
-|                                |to make calls|                    |              |
-|                                |to proxy     |                    |              |
+| +----------------------------+ |             |                    |              |
+|     3) Use Client to make      |             |  4) Relay calls    |              |
+|        calls to Tenable.io     |             |     to Tenable.io  |              |
+|                                |             |                    |              |
 +          
 
 I original conceived of this design while working on [tio-cli](https://github.com/whereiskurt/tio-cli/) when Tenable.io backend services were changing frequently and I need a way to insulate my client queries from the Tenable.io responses. Now things are (more) stable and I'm considering no longer maintaining the Proxy Server.
@@ -310,16 +314,15 @@ You can already acheive the whole 'local proxy' bypass just by pointing the clie
 |    YAML configuration file     |             |                    |              |
 | +----------------------------+ |             |                    |              |
 | |                            | |             |                    |              |
-| |  Command Line Invocation   +---------------+                    |              |
-| | (.tio.yaml configuration)  | | +--------+  |                    | +----------+ |
-| |                            +---> Client +------------------------->Tenable.io| |
-| |                            <---+        <-------------------------+          | |
-| |                            | | +--------+  |                    | +----------+ |
-| +----------------------------+ |             |                    |              |
-|                                | 2)Use Client|                    |              |
-|                                |   to call   |                    |              |
-|                                |  Tenable.io |                    |              |
-|                                |  API direct |                    |              |
+| |  Command Line Invocation   | |             |                    |              |
+| | (.tio.yaml configuration)  | |  +--------+ |                    | +----------+ |
+| |                            |--->| Client |----------------------->|Tenable.io| |
+| |                            |<---|        |<-----------------------|          | |
+| +----------------------------+ |  +--------+ |                    | +----------+ |
+|                                |             |                    |              |
+|     2) Use Client to make      | 3) Calls    |                    |              |
+|        calls to Tenable.io     |  Tenable.io |                    |              |
+|                                |     API     |                    |              |
 |                                |             |                    |              |
 |                                |             |                    |              |
 |                                |             |                    |              |

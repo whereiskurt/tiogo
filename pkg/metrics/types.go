@@ -23,6 +23,8 @@ var EndPoints = endPointTypes{
 	ScansExportStart:   EndPointType("ScansExportStart"),
 	ScansExportStatus:  EndPointType("ScansExportStatus"),
 	ScansExportGet:     EndPointType("ScansExportGet"),
+	TagValueCreate:     EndPointType("TagValueCreate"),
+	TagBulkApply:       EndPointType("TagBulkApply"),
 }
 
 type endPointTypes struct {
@@ -44,6 +46,8 @@ type endPointTypes struct {
 	ScansExportStart   EndPointType
 	ScansExportStatus  EndPointType
 	ScansExportGet     EndPointType
+	TagValueCreate     EndPointType
+	TagBulkApply       EndPointType
 }
 
 func (c EndPointType) String() string {

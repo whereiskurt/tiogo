@@ -314,28 +314,6 @@ type TagCategory struct {
 	Description   string `json:"description"`
 }
 
-//TagValues struct from Tenable.io
-type TagValues struct {
-	Values []TagValue
-}
-
-//TagValue struct from Tenable.io
-type TagValue struct {
-	ContainerUUID       string `json:"container_uuid"`
-	UUID                string `json:"uuid"`
-	CreatedAt           string `json:"created_at"`
-	CreatedBy           string `json:"created_by"`
-	UpdatedAt           string `json:"updated_at"`
-	UpdatedBy           string `json:"updated_by"`
-	ModelName           string `json:"model_name"`
-	Value               string `json:"value"`
-	Description         string `json:"description"`
-	Type                string `json:"type"`
-	CategoryUUID        string `json:"category_uuid"`
-	CategoryName        string `json:"category_name"`
-	CategoryDescription string `json:"category_description"`
-}
-
 //AssetHost struct from Tenable.io
 type AssetHost struct {
 	Assets []struct {
@@ -694,3 +672,35 @@ func (f *DownloadFileID) UnmarshalJSON(data []byte) (err error) {
 	}
 	return err
 }
+
+//TagValue struct from Tenable.io
+type TagValue struct {
+	UUID                string `json:"uuid"`
+	CreatedAt           string `json:"created_at"`
+	CreatedBy           string `json:"created_by"`
+	UpdatedAt           string `json:"updated_at"`
+	UpdatedBy           string `json:"updated_by"`
+	CategoryUUID        string `json:"category_uuid"`
+	Value               string `json:"value"`
+	Description         string `json:"description"`
+	Type                string `json:"type"`
+	CategoryName        string `json:"category_name"`
+	CategoryDescription string `json:"category_description"`
+}
+
+//TagBulkJob struct from Tenable.io after bulk adding
+type TagBulkJob struct {
+	Action    string   `json:"action"`
+	JobUUID   string   `json:"job_uuid"`
+	AssetUUID []string `json:"assets"`
+	TagUUID   []string `json:"tags"`
+}
+
+// "errors":[
+// 0:{
+// "property":"value"
+// "rule":"duplicate"
+// "message":"Duplicate tag value 'WINTEL' cannot be be created."
+// }
+// ]
+// "error":"Duplicate tag value 'WINTEL' cannot be be created."

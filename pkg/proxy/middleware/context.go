@@ -148,6 +148,19 @@ func Format(r *http.Request) (format string, chapters string) {
 	return ContextMap(r)["Format"], ContextMap(r)["Chapters"]
 }
 
+// Tag pulls the param from the request/contextmap
+func Tag(r *http.Request) (category string, value string) {
+	return ContextMap(r)["Category"], ContextMap(r)["Value"]
+}
+
+func Assets(r *http.Request) string {
+	return ContextMap(r)["Assets"]
+}
+
+func Tags(r *http.Request) string {
+	return ContextMap(r)["Tags"]
+}
+
 // ExportCtx pulls the param from the request/contextmap
 func ExportCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -246,6 +259,46 @@ func ScansExportStartCtx(next http.Handler) http.Handler {
 			if err == nil {
 				ctxMap["Format"] = body.Format
 				ctxMap["Chapters"] = body.Chapters
+			}
+		}
+
+		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+//TagCategoryValueCtx sets context for tagging calls
+func TagCategoryValueCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
+
+		bb, err := ioutil.ReadAll(r.Body)
+		if err == nil {
+			var body tenable.TagValue
+			err = json.Unmarshal(bb, &body)
+			if err == nil {
+				ctxMap["Category"] = body.CategoryName
+				ctxMap["Value"] = body.Value
+			}
+		}
+
+		ctx := context.WithValue(r.Context(), ContextMapKey, ctxMap)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+//TagBulkApplyCtx sets context for tagging calls
+func TagBulkApplyCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctxMap := r.Context().Value(ContextMapKey).(map[string]string)
+
+		bb, err := ioutil.ReadAll(r.Body)
+		if err == nil {
+			var body tenable.TagBulkJob
+			err = json.Unmarshal(bb, &body)
+			if err == nil {
+				ctxMap["Assets"] = strings.Join(body.AssetUUID, ",")
+				ctxMap["Tags"] = strings.Join(body.TagUUID, ",")
 			}
 		}
 

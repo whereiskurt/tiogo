@@ -2,8 +2,10 @@ package ui
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"encoding/base64"
 	"encoding/csv"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -136,6 +138,12 @@ func Base64(raw string) (encoded string) {
 	return
 }
 
+// Sumsha1 returns sha1 of raw string for templates
+func Sumsha1(raw string) string {
+	hash := sha1.Sum([]byte(raw))
+	return hex.EncodeToString(hash[:])
+}
+
 // Render will output the UI templates as per the config bind the data.
 func (cli *CLI) Render(name string, data interface{}) (usage string) {
 	var raw bytes.Buffer
@@ -180,6 +188,7 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 				"Contains":             strings.Contains,
 				"CSVString":            CSVString,
 				"Base64":               Base64,
+				"Sumsha1":              Sumsha1,
 			},
 		).Parse(string(content))
 	}

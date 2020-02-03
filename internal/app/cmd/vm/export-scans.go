@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
@@ -19,6 +20,8 @@ type action struct {
 	ExportScanStatus actionType
 	ExportScanGet    actionType
 	ExportScanQuery  actionType
+	ExportScanTag    actionType
+	ExportScanUntag  actionType
 }
 
 var actions = action{
@@ -26,6 +29,8 @@ var actions = action{
 	ExportScanStatus: actionType("ExportScanStatus"),
 	ExportScanGet:    actionType("ExportScanGet"),
 	ExportScanQuery:  actionType("ExportScanQuery"),
+	ExportScanTag:    actionType("ExportScanTag"),
+	ExportScanUntag:  actionType("ExportScanUntag"),
 }
 
 // ExportScansStart request Tenable.io create a new export for the scan
@@ -49,6 +54,18 @@ func (vm *VM) ExportScansGet(cmd *cobra.Command, args []string) {
 // ExportScansQuery download the exported status of Tenable.io scan export
 func (vm *VM) ExportScansQuery(cmd *cobra.Command, args []string) {
 	vm.exportScansAction(cmd, args, actions.ExportScanQuery)
+	return
+}
+
+// ExportScansTag will add an Asset Tag to each asset in a Scan
+func (vm *VM) ExportScansTag(cmd *cobra.Command, args []string) {
+	vm.exportScansAction(cmd, args, actions.ExportScanTag)
+	return
+}
+
+// ExportScansUntag will remove an Asset Tag to each asset in a Scan
+func (vm *VM) ExportScansUntag(cmd *cobra.Command, args []string) {
+	vm.exportScansAction(cmd, args, actions.ExportScanUntag)
 	return
 }
 
@@ -177,13 +194,56 @@ func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, action action
 				continue
 			}
 
-			json, err := json.Marshal(export)
+			j, err := json.Marshal(export)
 			if err != nil {
 				log.Errorf("Error marshalling to JSON: %+v", err)
 				return
 			}
 
-			cli.Println(string(json))
+			cli.Println(string(j))
+			break
+
+		case actions.ExportScanTag:
+			log.Debugf("Tagging based on export-scan ...")
+
+			tags := vm.Config.VM.Tags
+			if tags == "" || (len(strings.Split(tags, ":"))-1 != len(strings.Split(tags, ","))) {
+				log.Fatalf("error: --tags cannot be empty, must pass --tags=category:value[,c2:v2,..cX:vX]")
+				break
+			}
+
+			// Get the tag uuids for these scanned assets
+			var taguuid []string
+			for _, tt := range strings.Split(tags, ",") {
+				cv := strings.Split(tt, ":")
+				category, value := cv[0], cv[1]
+
+				tv, err := a.TagValueCreate(category, value, true, true)
+				if err != nil {
+					log.Errorf("error: cannot get tag uuid for tagging")
+					break
+				}
+				taguuid = append(taguuid, tv.UUID)
+			}
+
+			// Get asset uuids that we want to tag
+			export, err := a.ScansExportGet(&s, histid, format, chapters, true, true)
+			if err != nil {
+				log.Errorf("error: couldn't get export-scans: %v", err)
+				break
+			}
+			var assetuuid []string
+			for _, h := range export.Report.Hosts {
+				uuid := h.HostTag["host-uuid"] // This is asset_uuid scan output
+				assetuuid = append(assetuuid, uuid)
+			}
+
+			log.Debugf("Asset: %+v, Tag:%+v", assetuuid, taguuid)
+
+			a.TagBulkApply(assetuuid, taguuid)
+
+			break
+		case actions.ExportScanUntag:
 			break
 		}
 

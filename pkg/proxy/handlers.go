@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/whereiskurt/tiogo/pkg/metrics"
@@ -335,6 +336,33 @@ func (s *Server) ScansExportGet(w http.ResponseWriter, r *http.Request) {
 		fileuuid := middleware.FileUUID(r)
 
 		return t.ScansExportGet(scanid, fileuuid)
+	}
+	s.CachedTenableCall(pp)
+}
+
+// TagValueCreate POSTS the create
+func (s *Server) TagValueCreate(w http.ResponseWriter, r *http.Request) {
+	var pp = CachedTenableCallParams{w: w, r: r}
+	pp.endPoint = tenable.EndPoints.TagValueCreate
+	pp.metricType = metrics.EndPoints.TagValueCreate
+	pp.metricMethod = metrics.Methods.Service.Update
+
+	pp.f = func(t tenable.Service) ([]byte, error) {
+		category, value := middleware.Tag(r)
+		return t.TagCategoryValueCreate(category, value)
+	}
+	s.CachedTenableCall(pp)
+}
+
+// TagBulkApply applies
+func (s *Server) TagBulkApply(w http.ResponseWriter, r *http.Request) {
+	var pp = CachedTenableCallParams{w: w, r: r}
+	pp.endPoint = tenable.EndPoints.TagValueCreate
+	pp.metricType = metrics.EndPoints.TagValueCreate
+	pp.metricMethod = metrics.Methods.Service.Update
+
+	pp.f = func(t tenable.Service) ([]byte, error) {
+		return t.TagBulkApply(strings.Split(middleware.Assets(r), ","), strings.Split(middleware.Tags(r), ","))
 	}
 	s.CachedTenableCall(pp)
 }

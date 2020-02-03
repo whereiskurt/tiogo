@@ -453,3 +453,32 @@ func (c *Converter) ToScansExportGet(raw *[]byte) (tgt ScansExportGet, err error
 
 	return tgt, err
 }
+
+// ToTagValue tags a raw Tenable.io reply
+func (c *Converter) ToTagValue(raw *[]byte) (tgt TagValue, err error) {
+	var src tenable.TagValue
+	err = json.Unmarshal(*raw, &src)
+	if err != nil {
+		return tgt, err
+	}
+
+	tgt.CategoryDescription = src.CategoryDescription
+	tgt.CategoryName = src.CategoryName
+	tgt.CategoryUUID = src.CategoryUUID
+	tgt.UUID = src.UUID
+	tgt.Value = src.Value
+	tgt.Description = src.Description
+
+	return tgt, err
+}
+
+//ToTagTagBulkJobID gets theb jobuuid from reponse of add/removing
+func (c *Converter) ToTagTagBulkJobID(raw *[]byte) (jobUUID string, err error) {
+	var src tenable.TagBulkJob
+	err = json.Unmarshal(*raw, &src)
+	if err != nil {
+		return "", err
+	}
+
+	return src.JobUUID, err
+}

@@ -4,16 +4,17 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"golang.org/x/crypto/ssh/terminal"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 // Config holds all parameters for the application and is structured based on the command hierarchy
@@ -54,6 +55,7 @@ type VMConfig struct {
 	OutputJSON    bool
 	OutputPDF     bool
 	Chapters      string
+	Tags          string
 	Log           *log.Logger
 	ID            string
 	Name          string

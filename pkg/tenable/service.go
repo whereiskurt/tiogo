@@ -32,6 +32,8 @@ var EndPoints = endPointTypes{
 	ScansExportStart:   EndPointType("ScansExportStart"),
 	ScansExportGet:     EndPointType("ScansExportGet"),
 	ScansExportStatus:  EndPointType("ScansExportStatus"),
+	TagValueCreate:     EndPointType("TagValueCreate"),
+	TagBulkApply:       EndPointType("TagBulkApply"),
 }
 
 type endPointTypes struct {
@@ -53,6 +55,8 @@ type endPointTypes struct {
 	ScansExportStart   EndPointType
 	ScansExportStatus  EndPointType
 	ScansExportGet     EndPointType
+	TagValueCreate     EndPointType
+	TagBulkApply       EndPointType
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
@@ -190,6 +194,31 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 		CacheFilename: "/scans/export/{{.ScanID}}/{{.FileUUID}}/download",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Get: {},
+		},
+	},
+	EndPoints.TagValueCreate: {
+		URL:           `/tags/values`,
+		CacheFilename: `/tags/values/create.{{.Category}}.{{.Value}}.json`,
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Post: {`{"category_name":"{{.Category}}","value":"{{.Value}}"}`},
+		},
+	},
+
+	EndPoints.TagBulkApply: {
+		URL:           `/tags/assets/assignments`,
+		CacheFilename: `/tags/assets/assignments.json`,
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Post: {`
+{
+	"action":"add",
+	"assets": [
+		{{.Assets}}
+	],
+	"tags": [ 
+		{{.Tags}} 
+	] 
+}
+`},
 		},
 	},
 }
@@ -619,6 +648,79 @@ func (s *Service) ScansExportGet(scanid string, fileuuid string) ([]byte, error)
 		body, status, err := s.get(EndPoints.ScansExportGet, map[string]string{"ScanID": scanid, "FileUUID": fileuuid})
 		if err != nil {
 			s.Log.Infof("failed to get export scans: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
+		return false, nil
+	})
+
+	return raw, err
+}
+
+// TagCategoryValueCreate applyu
+func (s *Service) TagCategoryValueCreate(category string, value string) ([]byte, error) {
+	var raw []byte
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.post(EndPoints.TagValueCreate, map[string]string{"Category": category, "Value": value})
+		if err != nil {
+			s.Log.Infof("failed to post tag create category:value : %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status == 400 {
+			msg := fmt.Sprintf("category '%v' and value '%v' exist, call get to retrive uuid etc.", category, value)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
+		return false, nil
+	})
+
+	return raw, err
+}
+
+//TagBulkApply applies tagUUID to all assetUUID using Tenable.io calls
+func (s *Service) TagBulkApply(assetUUID []string, tagUUID []string) ([]byte, error) {
+	var raw []byte
+
+	//Convert to quoted, comma joined strings.
+	var assets string
+	for i := range assetUUID {
+		if i > 0 {
+			assets = fmt.Sprintf("%s,", assets)
+		}
+		assets = fmt.Sprintf(`%s"%s"`, assets, assetUUID[i])
+	}
+	var tags string
+	for i := range tagUUID {
+		if i > 0 {
+			tags = fmt.Sprintf("%s,", tags)
+		}
+		tags = fmt.Sprintf(`%s"%s"`, tags, tagUUID[i])
+	}
+
+	err := try.Do(func(attempt int) (bool, error) {
+
+		body, status, err := s.post(EndPoints.TagBulkApply, map[string]string{"Assets": assets, "Tags": tags})
+
+		if err != nil {
+			s.Log.Infof("failed to TagBulkApply : http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
 			return retry, err
 		}

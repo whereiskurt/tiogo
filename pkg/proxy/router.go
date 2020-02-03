@@ -88,6 +88,19 @@ func (s *Server) EnableDefaultRouter() {
 				})
 			})
 		})
+		r.Route("/tags", func(r chi.Router) {
+			r.Route("/values", func(r chi.Router) {
+				r.Use(middleware.TagCategoryValueCtx)
+				r.Post("/", s.TagValueCreate)
+			})
+			r.Route("/assets", func(r chi.Router) {
+				r.Route("/assignments", func(r chi.Router) {
+					r.Use(middleware.TagBulkApplyCtx)
+					r.Post("/", s.TagBulkApply)
+				})
+			})
+
+		})
 
 	})
 }

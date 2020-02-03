@@ -133,10 +133,14 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	subcommand("status", app.ExportScansStatus, exportScansCmd)
 	subcommand("get", app.ExportScansGet, exportScansCmd)
 	subcommand("query", app.ExportScansQuery, exportScansCmd)
+	subcommand("tag", app.ExportScansTag, exportScansCmd)
+	subcommand("untag", app.ExportScansUntag, exportScansCmd)
+
 	flagS("HistoryUUID", &a.Config.VM.HistoryUUID, []string{"history", "history_uuid"}, exportScansCmd)
 	flagS("Offset", &a.Config.VM.Offset, []string{"offset"}, exportScansCmd)
 	flagB("PDF", &a.Config.VM.OutputPDF, []string{"pdf"}, exportScansCmd)
 	flagS("Chapters", &a.Config.VM.Chapters, []string{"chapter"}, exportScansCmd)
+	flagS("Tags", &a.Config.VM.Tags, []string{"tag", "tags"}, exportScansCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
