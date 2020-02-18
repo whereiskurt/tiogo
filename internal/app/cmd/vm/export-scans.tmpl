@@ -64,20 +64,21 @@ Export status is currently '{{.Status}}', once it becomes 'READY' you can get th
     $ tio export-scans get --id={{.ScanID}} --history={{.HistoryID}}
 {{end}}
 
-{{define "ExportScansGetNessus"}}
-To use export-scans query convert Nessus XML to JSON
-
-  ## Query downloaded export scans
-  $ tio export-scans query --id={{.ScanID}} --history={{.HistoryID}} > nessus.json
-{{end}}
-
-{{define "ExportScansGet"}}
+{{define "ExportScansDownload"}}
 Successfully retrieved export-scans {{.Format}} for '{{.ScanName}}' 
 (uuid='{{.FileUUID}}', scanid='{{.ScanID}}',histid='{{.HistoryID}}'.offset='{{.Offset}})
 
 Cached downloaded raw file to '{{.CacheFilename}}'
 
 Saved a local copy to '{{.Filename}}':
+{{end}}
+
+{{define "ExportScansQuery"}}
+Successfully retrieved export-scans in format "{{.Format}}" for:
+{{.ScanName}} 
+(uuid='{{.FileUUID}}', scanid='{{.ScanID}}',histid='{{.HistoryID}}'.offset='{{.Offset}})
+
+Cached downloaded raw file to '{{.CacheFilename}}'
 {{end}}
 
 {{define "ExportScansTagsApply"}}

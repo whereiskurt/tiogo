@@ -193,6 +193,14 @@ func (u *Unmarshal) ScansExportGet(scanid string, fileuuid string, skipOnHit boo
 	return raw, err
 }
 
+// ScansExportStream downloads to a file and doesn't try to Unmarshal
+func (u *Unmarshal) ScansExportStream(scanid string, fileuuid string, skipOnHit bool, writeOnReturn bool) (string, error) {
+	s := u.service(skipOnHit, writeOnReturn)
+
+	filename, err := s.ScansExportStream(scanid, fileuuid)
+	return filename, err
+}
+
 // TagValueCreate creates new tag category (if necessary) and new value for that category
 func (u *Unmarshal) TagValueCreate(category string, value string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
 	s := u.service(skipOnHit, writeOnReturn)
@@ -204,7 +212,22 @@ func (u *Unmarshal) TagValueCreate(category string, value string, skipOnHit bool
 // TagBulkApply creates new tag category (if necessary) and new value for that category
 func (u *Unmarshal) TagBulkApply(assetUUID []string, tagUUID []string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
 	s := u.service(skipOnHit, writeOnReturn)
+	const AssetsPerSubmission = 1000
 
-	raw, err := s.TagBulkApply(assetUUID, tagUUID)
-	return raw, err
+	for i := 0; i <= len(assetUUID)/AssetsPerSubmission; i += AssetsPerSubmission {
+		start := i * AssetsPerSubmission
+		end := start + AssetsPerSubmission
+		if end > len(assetUUID) {
+			end = len(assetUUID)
+		}
+
+		s.Log.Debugf("call assetUUID start:%v,end:%v", start, end)
+		_, err := s.TagBulkApply(assetUUID[start:end], tagUUID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to call apply bulk tag: %v", err)
+		}
+
+	}
+
+	return nil, nil
 }

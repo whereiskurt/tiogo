@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // HTTP - todo delete this?
@@ -93,7 +95,7 @@ func (t *Transport) Get(url string, skipOnHit bool, writeOnReturn bool) ([]byte,
 
 	client := &http.Client{
 		Transport: tr,
-		Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
+		//Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
 	}
 
 	var err error
@@ -141,6 +143,54 @@ func (t *Transport) Get(url string, skipOnHit bool, writeOnReturn bool) ([]byte,
 	return body, status, err
 }
 
+// Stream calls the HTTP GET method and downloads results directly to file.
+func (t *Transport) Stream(url string, filename string) (int, error) {
+	var req *http.Request
+	var resp *http.Response
+
+	client := &http.Client{
+		Transport: tr,
+		//Timeout:   0, // No timeout for the big download
+	}
+
+	var err error
+	req, err = http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return 0, err
+	}
+	req.Header.Add(t.authHeaderKey(), t.authHeaderValue())
+
+	t.Log.Debugf("1) tenable.transport.Stream - URL='%s'", url)
+
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Log.Debugf("2) failed to complete call to client.Do: %v, url=%s, filename=%s", err, url, filename)
+		return 0, err
+	}
+	defer resp.Body.Close()
+	status := resp.StatusCode
+
+	t.Log.Debugf("2) tenable.transport.Stream - URL='%s', status='%d'", url, status)
+	if status == http.StatusTooManyRequests {
+		err = errors.New("error: we need to slow down")
+		return status, err
+	}
+	if status == http.StatusForbidden {
+		err = errors.New("error: credentials no longer authorized")
+		return status, err
+	}
+	if status != http.StatusOK {
+		err = fmt.Errorf("error: status code '%d' does not appear successful for '%s'", status, url)
+		return status, err
+	}
+
+	f, err := os.Create(filename)
+	defer f.Close()
+	resp.Write(f)
+
+	return status, err
+}
+
 // Post will HTTP POST for the url provided, returning the body, status, and error associated with the call.
 func (t *Transport) Post(url string, data string, datatype string) ([]byte, int, error) {
 	var req *http.Request
@@ -148,7 +198,7 @@ func (t *Transport) Post(url string, data string, datatype string) ([]byte, int,
 
 	client := &http.Client{
 		Transport: tr,
-		Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
+		//Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
 	}
 
 	var err error
@@ -183,7 +233,7 @@ func (t *Transport) Put(url string, data string, datatype string) ([]byte, int, 
 
 	client := &http.Client{
 		Transport: tr,
-		Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
+		//Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
 	}
 
 	var err error
@@ -217,7 +267,7 @@ func (t *Transport) Delete(url string) ([]byte, int, error) {
 
 	client := &http.Client{
 		Transport: tr,
-		Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
+		//Timeout:   5 * time.Minute, // Really big downloads, we will wait 5mins max.
 	}
 
 	var err error

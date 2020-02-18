@@ -665,6 +665,31 @@ func (s *Service) ScansExportGet(scanid string, fileuuid string) ([]byte, error)
 	return raw, err
 }
 
+// ScansExportStream downloads the Exported Scan with loading it into memory
+func (s *Service) ScansExportStream(scanid string, fileuuid string) (string, error) {
+	var filename = ""
+
+	err := try.Do(func(attempt int) (bool, error) {
+		fname, status, err := s.stream(EndPoints.ScansExportGet, map[string]string{"ScanID": scanid, "FileUUID": fileuuid})
+		if err != nil {
+			s.Log.Infof("failed to get stream scans: http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		filename = fname
+		return false, nil
+	})
+
+	return filename, err
+}
+
 // TagCategoryValueCreate applyu
 func (s *Service) TagCategoryValueCreate(category string, value string) ([]byte, error) {
 	var raw []byte

@@ -3,6 +3,9 @@ package tenable
 import (
 	"bytes"
 	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
 	"text/template"
 	"time"
 )
@@ -81,6 +84,31 @@ func (s *Service) get(endPoint EndPointType, p map[string]string) (body []byte, 
 
 	return body, status, err
 }
+
+func (s *Service) stream(endPoint EndPointType, p map[string]string) (string, int, error) {
+	filename, err := ToCacheFilename(endPoint, p)
+	if err != nil {
+		return "", 0, fmt.Errorf("can't get filename to cache streamed download to")
+	}
+	filename = filepath.Join(s.DiskCache.CacheFolder, filename)
+
+	//TODO: Figure out if this is working as expected
+	//if s.SkipOnHit == true {
+	if _, stat := os.Stat(filename); !os.IsNotExist(stat) {
+		return filename, http.StatusOK, nil
+	}
+	//}
+
+	url, err := toURL(s.BaseURL, endPoint, p)
+	t := NewTransport(s)
+	status, err := t.Stream(url, filename)
+	if err != nil {
+		return "", status, fmt.Errorf("called transport Stream but failed: %v, status=%v", err, status)
+	}
+
+	return filename, status, nil
+}
+
 func (s *Service) delete(endPoint EndPointType, p map[string]string) ([]byte, int, error) {
 	url, err := toURL(s.BaseURL, endPoint, p)
 	if err != nil {

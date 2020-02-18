@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
-	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -55,11 +54,12 @@ func NewServer(config *config.Config, metrics *metrics.Metrics, serverLog *log.L
 	server.Context = config.Context
 	server.Router = chi.NewRouter()
 	server.HTTP = &http.Server{
-		Addr:         ":" + server.ListenPort, // TODO: Take this as parameter
-		Handler:      server.Router,
-		IdleTimeout:  time.Duration(2 * time.Second),
-		ReadTimeout:  time.Duration(2 * time.Second),
-		WriteTimeout: time.Duration(2 * time.Second),
+		Addr:    ":" + server.ListenPort, // TODO: Take this as parameter
+		Handler: server.Router,
+		// TODO: Re-understand - WriteTimeout is affect multi-gigabyte downloads...
+		// IdleTimeout:  time.Duration(2 * time.Second),
+		// ReadTimeout:  time.Duration(2 * time.Second),
+		// WriteTimeout: time.Duration(2 * time.Second),
 		// Ian Kent recommends these timeouts be set:
 		//   https://www.youtube.com/watch?v=YF1qSfkDGAQ&t=333s
 	}

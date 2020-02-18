@@ -170,37 +170,46 @@ func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, action action
 			break
 		case actions.ExportScanGet:
 
-			export, err := a.ScansExportGet(&s, histid, format, chapters, true, true)
+			filename, err := a.ScansExportLargeGet(&s, histid, format, chapters)
 			if err != nil {
 				log.Errorf("error: couldn't start export-scans: %v", err)
 				continue
 			}
 
-			//Copy the file we got to the local folder if possible
-			var src = export.SourceFile.CachedFileName
-			var tgt = fmt.Sprintf("scan.id.%v.history.%v.offset.%v.%s.%s", export.ScanID, export.HistoryID, offset, chapters, format)
-			vm.copyToFile(src, tgt)
+			var tgt = fmt.Sprintf("scan.id.%v.history.%v.offset.%v.%s.%s", s.ScanID, histid, offset, chapters, format)
+			vm.copyToFile(filename, tgt)
 
-			var template = "ExportScansGetNessus"
-			if format != "nessus" {
-				template = "ExportScansGet"
-			}
-			cli.Println(cli.Render(template, map[string]string{"Format": format, "Filename": tgt, "CacheFilename": src, "FileUUID": export.SourceFile.FileUUID, "ScanID": s.ScanID, "ScanName": s.Name, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
+			var template = "ExportScansDownload"
+			cli.Println(cli.Render(template, map[string]string{"Format": format, "CacheFilename": filename, "Filename": tgt, "ScanID": s.ScanID, "ScanName": s.Name, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
+
 			break
 		case actions.ExportScanQuery:
+
 			export, err := a.ScansExportGet(&s, histid, format, chapters, true, true)
+			var src = export.SourceFile.CachedFileName
+
 			if err != nil {
 				log.Errorf("error: couldn't get export-scans: %v", err)
 				continue
 			}
 
-			j, err := json.Marshal(export)
-			if err != nil {
-				log.Errorf("Error marshalling to JSON: %+v", err)
-				return
+			var outputJSON = false
+			if vm.Config.VM.OutputJSON == true {
+				outputJSON = true
 			}
 
-			cli.Println(string(j))
+			if outputJSON {
+				j, err := json.Marshal(export)
+				if err != nil {
+					log.Errorf("Error marshalling to JSON: %+v", err)
+					return
+				}
+				cli.Println(string(j))
+			} else {
+				var template = "ExportScansQuery"
+				cli.Println(cli.Render(template, map[string]string{"Format": format, "CacheFilename": src, "FileUUID": export.SourceFile.FileUUID, "ScanID": s.ScanID, "ScanName": s.Name, "HistoryID": histid, "Offset": fmt.Sprintf("%d", offset)}))
+			}
+
 			break
 
 		case actions.ExportScanTag:
@@ -226,20 +235,50 @@ func (vm *VM) exportScansAction(cmd *cobra.Command, args []string, action action
 				taguuid = append(taguuid, tv.UUID)
 			}
 
-			// Get asset uuids that we want to tag
-			export, err := a.ScansExportGet(&s, histid, format, chapters, true, true)
+			filename, err := a.ScansExportLargeGet(&s, histid, format, chapters)
 			if err != nil {
-				log.Errorf("error: couldn't get export-scans: %v", err)
+				log.Errorf("failed to get exported scan file.")
 				break
 			}
+			// Part 1: open the file and scan it.
+			f, err := os.Open(filename)
+			if err != nil {
+				log.Errorf("failed to read exported.")
+				break
+			}
+			defer f.Close()
+			const pattern = `host-uuid">`
+			const lenpattern = len(pattern)
+			const lenuuid = 36
+			const BufferSize = 64000
+
+			buffer := make([]byte, BufferSize)
+			var buf string
 			var assetuuid []string
-			for _, h := range export.Report.Hosts {
-				uuid := h.HostTag["host-uuid"] // This is asset_uuid scan output
-				assetuuid = append(assetuuid, uuid)
+			for {
+				bytesread, err := f.Read(buffer)
+				if err != nil {
+					if err != io.EOF {
+						fmt.Println(err)
+					}
+					break
+				}
+				buf += string(buffer[:bytesread])
+				for {
+					loc := strings.Index(buf, pattern)
+					if loc <= 0 || loc+lenpattern+lenuuid > len(buf) {
+						break
+					}
+					offset := loc + lenpattern
+					assetuuid = append(assetuuid, buf[offset:offset+lenuuid])
+					buf = buf[offset:]
+				}
+				if len(buf) > BufferSize {
+					buf = buf[BufferSize:]
+				}
 			}
 
-			log.Debugf("Asset: %+v, Tag:%+v", assetuuid, taguuid)
-
+			log.Debugf("Applying tags fors assets: %+v, Tag UUIDs:%+v", assetuuid, taguuid)
 			a.TagBulkApply(assetuuid, taguuid)
 
 			break
@@ -269,7 +308,7 @@ func (vm *VM) copyToFile(srcName string, tgtName string) error {
 			log.Warnf("Can't copy file to '%s' : %v", srcName, tgtName)
 		}
 	} else {
-		log.Fatalf("Outputted cache file does not exist: %v", err)
+		log.Fatalf("Outputted cache file does not exist: %v: src=%s, tgt=%s", err, srcName, tgtName)
 	}
 
 	return err

@@ -734,6 +734,28 @@ func (a *Adapter) ScansExportGet(s *Scan, histid string, format string, chapters
 	return export, err
 }
 
+// ScansExportGet downloads the prepared
+func (a *Adapter) ScansExportLargeGet(s *Scan, histid string, format string, chapters string) (string, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.ScansExportGet, metrics.Methods.Service.Get)
+	u := NewUnmarshal(a.Config, a.Metrics)
+
+	status, err := a.ScansExportStatus(s, histid, format, chapters, true, true)
+	if err != nil {
+		return "", err
+	}
+	if strings.ToUpper(status.Status) != "READY" {
+		return "", fmt.Errorf("error: can't download until the status is 'ready'")
+	}
+
+	filename, err := u.ScansExportStream(s.ScanID, status.FileUUID, true, true)
+	if err != nil {
+		a.Config.VM.Log.Errorf("error: failed to stream the scan export: %v", err)
+		return "", err
+	}
+
+	return filename, nil
+}
+
 // TagValueCreate will make a new category:value, and return a TagValue UUID
 func (a *Adapter) TagValueCreate(category string, value string, skipOnHit bool, writeOnReturn bool) (TagValue, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.TagValueCreate, metrics.Methods.Service.Get)
@@ -743,7 +765,9 @@ func (a *Adapter) TagValueCreate(category string, value string, skipOnHit bool, 
 	raw, err := u.TagValueCreate(category, value, skipOnHit, writeOnReturn)
 	if err != nil {
 		// This happens when we've already created this category:value pair
+		a.Config.VM.Log.Debugf("Lookup the TAG value because it already exists: %v...", string(raw))
 		if strings.Contains(string(raw), "Duplicate tag value") {
+
 			// TODO: Make call to get TagValues, and return the TagValueUUID
 			//raw, err = u.GetTagValue(category, value, skipOnHit, writeOnReturn)
 			//1) Get category:value uuid
