@@ -40,9 +40,9 @@ Agents Options:
       $ tio scans query --id=1 --offset=3 
 {{end}}
 
-{{define "ScansListCSV" }}
-{{ printf "ID, Name, Type, Enabled, ScheduleStart,ScheduleRules,LastRunDate\n"  }}
+{{define "ScansListCSV" -}}
+{{ printf "ID,Name,Owner,Type,Enabled,ScheduleStart,ScheduleRules,LastRunDate,UUID,ScheduleUUID\n" }}
 {{- range $k, $v := .Scans -}}
-    {{ printf "%s,%s,%s,%s,%s,%s,%s\n" .ScanID .Name .Type .Enabled .StartTime .RRules .LastModifiedDate}}
+    {{ printf "%s,\"%s\",\"%s\",\"%s\",%s,%s,\"%s\",%s,\"%s\",\"%s\"\n" .ScanID .Name .Owner .Type .Enabled .StartTime .RRules .LastModifiedDate .UUID .ScheduleUUID }}
 {{- end -}}
 {{end}}
