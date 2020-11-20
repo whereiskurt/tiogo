@@ -142,7 +142,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	flagS("Chapters", &a.Config.VM.Chapters, []string{"chapter"}, exportScansCmd)
 	flagS("Tags", &a.Config.VM.Tags, []string{"tag", "tags"}, exportScansCmd)
 
-	complianceCmd := command("compliance", app.ExportScansHelp, vmCmd)
+	complianceCmd := command("compliance", app.ComplianceList, vmCmd)
 	subcommand("list", app.ComplianceList, complianceCmd)
 	flagS("Offset", &a.Config.VM.Offset, []string{"offset"}, complianceCmd)
 
@@ -154,9 +154,6 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 
 // InvokeCLI passes control over to the root cobra command.
 func (a *App) InvokeCLI() {
-	// Enable 'client' log file, since we are invoke the client.
-	serverLog := a.Config.Server.EnableLogging()
-
 	//a.Config.IsServerPortAvailable()
 	port := a.Config.Server.ListenPort
 	shouldServer := (a.Config.DefaultServerStart == true) && !isProxyServerCmd() && cmdproxy.IsPortAvailable(port)
@@ -164,6 +161,9 @@ func (a *App) InvokeCLI() {
 	setDefaultRootCmd()
 
 	if shouldServer {
+		// Enable 'client' log file, since we are invoke the client.
+		serverLog := a.Config.Server.EnableLogging()
+
 		serverLog.Infof(fmt.Sprintf("Starting a proxy server for the client: %s:%s", a.Config.Server.CacheFolder, a.Config.Server.CacheKey))
 
 		proxy := pkgproxy.NewServer(a.Config, a.Metrics, serverLog)
