@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/whereiskurt/tiogo/internal/app/cmd"
 	"github.com/whereiskurt/tiogo/pkg/client"
@@ -144,6 +145,10 @@ func Sumsha1(raw string) string {
 	return hex.EncodeToString(hash[:])
 }
 
+func NowDateTime(f string) string {
+	return time.Now().UTC().Format(f)
+}
+
 // Render will output the UI templates as per the config bind the data.
 func (cli *CLI) Render(name string, data interface{}) (usage string) {
 	var raw bytes.Buffer
@@ -189,6 +194,7 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 				"CSVString":            CSVString,
 				"Base64":               Base64,
 				"Sumsha1":              Sumsha1,
+				"NowDateTime":          NowDateTime,
 			},
 		).Parse(string(content))
 	}

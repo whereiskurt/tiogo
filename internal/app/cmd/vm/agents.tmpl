@@ -44,7 +44,7 @@ Agents Options:
 {{- end}}
 
 {{define "AgentsListCSV"}}
-Name,FQDN,IP1,IP2,IP3,IP4,IP,LastScan,LastConnect,{{AgentGroupHeader .AgentGroups}},Groups,GroupCount,LinkedOn,Feed,UUID,Status
+Name,IP,LastScan,LastConnect,{{AgentGroupHeader .AgentGroups}},Groups,GroupCount,LinkedOn,Feed,UUID,Status
 {{ $groups := .AgentGroups -}}
 {{- range $k, $v := .Agents -}}
     {{ index (StringsSplit $v.Name ".") 0 | ToLower }},{{$v.Name | ToLower }},{{template "IPSegments" $v.IP }},"{{$v.LastScanned}}","{{$v.LastConnect}}",{{CSVString (AgentGroupMembership $v.Groups $groups)}},"{{AgentGroupNameJoin $v.Groups ";"}}",{{len $v.Groups}},"{{$v.LinkedOn}}",{{$v.Feed}},{{$v.UUID}},{{$v.Status}}
@@ -52,10 +52,10 @@ Name,FQDN,IP1,IP2,IP3,IP4,IP,LastScan,LastConnect,{{AgentGroupHeader .AgentGroup
 {{end}}
 
 
-{{define "AgentsListSimplifiedCSV"}}
-Name,FQDN,IP1,IP2,IP3,IP4,IP,LastScan,LastConnect,Groups,GroupCount,LinkedOn,Feed,UUID,Status
+{{define "AgentsListSimplifiedCSV" -}}
+_time, Name,IP,LinkedOn,LastConnect,LastScan,Groups,GroupCount,Feed,UUID,Status
 {{ $groups := .AgentGroups -}}
 {{- range $k, $v := .Agents -}}
-    {{$v.Name | ToLower }},{{$v.IP }},"{{$v.LastScanned}}","{{$v.LastConnect}}","{{AgentGroupNameJoin $v.Groups ";"}}",{{len $v.Groups}},"{{$v.LinkedOn}}",{{$v.Feed}},{{$v.UUID}},{{$v.Status}}
+    "{{ NowDateTime "2006-01-02T15:04:05" }}",{{$v.Name | ToLower }},{{$v.IP }},"{{$v.LinkedOn}}","{{$v.LastConnect}}","{{$v.LastScanned}}","{{AgentGroupNameJoin $v.Groups ";"}}",{{len $v.Groups}},{{$v.Feed}},{{$v.UUID}},{{$v.Status}}
 {{end}}
 {{end}}
