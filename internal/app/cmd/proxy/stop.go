@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"fmt"
+
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"github.com/whereiskurt/tiogo/pkg/tenable"
@@ -9,6 +10,10 @@ import (
 
 // Stop visits the specific '/shutdown' URL beginning the clean server shutdown
 func Stop(config *config.Config, metrics *metrics.Metrics) {
+	if config.DefaultServerStart == false {
+		return
+	}
+
 	clientLog := config.VM.EnableLogging()
 
 	clientLog.Infof("Sending shutdown to server ...")

@@ -142,6 +142,10 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	flagS("Chapters", &a.Config.VM.Chapters, []string{"chapter"}, exportScansCmd)
 	flagS("Tags", &a.Config.VM.Tags, []string{"tag", "tags"}, exportScansCmd)
 
+	complianceCmd := command("compliance", app.ExportScansHelp, vmCmd)
+	subcommand("list", app.ComplianceList, complianceCmd)
+	flagS("Offset", &a.Config.VM.Offset, []string{"offset"}, complianceCmd)
+
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)
 
