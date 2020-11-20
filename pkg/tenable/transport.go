@@ -1,9 +1,11 @@
 package tenable
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -185,8 +187,33 @@ func (t *Transport) Stream(url string, filename string) (int, error) {
 	}
 
 	f, err := os.Create(filename)
+	if err != nil {
+		return status, err
+	}
+	w := bufio.NewWriter(f)
 	defer f.Close()
-	resp.Write(f)
+
+	r := bufio.NewReader(resp.Body)
+	buf := make([]byte, 1024)
+	for {
+		// read a chunk
+		n, err := r.Read(buf)
+		if err != nil && err != io.EOF {
+			return status, err
+		}
+		if n == 0 {
+			break
+		}
+
+		// write a chunk
+		if _, err := w.Write(buf[:n]); err != nil {
+			return status, err
+		}
+	}
+
+	if err = w.Flush(); err != nil {
+		return status, err
+	}
 
 	return status, err
 }

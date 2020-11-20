@@ -43,6 +43,6 @@ Agents Options:
 {{define "ScansListCSV" -}}
 {{ printf "_time,ID,Name,Owner,Type,Enabled,ScheduleStart,ScheduleRules,LastRunDate,LastScanUUID,LastScheduleUUID\n" }}
 {{- range $k, $v := .Scans -}}
-    {{ printf "\"%s\",%s,\"%s\",\"%s\",\"%s\",%s,%s,\"%s\",%s,\"%s\",\"%s\"\n" (NowDateTime "2006-01-02Tq15:04:05") .ScanID .Name .Owner .Type .Enabled .StartTime .RRules .LastModifiedDate .UUID .ScheduleUUID }}
+    {{ printf "\"%s\",%s,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s,\"%s\",\"%s\"\n" (NowDateTime "2006-01-02T15:04:05") .ScanID .Name .Owner .Type .Enabled .StartTime .RRules .LastModifiedDate .UUID .ScheduleUUID }}
 {{- end -}}
 {{end}}

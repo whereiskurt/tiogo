@@ -2,12 +2,17 @@ package vm
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"regexp"
+	"sort"
+	"strings"
+
+	"github.com/prometheus/common/log"
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/config"
 	"github.com/whereiskurt/tiogo/pkg/metrics"
 	"github.com/whereiskurt/tiogo/pkg/ui"
-	"os"
-	"strings"
 )
 
 var (
@@ -70,4 +75,39 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 	}
 
 	return
+}
+
+func (vm *VM) CleanupFiles(dirpath string, regex string, maxoldest int) {
+	// 1. Compile regular expression to match each filename against
+	r, err := regexp.Compile(regex)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	// 2. Read the current working directory file list
+	files, err := ioutil.ReadDir(dirpath)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	// 3. For every filename in the dir that matches the regular expression, store in matches
+	var matches []os.FileInfo
+	for _, file := range files {
+		if r.MatchString(file.Name()) {
+			matches = append(matches, file)
+		}
+	}
+
+	//If there are more matches than files copies we want to keep
+	if len(matches) >= maxoldest {
+		// Sort newest[0] to oldest[len(matches)-1]
+		sort.Slice(matches, func(i, j int) bool {
+			return matches[i].ModTime().After(matches[j].ModTime())
+		})
+		// Delete files name at index maxoldest and beyond
+		for i := maxoldest; i < len(matches); i++ {
+			os.Remove(matches[i].Name())
+		}
+	}
 }

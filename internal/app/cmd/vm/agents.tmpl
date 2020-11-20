@@ -53,9 +53,9 @@ Name,IP,LastScan,LastConnect,{{AgentGroupHeader .AgentGroups}},Groups,GroupCount
 
 
 {{define "AgentsListSimplifiedCSV" -}}
-_time, Name,IP,LinkedOn,LastConnect,LastScan,Groups,GroupCount,Feed,UUID,Status
+_time,Name,IP,LinkedOn,LastConnect,LastScan,Groups,GroupCount,Feed,UUID,Status
 {{ $groups := .AgentGroups -}}
 {{- range $k, $v := .Agents -}}
-    "{{ NowDateTime "2006-01-02T15:04:05" }}",{{$v.Name | ToLower }},{{$v.IP }},"{{$v.LinkedOn}}","{{$v.LastConnect}}","{{$v.LastScanned}}","{{AgentGroupNameJoin $v.Groups ";"}}",{{len $v.Groups}},{{$v.Feed}},{{$v.UUID}},{{$v.Status}}
+    "{{ NowDateTime "2006-01-02T15:04:05" }}","{{$v.Name | ToLower }}","{{$v.IP }}","{{$v.LinkedOn}}","{{$v.LastConnect}}","{{$v.LastScanned}}","{{AgentGroupNameJoin $v.Groups ";"}}",{{len $v.Groups}},{{$v.Feed}},"{{$v.UUID}}","{{$v.Status}}"
 {{end}}
 {{end}}
