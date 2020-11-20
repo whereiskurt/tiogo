@@ -68,6 +68,9 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, cli.Render("exportAssetsUsage", versionMap))
 	case "export-scans", "export-scan":
 		fmt.Fprintf(os.Stderr, cli.Render("exportScansUsage", versionMap))
+	case "compliance":
+		fmt.Fprintf(os.Stderr, cli.Render("complianceUsage", versionMap))
+
 	case "cache":
 		fmt.Fprintf(os.Stderr, cli.Render("cacheUsage", versionMap))
 	default:
@@ -77,6 +80,7 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 	return
 }
 
+// CleanupFiles is used to keep a maximum amount of matching files
 func (vm *VM) CleanupFiles(dirpath string, regex string, maxoldest int) {
 	// 1. Compile regular expression to match each filename against
 	r, err := regexp.Compile(regex)

@@ -164,6 +164,9 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 	templateFiles = append(templateFiles, "vm/export-assets.tmpl")
 	templateFiles = append(templateFiles, "vm/export-scans.tmpl")
 	templateFiles = append(templateFiles, "vm/export-vulns.tmpl")
+
+	templateFiles = append(templateFiles, "vm/compliance.tmpl")
+
 	templateFiles = append(templateFiles, "vm/scanners.tmpl")
 	templateFiles = append(templateFiles, "vm/scans.tmpl")
 	templateFiles = append(templateFiles, "vm/vm.tmpl")
