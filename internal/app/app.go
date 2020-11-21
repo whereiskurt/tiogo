@@ -41,6 +41,21 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 		a.Config.UnmarshalViper()  // copy values from cobra
 		cmd.ParseFlags(os.Args)    // parse commandline for parameters
 		a.Config.ValidateOrFatal() // and validate.
+
+		port := a.Config.Server.ListenPort
+		shouldServer := (a.Config.DefaultServerStart == true) && !isProxyServerCmd() && cmdproxy.IsPortAvailable(port)
+		if shouldServer {
+			// Enable 'client' log file, since we are invoke the client.
+			serverLog := a.Config.Server.EnableLogging()
+
+			serverLog.Infof(fmt.Sprintf("Starting a proxy server for the client: %s:%s", a.Config.Server.CacheFolder, a.Config.Server.CacheKey))
+
+			proxy := pkgproxy.NewServer(a.Config, a.Metrics, serverLog)
+			proxy.EnableCache(a.Config.Server.CacheFolder, a.Config.Server.CacheKey)
+			proxy.EnableDefaultRouter()
+			go proxy.ListenAndServe()
+			defer cmdproxy.Stop(a.Config, a.Metrics)
+		}
 	}
 
 	// Both 'vm' and 'proxy' have verbose levels
@@ -154,24 +169,8 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 
 // InvokeCLI passes control over to the root cobra command.
 func (a *App) InvokeCLI() {
-	//a.Config.IsServerPortAvailable()
-	port := a.Config.Server.ListenPort
-	shouldServer := (a.Config.DefaultServerStart == true) && !isProxyServerCmd() && cmdproxy.IsPortAvailable(port)
 
 	setDefaultRootCmd()
-
-	if shouldServer {
-		// Enable 'client' log file, since we are invoke the client.
-		serverLog := a.Config.Server.EnableLogging()
-
-		serverLog.Infof(fmt.Sprintf("Starting a proxy server for the client: %s:%s", a.Config.Server.CacheFolder, a.Config.Server.CacheKey))
-
-		proxy := pkgproxy.NewServer(a.Config, a.Metrics, serverLog)
-		proxy.EnableCache(a.Config.Server.CacheFolder, a.Config.Server.CacheKey)
-		proxy.EnableDefaultRouter()
-		go proxy.ListenAndServe()
-		defer cmdproxy.Stop(a.Config, a.Metrics)
-	}
 
 	// Call Cobra Execute which will PreRun and select the Command to execute.
 	_ = a.RootCmd.Execute()
