@@ -2,14 +2,20 @@ package config
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // ValidateOrFatal will validate the string values inside of the Config after copying from Unmarshal or self-setting.
 func (c *Config) ValidateOrFatal() {
+
+	if c.CryptoKey == "" {
+		log.Fatalf("invalid key: CryptoKey not provided - no default set.")
+	}
+
 	c.validateVerbosity()
 
 	c.validateChunks()
@@ -124,16 +130,16 @@ func (c *Config) validateDateBounds() {
 func (c *Config) validateVerbosity() {
 	if c.hasVerboseLevel() {
 		switch {
-		case c.VerboseLevel1:
-			c.VerboseLevel = "1"
-		case c.VerboseLevel2:
-			c.VerboseLevel = "2"
-		case c.VerboseLevel3:
-			c.VerboseLevel = "3"
-		case c.VerboseLevel4:
-			c.VerboseLevel = "4"
 		case c.VerboseLevel5:
 			c.VerboseLevel = "5"
+		case c.VerboseLevel4:
+			c.VerboseLevel = "4"
+		case c.VerboseLevel3:
+			c.VerboseLevel = "3"
+		case c.VerboseLevel2:
+			c.VerboseLevel = "2"
+		case c.VerboseLevel1:
+			c.VerboseLevel = "1"
 		}
 	}
 
@@ -151,7 +157,7 @@ func (c *Config) validateVerbosity() {
 		c.VM.Log.SetLevel(log.InfoLevel)
 		c.Server.Log.SetLevel(log.InfoLevel)
 	case "2":
-		c.VerboseLevel1 = true
+		c.VerboseLevel2 = true
 		c.VM.Log.SetLevel(log.WarnLevel)
 		c.Server.Log.SetLevel(log.WarnLevel)
 	case "1":

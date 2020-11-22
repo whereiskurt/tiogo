@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,6 +35,8 @@ type Config struct {
 	VerboseLevel4      bool
 	VerboseLevel5      bool
 	DefaultServerStart bool
+	SuccessfulConfig   bool
+	CryptoKey          string
 	VM                 VMConfig
 	Server             ServerConfig
 }
@@ -150,7 +153,7 @@ func NewConfig() (c *Config) {
 			}
 		}
 		// Only read configuration when not invoked with 'help'
-		c.readWithViper()
+		c.SuccessfulConfig = c.readWithViper()
 	})
 
 	// Provide access to c variables - ie. log!
@@ -190,6 +193,24 @@ func (c *VMConfig) EnableLogging() *log.Logger {
 
 	c.Config.VM.SetLogFilename(filename)
 
+	switch c.Config.VerboseLevel {
+	case "5":
+		c.Config.VerboseLevel5 = true
+		c.Config.VM.Log.SetLevel(log.TraceLevel)
+	case "4":
+		c.Config.VerboseLevel4 = true
+		c.Config.VM.Log.SetLevel(log.DebugLevel)
+	case "3":
+		c.Config.VerboseLevel3 = true
+		c.Config.VM.Log.SetLevel(log.InfoLevel)
+	case "2":
+		c.Config.VerboseLevel2 = true
+		c.Config.VM.Log.SetLevel(log.WarnLevel)
+	case "1":
+		c.Config.VerboseLevel1 = true
+		c.Config.VM.Log.SetLevel(log.ErrorLevel)
+	}
+
 	return c.Config.VM.Log
 }
 
@@ -215,27 +236,43 @@ func (c *Config) UnmarshalViper() {
 	if err != nil {
 		log.Fatalf("%s", err)
 	}
+
+	c.decrypt()
+
 	return
 }
 
-func (c *Config) readWithViper() {
+func (c *Config) readWithViper() (success bool) {
 	var err error
+	var f http.File
 
 	defaultFilename := filepath.Join(defaultConfigFilename + "." + defaultConfigType)
-	f, err := BinaryEmbedFolder.Open(defaultFilename)
+	f, err = BinaryEmbedFolder.Open(defaultFilename)
 	defer f.Close()
 	err = viper.ReadConfig(f)
 	if err != nil {
 		log.Fatalf("fatal: couldn't read default config: %s", err)
+		return false
 	}
 
+	// Try local folder for configuration
+	viper.AddConfigPath(".")
+	viper.SetConfigName(c.HomeFilename)
+	err = viper.MergeInConfig()
+	success = (err == nil)
+	err = nil
+
+	//Try $HOMEDIR for configuration
 	filename := filepath.Join(c.HomeFolder, c.HomeFilename)
 	filename = filename + "." + defaultConfigType
 
 	viper.AddConfigPath(c.HomeFolder)
 	viper.SetConfigName(c.HomeFilename)
 	err = viper.MergeInConfig()
-	if err != nil {
+	success = success || (err == nil)
+
+	// TODO: Move this to a 'config' command. :)
+	if success == false {
 		// First run, try and get user inputted configuration
 		if terminal.IsTerminal(int(os.Stdin.Fd())) {
 			c.userInputConfiguration(filename)
@@ -248,12 +285,10 @@ func (c *Config) readWithViper() {
 	}
 
 	viper.AutomaticEnv()
-	return
+	return success
 }
 
 func (c *Config) userInputConfiguration(filename string) bool {
-
-	// home := c.HomeFolder
 
 	t := time.Now()
 	ts := fmt.Sprintf("%v", t)
@@ -285,6 +320,14 @@ func (c *Config) userInputConfiguration(filename string) bool {
 		return false
 	}
 
+	fmt.Print(fmt.Sprintf("Enter runtime CryptoKey [needed each execution]: "))
+	c.CryptoKey, _ = reader.ReadString('\n')
+	c.CryptoKey = strings.TrimSpace(c.CryptoKey)
+	if len(c.CryptoKey) < 7 {
+		log.Warnf(fmt.Sprintf("CryptoKey length too short - must be greater than 7 chars.\n\n"))
+		return false
+	}
+
 	// NOTE: We setting no CacheKey by default
 	c.VM.CacheKey = ""
 
@@ -305,12 +348,13 @@ func (c *Config) userInputConfiguration(filename string) bool {
 		}
 		defer file.Close()
 
+		c.encrypt()
 		fmt.Fprintf(file, "#################################################\n")
 		fmt.Fprintf(file, "## Successfully created by tiogo commandline tool\n")
 		fmt.Fprintf(file, "#################################################\n")
 		fmt.Fprintf(file, "\n")
 		fmt.Fprintf(file, "VM:\n")
-		fmt.Fprintf(file, "  ServiceBaseURL: %s\n", c.VM.BaseURL)
+		fmt.Fprintf(file, "  BaseURL: %s\n", c.VM.BaseURL)
 		fmt.Fprintf(file, "  AccessKey: %s\n", c.VM.AccessKey)
 		fmt.Fprintf(file, "  SecretKey: %s\n", c.VM.SecretKey)
 		fmt.Fprintf(file, "  DefaultTimezone: %s\n", tzDefault)
@@ -319,7 +363,7 @@ func (c *Config) userInputConfiguration(filename string) bool {
 		fmt.Fprintf(file, "  ##CacheKey: %s%s\n", c.VM.AccessKey[:16], c.VM.SecretKey[:16])
 		fmt.Fprintf(file, "\n")
 		fmt.Fprintf(file, "Server:\n")
-		fmt.Fprintf(file, "  ServiceBaseURL: %s\n", c.Server.ServiceBaseURL)
+		fmt.Fprintf(file, "  BaseURL: %s\n", c.Server.ServiceBaseURL)
 		fmt.Fprintf(file, "  ListenPort: %s\n", c.Server.ListenPort)
 		fmt.Fprintf(file, "  CacheFolder: %s\n", c.Server.CacheFolder)
 		fmt.Fprintf(file, "  ##Uncomment 'CacheKey' to enable encryption at rest. \n")

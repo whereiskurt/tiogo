@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"time"
 
 	"github.com/prometheus/common/log"
 	"github.com/spf13/cobra"
@@ -13,7 +15,7 @@ import (
 
 // AgentsList outputs matching agents  by regex, agent name, and group name
 func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
-	log := vm.Config.VM.EnableLogging()
+	logger := vm.setupLog()
 	regex := vm.Config.VM.Regex
 	name := vm.Config.VM.Name
 	groupName := vm.Config.VM.GroupName
@@ -21,7 +23,7 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 	cli := ui.NewCLI(vm.Config)
 
-	log.Debugf("AgentsList started")
+	logger.Debugf("AgentsList started")
 
 	agents, agentGroups, err := vm.list(cli, a)
 	if err != nil {
@@ -65,8 +67,18 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 		fmt.Println(fmt.Sprintf("%s", j))
 	}
 
+	vm.CleanupFiles(`.`, `agentlist\.\d+T\d+.csv`, 2)
+
 	if a.Config.VM.OutputCSV || !a.Config.VM.OutputJSON {
-		fmt.Println(cli.Render("AgentsListCSV", map[string]interface{}{"Agents": agents, "AgentGroups": agentGroups}))
+		dts := time.Now().Format("20060102T150405")
+		filename := fmt.Sprintf("agentlist.%s.csv", dts)
+		csv := cli.Render("AgentsListSimplifiedCSV", map[string]interface{}{"Agents": agents, "AgentGroups": agentGroups})
+
+		// NOTE: Using ioutil.WriteFile is OK for smaller files
+		err = ioutil.WriteFile(filename, []byte(csv), 0644)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return

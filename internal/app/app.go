@@ -57,14 +57,13 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 			defer cmdproxy.Stop(a.Config, a.Metrics)
 		}
 	}
-
-	// Both 'vm' and 'proxy' have verbose levels
-	flagS("VerboseLevel", &a.Config.VerboseLevel, []string{"level"}, a.RootCmd)
 	flagB("VerboseLevel1", &a.Config.VerboseLevel1, []string{"s", "silent"}, a.RootCmd)
 	flagB("VerboseLevel2", &a.Config.VerboseLevel2, []string{"q", "quiet"}, a.RootCmd)
 	flagB("VerboseLevel3", &a.Config.VerboseLevel3, []string{"v", "info"}, a.RootCmd)
 	flagB("VerboseLevel4", &a.Config.VerboseLevel4, []string{"debug"}, a.RootCmd)
 	flagB("VerboseLevel5", &a.Config.VerboseLevel5, []string{"trace"}, a.RootCmd)
+
+	flagS("CryptoKey", &a.Config.CryptoKey, []string{"cryto", "key"}, a.RootCmd)
 
 	// Define the proxy command ie. "proxy start", "proxy stop"
 	proxy := cmdproxy.NewServer(a.Config, a.Metrics)

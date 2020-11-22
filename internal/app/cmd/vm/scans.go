@@ -3,6 +3,8 @@ package vm
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/whereiskurt/tiogo/pkg/client"
@@ -11,17 +13,14 @@ import (
 
 // ScansList is invoked by Cobra with commandline args passed.
 func (vm *VM) ScansList(cmd *cobra.Command, args []string) {
-	log := vm.setupLog()
-	log.Infof("tiogo scanners list command:")
-
+	logger := vm.setupLog()
 	cli := ui.NewCLI(vm.Config)
 
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 
 	scans, err := a.Scans(true, true)
 	if err != nil {
-		log.Errorf("error: couldn't scans list: %v", err)
-		return
+		logger.Fatalf("error: couldn't scans list: %v", err)
 	}
 	scans = vm.FilterScans(a, &scans)
 
@@ -29,12 +28,22 @@ func (vm *VM) ScansList(cmd *cobra.Command, args []string) {
 		// Convert structs to JSON.
 		data, err := json.Marshal(scans)
 		if err != nil {
-			log.Fatalf("error: couldn't marshal scan data to JSON: %v", err)
+			logger.Fatalf("error: couldn't marshal scan data to JSON: %v", err)
 		}
 		cli.Println(fmt.Sprintf("%s\n", data))
 
 	} else if a.Config.VM.OutputCSV || !a.Config.VM.OutputJSON {
-		cli.Println(cli.Render("ScansListCSV", map[string]interface{}{"Scans": scans}))
+		vm.CleanupFiles(`.`, `scanlist\.\d+T\d+.csv`, 2)
+
+		dts := time.Now().Format("20060102T150405")
+		filename := fmt.Sprintf("scanlist.%s.csv", dts)
+		csv := cli.Render("ScansListCSV", map[string]interface{}{"Scans": scans})
+
+		// NOTE: Using ioutil.WriteFile is OK for smaller files
+		err = ioutil.WriteFile(filename, []byte(csv), 0644)
+		if err != nil {
+			logger.Fatalf("can't write file: %+v", err)
+		}
 	}
 
 	return
@@ -84,17 +93,16 @@ func (vm *VM) FilterScans(a *client.Adapter, scans *[]client.Scan) (filtered []c
 
 // ScansDetail is invoked by Cobra with commandline args passed.
 func (vm *VM) ScansDetail(cmd *cobra.Command, args []string) {
-	log := vm.setupLog()
-	log.Infof("tiogo scan detail command:")
+	logger := vm.setupLog()
+	logger.Infof("tiogo scan detail command:")
 
 	cli := ui.NewCLI(vm.Config)
-	cli.DrawGopher()
 
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 
 	scans, err := a.Scans(true, true)
 	if err != nil {
-		log.Errorf("error: couldn't scans list: %v", err)
+		logger.Errorf("error: couldn't scans list: %v", err)
 		return
 	}
 
@@ -113,14 +121,14 @@ func (vm *VM) ScansDetail(cmd *cobra.Command, args []string) {
 	}
 
 	if len(scans) == 0 {
-		log.Errorf("error: couldn't match a scans")
+		logger.Errorf("error: couldn't match a scans")
 		return
 	}
 
 	for i := range scans {
 		details, err := a.ScanDetails(&scans[i], true, true)
 		if err != nil {
-			log.Fatalf("error: couldn't retrieve details: %v: %+v", scans[i], err)
+			logger.Fatalf("error: couldn't retrieve details: %v: %+v", scans[i], err)
 		}
 		cli.Println(fmt.Sprintf(" Name:\t\t\t%+v", details.Scan.Name))
 		cli.Println(fmt.Sprintf(" Enabled:\t\t%+v", details.Scan.Enabled))

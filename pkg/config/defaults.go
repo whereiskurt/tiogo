@@ -2,12 +2,13 @@ package config
 
 import (
 	"fmt"
-	home "github.com/mitchellh/go-homedir"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"path/filepath"
 	"time"
+
+	home "github.com/mitchellh/go-homedir"
+	log "github.com/sirupsen/logrus"
 )
 
 // These defaults are needed to configure Viper/Cobra
@@ -26,9 +27,18 @@ const defaultConfigFolder = "./config/"
 const defaultConfigFilename = "default.tiogo.v1"
 
 // Sensible defaults even with out a configuration file present
-const defaultVerboseLevel = "3"
+const defaultVerboseLevel1 = true  //silent
+const defaultVerboseLevel2 = false //quiet
+const defaultVerboseLevel3 = false //info
+const defaultVerboseLevel4 = false //debug
+const defaultVerboseLevel5 = false //trace
+const defaultVerboseLevel = "1"
+
 const defaultServerListenPort = "10101"
-const defaultClientBaseURL = "http://localhost:" + defaultServerListenPort
+
+// const defaultClientBaseURL = "http://localhost:" + defaultServerListenPort
+// const defaultServerBaseURL = "https://cloud.tenable.com"
+const defaultClientBaseURL = "https://cloud.tenable.com"
 const defaultServerBaseURL = "https://cloud.tenable.com"
 
 const defaultMetricsListenPort = "22222"
@@ -61,18 +71,24 @@ func (c *Config) SetToDefaults() {
 	c.LogFolder = filepath.Join(defaultLogFolder)
 	os.MkdirAll(c.LogFolder, 0777)
 
-	c.VM.CacheFolder = filepath.Join([]string{c.HomeFolder, defaultClientCacheFolder}...)
+	c.VM.CacheFolder = filepath.Join([]string{defaultClientCacheFolder}...)
 	c.VM.CacheResponse = defaultClientCacheResponse
 	c.VM.MetricsFolder = filepath.Join(defaultClientMetricsFolder)
 
 	c.Server.ServiceBaseURL = defaultServerBaseURL
-	c.Server.CacheFolder = filepath.Join([]string{c.HomeFolder, defaultServerCacheFolder}...)
+	c.Server.CacheFolder = filepath.Join([]string{defaultServerCacheFolder}...)
 	c.Server.CacheResponse = defaultServerCacheResponse
 	c.Server.MetricsFolder = filepath.Join(defaultServerMetricsFolder)
 	c.Server.MetricsListenPort = defaultMetricsListenPort
 	c.Server.ListenPort = defaultServerListenPort
 
 	c.VerboseLevel = defaultVerboseLevel
+	c.VerboseLevel1 = defaultVerboseLevel1
+	c.VerboseLevel2 = defaultVerboseLevel2
+	c.VerboseLevel3 = defaultVerboseLevel3
+	c.VerboseLevel4 = defaultVerboseLevel4
+	c.VerboseLevel5 = defaultVerboseLevel5
+
 	c.ConfigFolder = defaultConfigFolder
 	c.ConfigFilename = defaultConfigFilename
 
@@ -80,7 +96,7 @@ func (c *Config) SetToDefaults() {
 
 	c.VM.Chapters = defaultChapters
 
-	c.DefaultServerStart = true
+	c.DefaultServerStart = false
 }
 
 // SetLogFilename will set the ServerConfig log and duplicate to STDOUT
