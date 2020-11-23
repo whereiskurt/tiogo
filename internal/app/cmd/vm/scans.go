@@ -228,6 +228,7 @@ func (vm *VM) ScansGet(cmd *cobra.Command, args []string) {
 		logger.Errorf("error: histid doesn't limit to one scan")
 		return
 	}
+	// TODO: Functional decompose this massive block! :-)
 SCANS:
 	for _, s := range scans {
 		det, err := a.ScanDetails(&s, true, true)
