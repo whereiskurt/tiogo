@@ -80,7 +80,7 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 }
 
 // CleanupFiles is used to keep a maximum amount of matching files
-func (vm *VM) CleanupFiles(dirpath string, regex string, maxoldest int) {
+func (vm *VM) CleanupFiles(dirpath string, regex string, keep int) {
 	// 1. Compile regular expression to match each filename against
 	r, err := regexp.Compile(regex)
 	if err != nil {
@@ -103,13 +103,13 @@ func (vm *VM) CleanupFiles(dirpath string, regex string, maxoldest int) {
 	}
 
 	//If there are more matches than files copies we want to keep
-	if len(matches) >= maxoldest {
+	if len(matches) >= keep {
 		// Sort newest[0] to oldest[len(matches)-1]
 		sort.Slice(matches, func(i, j int) bool {
 			return matches[i].ModTime().After(matches[j].ModTime())
 		})
 		// Delete files name at index maxoldest and beyond
-		for i := maxoldest - 1; i < len(matches); i++ {
+		for i := keep; i < len(matches); i++ {
 			os.Remove(matches[i].Name())
 		}
 	}
