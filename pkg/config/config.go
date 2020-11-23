@@ -196,23 +196,7 @@ func (c *VMConfig) EnableLogging() *log.Logger {
 
 	c.Config.VM.SetLogFilename(filename)
 
-	switch c.Config.VerboseLevel {
-	case "5":
-		c.Config.VerboseLevel5 = true
-		c.Config.VM.Log.SetLevel(log.TraceLevel)
-	case "4":
-		c.Config.VerboseLevel4 = true
-		c.Config.VM.Log.SetLevel(log.DebugLevel)
-	case "3":
-		c.Config.VerboseLevel3 = true
-		c.Config.VM.Log.SetLevel(log.InfoLevel)
-	case "2":
-		c.Config.VerboseLevel2 = true
-		c.Config.VM.Log.SetLevel(log.WarnLevel)
-	case "1":
-		c.Config.VerboseLevel1 = true
-		c.Config.VM.Log.SetLevel(log.ErrorLevel)
-	}
+	c.Config.validateVerbosity()
 
 	return c.Config.VM.Log
 }

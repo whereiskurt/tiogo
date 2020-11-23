@@ -27,12 +27,12 @@ const defaultConfigFolder = "./config/"
 const defaultConfigFilename = "default.tiogo.v1"
 
 // Sensible defaults even with out a configuration file present
-const defaultVerboseLevel1 = true  //silent
+const defaultVerboseLevel1 = false //silent
 const defaultVerboseLevel2 = false //quiet
-const defaultVerboseLevel3 = false //info
+const defaultVerboseLevel3 = true  //info
 const defaultVerboseLevel4 = false //debug
 const defaultVerboseLevel5 = false //trace
-const defaultVerboseLevel = "1"
+const defaultVerboseLevel = "3"
 
 const defaultServerListenPort = "10101"
 

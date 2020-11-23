@@ -18,7 +18,13 @@ func (vm *VM) ScansList(cmd *cobra.Command, args []string) {
 	logger := vm.setupLog()
 	cli := ui.NewCLI(vm.Config)
 
+	logger.Infof("Starting scan list ...")
 	a := client.NewAdapter(vm.Config, vm.Metrics)
+
+	maxkeep, err := strconv.Atoi(vm.Config.VM.MaxKeep)
+	if err != nil {
+		logger.Fatalf("error: couldn't convert maxkeep '%s': %v", vm.Config.VM.MaxKeep, err)
+	}
 
 	scans, err := a.Scans(true, true)
 	if err != nil {
@@ -35,17 +41,20 @@ func (vm *VM) ScansList(cmd *cobra.Command, args []string) {
 		cli.Println(fmt.Sprintf("%s\n", data))
 
 	} else if a.Config.VM.OutputCSV || !a.Config.VM.OutputJSON {
-		vm.CleanupFiles(`.`, `scanlist\.\d+T\d+.csv`, 2)
 
 		dts := time.Now().Format("20060102T150405")
 		filename := fmt.Sprintf("scanlist.%s.csv", dts)
 		csv := cli.Render("ScansListCSV", map[string]interface{}{"Scans": scans})
 
-		// NOTE: Using ioutil.WriteFile is OK for smaller files
+		// NOTE: Using ioutil.WriteFile is OK for smaller files (less than 100MBs)
 		err = ioutil.WriteFile(filename, []byte(csv), 0644)
 		if err != nil {
-			logger.Fatalf("can't write file: %+v", err)
+			logger.Fatalf("can't write to file '%s': %+v", filename, err)
 		}
+
+		cleanTemplate := `scanlist\.\d+T\d+.csv`
+		logger.Infof("keeping a maximum '%d' for template '%s'", maxkeep, cleanTemplate)
+		vm.CleanupFiles(`.`, cleanTemplate, maxkeep)
 	}
 
 	return
@@ -174,7 +183,7 @@ func (vm *VM) ScansQuery(cmd *cobra.Command, args []string) {
 	return
 }
 
-// ScansGet starts, status loops, gets and converts compliance scan results to CSV.
+// ScansGet starts, status loops, gets scan export - simplified export-scans
 func (vm *VM) ScansGet(cmd *cobra.Command, args []string) {
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 
@@ -184,6 +193,8 @@ func (vm *VM) ScansGet(cmd *cobra.Command, args []string) {
 		logger.Fatalf("error: couldn't scans list: %v", err)
 	}
 	scans = vm.FilterScans(a, &scans)
+
+	logger.Infof("Starting scan get ...")
 
 	histid := vm.Config.VM.HistoryID
 
@@ -217,28 +228,31 @@ func (vm *VM) ScansGet(cmd *cobra.Command, args []string) {
 		logger.Errorf("error: histid doesn't limit to one scan")
 		return
 	}
-
+SCANS:
 	for _, s := range scans {
 		det, err := a.ScanDetails(&s, true, true)
 		if err != nil {
-			logger.Errorf("error: can't retrieve scan details")
-			continue
+			logger.Errorf("error: can't retrieve scan details for %s at offset %d", s.ScanID, offset)
+			continue SCANS
+		} else if len(det.History) == 0 {
+			logger.Warnf("warn: scan %v has not run yet", s.ScanID, offset)
+			continue SCANS
 		}
 
 		// This scan has no history ie. no previous scans
 		if len(det.History) <= offset {
 			logger.Errorf("error: scan %v has less run histories than offset '%d' requires", s.ScanID, offset)
-			continue
+			continue SCANS
 		}
 	DEPTHS:
 		for depth := 0; depth < maxdepth; depth++ {
 			if len(det.History) <= offset+depth {
 				logger.Infof("scan %d doesn't have offset+depth (%d) histories", s.ScanID, offset+depth)
-				break
+				break DEPTHS
 			}
 			histid = det.History[offset+depth].HistoryID
 
-			var tgtFilename = fmt.Sprintf("compliance.%s.history.%s.csv", s.ScanID, histid)
+			var tgtFilename = fmt.Sprintf("scan.%s.history.%s.csv", s.ScanID, histid)
 
 			if _, err := os.Stat(tgtFilename); err == nil {
 				logger.Infof("skipping scan:%s history:%s: file already downloaded: %s", s.ScanID, histid, tgtFilename)
@@ -247,46 +261,55 @@ func (vm *VM) ScansGet(cmd *cobra.Command, args []string) {
 
 			_, err = a.ScansExportStart(&s, histid, format, chapters, true, true)
 			if err != nil {
-				logger.Fatalf("error: couldn't start export-scans: %v", err)
+				logger.Errorf("error: cannot start export scans from Tenable.io, skipping scan: +v", err)
+				continue SCANS
 			}
 
-			var sleepStatusCheckIntervals = []int{500, 1000, 2000, 2000, 2000, 5000, 5000, 5000, 10000, 20000, 20000, 30000}
+			var sleepStatusCheckIntervals = []int{500, 1000, 2000, 2500, 3000, 3500, 5000, 5000, 5000, 10000, 20000, 20000, 30000, 30000, 30000, 30000}
 			var maxattempts, sleptsec int
 			export, err := a.ScansExportStatus(&s, histid, format, chapters, true, true) //Use cache=true,true don't clobe last READY with "ERROR"
 			if err != nil {
-				logger.Fatalf("+v", err)
+				logger.Errorf("error: cannot get export status from Tenable.io, skipping scan: +v", err)
+				continue SCANS
 			}
-
+		STATUSCHECK:
 			for maxattempts = len(sleepStatusCheckIntervals); maxattempts >= 0; maxattempts-- {
 				if export.Status == "READY" {
-					break
+					break STATUSCHECK
 				}
 				export, err = a.ScansExportStatus(&s, histid, format, chapters, false, true)
 				if err != nil {
-					logger.Fatalf("+v", err)
+					logger.Errorf("error: cannot get export status from Tenable.io, skipping scan: +v", err)
+					continue SCANS
 				}
+				logger.Infof("scan %s uuid: %s download not ready (%s) sleeping %dms...", s.ScanID, export.FileUUID, export.Status, sleepStatusCheckIntervals[maxattempts-1])
 				time.Sleep(time.Duration(sleepStatusCheckIntervals[maxattempts-1]) * time.Millisecond)
 				sleptsec += sleepStatusCheckIntervals[maxattempts-1] / 1000
 			}
 			if maxattempts <= 0 {
-				logger.Fatalf(fmt.Sprintf("Status stuck on '%s' scan export '%s' after %d attempts and %dsecs.", export.Status, export.FileUUID, maxattempts, sleptsec))
+				logger.Errorf(fmt.Sprintf("Status stuck on '%s' scan export '%s' after %d attempts and %dsecs, skipping scan.", export.Status, export.FileUUID, maxattempts, sleptsec))
+				continue SCANS
 			}
 
+			logger.Infof("beginning download for %s uuid: %s", s.ScanID, export.FileUUID)
 			filename, err := a.ScansExportLargeGet(&s, histid, format, chapters)
 			if err != nil {
-				logger.Fatalf(fmt.Sprintf("Failed to Export-Scans Large Get '%s' scan export '%s'.", export.Status, export.FileUUID))
+				logger.Errorf(fmt.Sprintf("Failed to Export-Scans Large Get '%s' scan export '%s' : %v, skipping scan.", export.Status, export.FileUUID, err))
+				continue SCANS
 			}
 
 			//vm.copyToFile(filename, tgtFilename)
+			logger.Infof("processing download with _time for %s uuid: %s", s.ScanID, export.FileUUID)
 			err = vm.TimestampCSVRows(filename, tgtFilename)
 			if err != nil {
 				os.Remove(tgtFilename)
-				logger.Fatalf("error: couldn't apply timestatmps write: %s to %s: %v", filename, tgtFilename, err)
+				logger.Fatalf("error: couldn't apply timestatmps write: %s to %s: %v, (out of disk space?)", filename, tgtFilename, err)
 			}
 		}
 
 		//Keep only X historicals for this ScanId
-		cleanTemplate := fmt.Sprintf(`compliance\.%s\.history\.\d+\.csv`, s.ScanID)
+		cleanTemplate := fmt.Sprintf(`scan\.%s\.history\.\d+\.csv`, s.ScanID)
+		logger.Infof("keeping a maximum '%d' for template '%s'", maxkeep, cleanTemplate)
 		vm.CleanupFiles(`.`, cleanTemplate, maxkeep)
 	}
 

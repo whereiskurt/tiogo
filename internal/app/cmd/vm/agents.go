@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	"time"
 
 	"github.com/prometheus/common/log"
@@ -23,7 +24,10 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 	a := client.NewAdapter(vm.Config, vm.Metrics)
 	cli := ui.NewCLI(vm.Config)
 
-	logger.Debugf("AgentsList started")
+	maxkeep, err := strconv.Atoi(vm.Config.VM.MaxKeep)
+	if err != nil {
+		logger.Fatalf("error: couldn't convert maxkeep '%s': %v", vm.Config.VM.MaxKeep, err)
+	}
 
 	agents, agentGroups, err := vm.list(cli, a)
 	if err != nil {
@@ -67,20 +71,21 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 		fmt.Println(fmt.Sprintf("%s", j))
 	}
 
-	vm.CleanupFiles(`.`, `agentlist\.\d+T\d+.csv`, 2)
-
 	if a.Config.VM.OutputCSV || !a.Config.VM.OutputJSON {
 		dts := time.Now().Format("20060102T150405")
 		filename := fmt.Sprintf("agentlist.%s.csv", dts)
 		csv := cli.Render("AgentsListSimplifiedCSV", map[string]interface{}{"Agents": agents, "AgentGroups": agentGroups})
 
-		// NOTE: Using ioutil.WriteFile is OK for smaller files
+		// NOTE: Using ioutil.WriteFile is OK for smaller files (less than 100MBs)
 		err = ioutil.WriteFile(filename, []byte(csv), 0644)
 		if err != nil {
-			panic(err)
+			logger.Fatalf("can't write to file '%s': %+v", filename, err)
 		}
 	}
 
+	cleanTemplate := `agentlist\.\d+T\d+.csv`
+	logger.Infof("keeping a maximum '%d' for template '%s'", maxkeep, cleanTemplate)
+	vm.CleanupFiles(`.`, cleanTemplate, maxkeep)
 	return
 }
 

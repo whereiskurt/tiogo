@@ -14,5 +14,6 @@ func main() {
 
 	a.InvokeCLI()
 
+	// This will retun zero to the OS. Unless, a log.Fatalf() was called along the way
 	return
 }

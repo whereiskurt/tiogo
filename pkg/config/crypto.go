@@ -22,8 +22,7 @@ func (c *Config) decrypt() {
 		}
 		dec, err := Decrypt(raw, []byte(c.CryptoKey))
 		if err != nil {
-			c.VM.Log.Fatalf("error: cannot decrypt URL with key")
-			c.VM.Log.Fatalf("fatal: your cryptokey [--key] is likely wrong.")
+			c.VM.Log.Fatalf("error: cannot decrypt accesskey with key")
 		}
 		c.VM.AccessKey = string(dec)
 	}

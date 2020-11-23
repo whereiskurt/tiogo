@@ -109,7 +109,7 @@ func (vm *VM) CleanupFiles(dirpath string, regex string, maxoldest int) {
 			return matches[i].ModTime().After(matches[j].ModTime())
 		})
 		// Delete files name at index maxoldest and beyond
-		for i := maxoldest; i < len(matches); i++ {
+		for i := maxoldest - 1; i < len(matches); i++ {
 			os.Remove(matches[i].Name())
 		}
 	}
