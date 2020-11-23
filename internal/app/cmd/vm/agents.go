@@ -29,6 +29,7 @@ func (vm *VM) AgentsList(cmd *cobra.Command, args []string) {
 		logger.Fatalf("error: couldn't convert maxkeep '%s': %v", vm.Config.VM.MaxKeep, err)
 	}
 
+	logger.Infof("Starting agent list ...")
 	agents, agentGroups, err := vm.list(cli, a)
 	if err != nil {
 		cli.Fatalf("%s", err)
