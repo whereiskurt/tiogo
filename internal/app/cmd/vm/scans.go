@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -169,5 +171,124 @@ func (vm *VM) ScansPlugins(cmd *cobra.Command, args []string) {
 
 // ScansQuery is invoked by Cobra with commandline args passed.
 func (vm *VM) ScansQuery(cmd *cobra.Command, args []string) {
+	return
+}
+
+// ScansGet starts, status loops, gets and converts compliance scan results to CSV.
+func (vm *VM) ScansGet(cmd *cobra.Command, args []string) {
+	a := client.NewAdapter(vm.Config, vm.Metrics)
+
+	logger := vm.setupLog()
+	scans, err := a.Scans(true, true)
+	if err != nil {
+		logger.Fatalf("error: couldn't scans list: %v", err)
+	}
+	scans = vm.FilterScans(a, &scans)
+
+	histid := vm.Config.VM.HistoryID
+
+	var format = "csv"
+	var chapters = vm.Config.VM.Chapters
+
+	var offset int
+	if vm.Config.VM.Offset != "" && histid == "" {
+		offset, err = strconv.Atoi(vm.Config.VM.Offset)
+		if err != nil {
+			logger.Fatalf("error: couldn't convert offset '%s': %v", vm.Config.VM.Offset, err)
+		}
+	}
+
+	var maxdepth int
+	maxdepth, err = strconv.Atoi(vm.Config.VM.MaxDepth)
+	if err != nil {
+		logger.Fatalf("error: couldn't convert maxdepth '%s': %v", vm.Config.VM.MaxDepth, err)
+	}
+
+	var maxkeep int
+	maxkeep, err = strconv.Atoi(vm.Config.VM.MaxKeep)
+	if err != nil {
+		logger.Fatalf("error: couldn't convert maxkeep '%s': %v", vm.Config.VM.MaxKeep, err)
+	}
+
+	if len(scans) == 0 {
+		logger.Errorf("error: history id didn't match a scan: %+v", vm.Config)
+		return
+	} else if len(scans) > 1 && histid != "" {
+		logger.Errorf("error: histid doesn't limit to one scan")
+		return
+	}
+
+	for _, s := range scans {
+		det, err := a.ScanDetails(&s, true, true)
+		if err != nil {
+			logger.Errorf("error: can't retrieve scan details")
+			continue
+		}
+
+		// This scan has no history ie. no previous scans
+		if len(det.History) <= offset {
+			logger.Errorf("error: scan %v has less run histories than offset '%d' requires", s.ScanID, offset)
+			continue
+		}
+	DEPTHS:
+		for depth := 0; depth < maxdepth; depth++ {
+			if len(det.History) <= offset+depth {
+				logger.Infof("scan %d doesn't have offset+depth (%d) histories", s.ScanID, offset+depth)
+				break
+			}
+			histid = det.History[offset+depth].HistoryID
+
+			var tgtFilename = fmt.Sprintf("compliance.%s.history.%s.csv", s.ScanID, histid)
+
+			if _, err := os.Stat(tgtFilename); err == nil {
+				logger.Infof("skipping scan:%s history:%s: file already downloaded: %s", s.ScanID, histid, tgtFilename)
+				continue DEPTHS
+			}
+
+			_, err = a.ScansExportStart(&s, histid, format, chapters, true, true)
+			if err != nil {
+				logger.Fatalf("error: couldn't start export-scans: %v", err)
+			}
+
+			var sleepStatusCheckIntervals = []int{500, 1000, 2000, 2000, 2000, 5000, 5000, 5000, 10000, 20000, 20000, 30000}
+			var maxattempts, sleptsec int
+			export, err := a.ScansExportStatus(&s, histid, format, chapters, true, true) //Use cache=true,true don't clobe last READY with "ERROR"
+			if err != nil {
+				logger.Fatalf("+v", err)
+			}
+
+			for maxattempts = len(sleepStatusCheckIntervals); maxattempts >= 0; maxattempts-- {
+				if export.Status == "READY" {
+					break
+				}
+				export, err = a.ScansExportStatus(&s, histid, format, chapters, false, true)
+				if err != nil {
+					logger.Fatalf("+v", err)
+				}
+				time.Sleep(time.Duration(sleepStatusCheckIntervals[maxattempts-1]) * time.Millisecond)
+				sleptsec += sleepStatusCheckIntervals[maxattempts-1] / 1000
+			}
+			if maxattempts <= 0 {
+				logger.Fatalf(fmt.Sprintf("Status stuck on '%s' scan export '%s' after %d attempts and %dsecs.", export.Status, export.FileUUID, maxattempts, sleptsec))
+			}
+
+			filename, err := a.ScansExportLargeGet(&s, histid, format, chapters)
+			if err != nil {
+				logger.Fatalf(fmt.Sprintf("Failed to Export-Scans Large Get '%s' scan export '%s'.", export.Status, export.FileUUID))
+			}
+
+			//vm.copyToFile(filename, tgtFilename)
+			err = vm.TimestampCSVRows(filename, tgtFilename)
+			if err != nil {
+				os.Remove(tgtFilename)
+				logger.Fatalf("error: couldn't apply timestatmps write: %s to %s: %v", filename, tgtFilename, err)
+			}
+		}
+
+		//Keep only X historicals for this ScanId
+		cleanTemplate := fmt.Sprintf(`compliance\.%s\.history\.\d+\.csv`, s.ScanID)
+		vm.CleanupFiles(`.`, cleanTemplate, maxkeep)
+	}
+
 	return
 }

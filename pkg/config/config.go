@@ -79,7 +79,10 @@ type VMConfig struct {
 	AfterDate   string // Date bounded for YYYY-MM-DD
 	Days        string // Number of days to include either before or after
 	ExportLimit string // Either chunk_size or num_assets
-	Offset      string //Starts at zero: 0=current, 1=previous, 2=prevprevious, ...
+	Offset      string // Starts at zero: 0=current, 1=previous, 2=prevprevious, ...
+
+	MaxDepth string // Default:1 - after Offset 0 how many more scans to retrieve?
+	MaxKeep  string // Default:6 - after Offset 0 how many more scans to retrieve?
 
 	DefaultTimezone string
 

@@ -55,6 +55,9 @@ const defaultServerCacheLookup = true
 
 const defaultChapters = "vuln_by_plugin" // vuln_by_host, vuln_hosts_summary
 
+const defaultMaxDepth = "1"
+const defaultMaxKeep = "7"
+
 // SetToDefaults will use local values to set reasonable defaults
 func (c *Config) SetToDefaults() {
 	// Find the User's home folder
@@ -97,6 +100,8 @@ func (c *Config) SetToDefaults() {
 	c.VM.Chapters = defaultChapters
 
 	c.DefaultServerStart = false
+	c.VM.MaxDepth = defaultMaxDepth
+	c.VM.MaxKeep = defaultMaxKeep
 }
 
 // SetLogFilename will set the ServerConfig log and duplicate to STDOUT

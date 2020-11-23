@@ -82,6 +82,10 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	flagS("Name", &a.Config.VM.Name, []string{"n", "name"}, vmCmd)
 	flagS("Regex", &a.Config.VM.Regex, []string{"regex"}, vmCmd)
 	flagS("JQex", &a.Config.VM.JQex, []string{"jqex"}, vmCmd)
+
+	flagS("MaxDepth", &a.Config.VM.MaxDepth, []string{"depth", "max"}, vmCmd)
+	flagS("MaxKeep", &a.Config.VM.MaxKeep, []string{"keep"}, vmCmd)
+
 	flagB("CSV", &a.Config.VM.OutputCSV, []string{"csv"}, vmCmd)
 	flagB("JSON", &a.Config.VM.OutputJSON, []string{"json"}, vmCmd)
 	flagB("Critical", &a.Config.VM.Critical, []string{"critical", "crit"}, vmCmd)
@@ -142,6 +146,8 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	flagS("HistoryUUID", &a.Config.VM.HistoryUUID, []string{"history", "history_uuid"}, scansCmd)
 	flagS("Offset", &a.Config.VM.Offset, []string{"offset"}, scansCmd)
 
+	subcommand("get", app.ScansGet, scansCmd)
+
 	exportScansCmd := command("export-scans", app.ExportScansHelp, vmCmd)
 	subcommand("start", app.ExportScansStart, exportScansCmd)
 	subcommand("status", app.ExportScansStatus, exportScansCmd)
@@ -155,10 +161,6 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	flagB("PDF", &a.Config.VM.OutputPDF, []string{"pdf"}, exportScansCmd)
 	flagS("Chapters", &a.Config.VM.Chapters, []string{"chapter"}, exportScansCmd)
 	flagS("Tags", &a.Config.VM.Tags, []string{"tag", "tags"}, exportScansCmd)
-
-	complianceCmd := command("compliance", app.ComplianceList, vmCmd)
-	subcommand("list", app.ComplianceList, complianceCmd)
-	flagS("Offset", &a.Config.VM.Offset, []string{"offset"}, complianceCmd)
 
 	a.RootCmd.SetUsageTemplate(a.DefaultUsage)
 	a.RootCmd.SetHelpTemplate(a.DefaultUsage)

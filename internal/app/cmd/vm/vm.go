@@ -1,12 +1,14 @@
 package vm
 
 import (
+	"encoding/csv"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/prometheus/common/log"
 	"github.com/spf13/cobra"
@@ -68,9 +70,6 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, cli.Render("exportAssetsUsage", versionMap))
 	case "export-scans", "export-scan":
 		fmt.Fprintf(os.Stderr, cli.Render("exportScansUsage", versionMap))
-	case "compliance":
-		fmt.Fprintf(os.Stderr, cli.Render("complianceUsage", versionMap))
-
 	case "cache":
 		fmt.Fprintf(os.Stderr, cli.Render("cacheUsage", versionMap))
 	default:
@@ -114,4 +113,53 @@ func (vm *VM) CleanupFiles(dirpath string, regex string, maxoldest int) {
 			os.Remove(matches[i].Name())
 		}
 	}
+}
+
+// TimestampCSVRows Reads a CSV and adds a "_time" to the header and a Splunk friendly DTS to each row.
+func (vm *VM) TimestampCSVRows(sourceName, targetName string) error {
+
+	src, _ := os.Open(sourceName)
+	defer src.Close()
+	sread := csv.NewReader(src)
+
+	// Get a header row and convert to a hash
+	headers, err := sread.Read()
+	if err != nil || len(headers) == 0 {
+		return fmt.Errorf("Cannot read CSV: %s", sourceName)
+	}
+
+	// _time setup
+	headers = append([]string{"_time"}, headers...)
+	ttime := []string{fmt.Sprintf(`%s`, time.Now().UTC().Format("2006-01-02T15:04:05"))}
+
+	tgt, err := os.Create(targetName)
+	defer tgt.Close()
+	if err != nil {
+		return fmt.Errorf("Cannot create CSV to write out to: %s", targetName)
+	}
+
+	csvwriter := csv.NewWriter(tgt)
+	defer csvwriter.Flush()
+
+	err = csvwriter.Write(headers)
+	if err != nil {
+		return fmt.Errorf("Failed to write header row to CSV file: %+v", headers)
+	}
+
+	for cnt := 0; ; cnt++ {
+		row, err := sread.Read()
+		if err != nil || len(row) == 0 {
+			break
+		}
+		// Add ttime to the first value
+		row = append(ttime, row...)
+		err = csvwriter.Write(row)
+		if err != nil {
+			return fmt.Errorf("Failed to write row to CSV file: %+v", row)
+		}
+	}
+	csvwriter.Flush()
+
+	tgt.Close()
+	return nil
 }

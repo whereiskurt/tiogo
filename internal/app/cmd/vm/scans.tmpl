@@ -6,7 +6,7 @@ Usage:
     tio vm scans [ACTION ...] [OPTIONS]
 
 Action:
-    list, details, hosts, plugins, query
+    list, details, hosts, plugins, query, get
 
 Agents Options:
     Selection modifiers:
@@ -23,21 +23,18 @@ Agents Options:
     Examples:
       ## All scans in the system
       $ tio scans
-      $ tio scans list --json
 
       ## Current scan details,hosts and plugins
       $ tio scans details --id=1
-      $ tio scans hosts  --id=1
-      $ tio scans plugins --id=1
 
-      ##Historical scan details,hosts and plugins
-      ## Current[0], Previous[1], PreviousPrevious[2],...
-      $ tio scans details --id=1 --offset=3 --csv
-      $ tio scans hosts --id=1 --offset=3 --csv
-      $ tio scans plugins --id=1 --offset=3 --json
+      ## Download start/status/get scan for --id=1
+      $ tio scans get --id=1
 
-      ## Query 
-      $ tio scans query --id=1 --offset=3 
+      ## Get the last 3x every run, keeping a maximum of 12 files in total across all runs.
+      $ tio scans get --id=1 --depth=3 --keep=12
+      
+      ## Get the latest keeping 7x scans worth
+      $ tio scans get --id=1 --depth=1 --keep=7
 {{end}}
 
 {{define "ScansListCSV" -}}
