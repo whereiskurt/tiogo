@@ -37,9 +37,20 @@ Agents Options:
       $ tio scans get --id=1 --depth=1 --keep=7
 {{end}}
 
+{{- /* TODO: Replace the hard to read printf with {{}} convention */ -}}
 {{define "ScansListCSV" -}}
 {{ printf "_time,ID,Name,Owner,Type,Enabled,ScheduleStart,ScheduleRules,LastRunDate,LastScanUUID,LastScheduleUUID\n" }}
 {{- range $k, $v := .Scans -}}
     {{ printf "\"%s\",%s,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s,\"%s\",\"%s\"\n" (NowDateTime "2006-01-02T15:04:05") .ScanID .Name .Owner .Type .Enabled .StartTime .RRules .LastModifiedDate .UUID .ScheduleUUID }}
 {{- end -}}
 {{end}}
+
+
+{{define "ScansDetailHeaderCSV" -}}
+_time,ScanID,Name,PolicyName,Enabled,Owner,ScheduleUUID,ScanUUID,ScannerName,ScanType,Target,AgentGroups,HistoryCount,Last Status,Last StartTime,Last EndTime,Timestamp,RRules,Hosts Scanned,CriticalCount,HighCount,MediumCount,LowCount,InfoCount
+{{- end}}
+
+{{- /* TODO: Replace the .d.AgentGroup with with groupnames */ -}}
+{{define "ScansDetailCSV" -}}
+{{ NowDateTime "2006-01-02T15:04:05" }},{{.d.Scan.ScanID}},"{{.d.Scan.Name}}","{{.d.PolicyName}}","{{.d.Scan.Owner}}","{{.d.Scan.Enabled}}","{{.d.Scan.ScheduleUUID}}","{{.d.Scan.UUID}}","{{.d.ScannerName}}","{{.d.ScanType}}","{{.d.Targets}}","{{.d.AgentGroup}}","{{.d.HistoryCount}}","{{.d.Status}}","{{.d.ScanStart}}","{{.d.ScanEnd}}","{{.d.Timestamp}}","{{.d.Scan.RRules}}",{{.d.HostCount}},{{.d.PluginCriticalCount}},{{.d.PluginHighCount}},{{.d.PluginMediumCount}},{{.d.PluginLowCount}},{{.d.PluginInfoCount}}
+{{- end}}
