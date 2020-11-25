@@ -145,6 +145,7 @@ func Sumsha1(raw string) string {
 	return hex.EncodeToString(hash[:])
 }
 
+// NowDateTime generates a DTS using the format string passed
 func NowDateTime(f string) string {
 	return time.Now().UTC().Format(f)
 }
@@ -167,6 +168,7 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 
 	templateFiles = append(templateFiles, "vm/scanners.tmpl")
 	templateFiles = append(templateFiles, "vm/scans.tmpl")
+	templateFiles = append(templateFiles, "vm/compliance.tmpl")
 	templateFiles = append(templateFiles, "vm/vm.tmpl")
 
 	templateFiles = append(templateFiles, "proxy/server.tmpl")

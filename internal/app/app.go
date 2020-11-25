@@ -142,11 +142,14 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	subcommand("detail", app.ScansDetail, scansCmd)
 	subcommand("host", app.ScansHosts, scansCmd)
 	subcommand("plugin", app.ScansPlugins, scansCmd)
+	subcommand("get", app.ScansGet, scansCmd)
 	subcommand("query", app.ScansQuery, scansCmd)
 	flagS("HistoryUUID", &a.Config.VM.HistoryUUID, []string{"history", "history_uuid"}, scansCmd)
 	flagS("Offset", &a.Config.VM.Offset, []string{"offset"}, scansCmd)
 
-	subcommand("get", app.ScansGet, scansCmd)
+	compCmd := command("compliance", app.ComplianceGet, vmCmd)
+	subcommand("get", app.ComplianceGet, compCmd)
+	flagS("Offset", &a.Config.VM.Offset, []string{"offset"}, compCmd)
 
 	exportScansCmd := command("export-scans", app.ExportScansHelp, vmCmd)
 	subcommand("start", app.ExportScansStart, exportScansCmd)

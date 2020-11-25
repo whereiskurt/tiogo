@@ -120,12 +120,167 @@ type ScanListItem struct {
 	LastModifiedDate json.Number `json:"last_modification_date"`
 }
 
+// type ScanDetail struct {
+// 	Info struct {
+// 		Owner           string      `json:"owner"`
+// 		Name            string      `json:"name"`
+// 		NoTarget        bool        `json:"no_target"`
+// 		FolderID        interface{} `json:"folder_id"`
+// 		Control         bool        `json:"control"`
+// 		UserPermissions int         `json:"user_permissions"`
+// 		ScheduleUUID    string      `json:"schedule_uuid"`
+// 		EditAllowed     bool        `json:"edit_allowed"`
+// 		ScannerName     interface{} `json:"scanner_name"`
+// 		Policy          string      `json:"policy"`
+// 		Shared          bool        `json:"shared"`
+// 		ObjectID        interface{} `json:"object_id"`
+// 		TagTargets      interface{} `json:"tag_targets"`
+// 		Acls            interface{} `json:"acls"`
+// 		Hostcount       int         `json:"hostcount"`
+// 		UUID            string      `json:"uuid"`
+// 		Status          string      `json:"status"`
+// 		ScanType        string      `json:"scan_type"`
+// 		Targets         string      `json:"targets"`
+// 		AltTargetsUsed  bool        `json:"alt_targets_used"`
+// 		PciCanUpload    bool        `json:"pci-can-upload"`
+// 		ScanStart       int         `json:"scan_start"`
+// 		Timestamp       int         `json:"timestamp"`
+// 		IsArchived      bool        `json:"is_archived"`
+// 		Reindexing      bool        `json:"reindexing"`
+// 		AgentCount      int         `json:"agent_count"`
+// 		AgentTargets    []struct {
+// 			ID   int    `json:"id"`
+// 			UUID string `json:"uuid"`
+// 			Name string `json:"name"`
+// 		} `json:"agent_targets"`
+// 		ScanEnd       int         `json:"scan_end"`
+// 		Haskb         bool        `json:"haskb"`
+// 		Hasaudittrail bool        `json:"hasaudittrail"`
+// 		ScannerStart  interface{} `json:"scanner_start"`
+// 		ScannerEnd    interface{} `json:"scanner_end"`
+// 	} `json:"info"`
+// 	Hosts []struct {
+// 		AssetID               int    `json:"asset_id"`
+// 		HostID                int    `json:"host_id"`
+// 		UUID                  string `json:"uuid"`
+// 		Hostname              string `json:"hostname"`
+// 		Progress              string `json:"progress"`
+// 		Scanprogresscurrent   int    `json:"scanprogresscurrent"`
+// 		Scanprogresstotal     int    `json:"scanprogresstotal"`
+// 		Numchecksconsidered   int    `json:"numchecksconsidered"`
+// 		Totalchecksconsidered int    `json:"totalchecksconsidered"`
+// 		Severitycount         struct {
+// 			Item []struct {
+// 				Count         int `json:"count"`
+// 				Severitylevel int `json:"severitylevel"`
+// 			} `json:"item"`
+// 		} `json:"severitycount"`
+// 		Severity  int `json:"severity"`
+// 		Score     int `json:"score"`
+// 		Info      int `json:"info"`
+// 		Low       int `json:"low"`
+// 		Medium    int `json:"medium"`
+// 		High      int `json:"high"`
+// 		Critical  int `json:"critical"`
+// 		HostIndex int `json:"host_index"`
+// 	} `json:"hosts"`
+// 	Vulnerabilities []struct {
+// 		Count        int    `json:"count"`
+// 		PluginID     int    `json:"plugin_id"`
+// 		PluginName   string `json:"plugin_name"`
+// 		Severity     int    `json:"severity"`
+// 		PluginFamily string `json:"plugin_family"`
+// 		VulnIndex    int    `json:"vuln_index"`
+// 	} `json:"vulnerabilities"`
+// 	Comphosts []struct {
+// 		AssetID               int    `json:"asset_id"`
+// 		HostID                int    `json:"host_id"`
+// 		UUID                  string `json:"uuid"`
+// 		Hostname              string `json:"hostname"`
+// 		Progress              string `json:"progress"`
+// 		Scanprogresscurrent   int    `json:"scanprogresscurrent"`
+// 		Scanprogresstotal     int    `json:"scanprogresstotal"`
+// 		Numchecksconsidered   int    `json:"numchecksconsidered"`
+// 		Totalchecksconsidered int    `json:"totalchecksconsidered"`
+// 		Severitycount         struct {
+// 			Item []struct {
+// 				Count         int `json:"count"`
+// 				Severitylevel int `json:"severitylevel"`
+// 			} `json:"item"`
+// 		} `json:"severitycount"`
+// 		Score     int `json:"score"`
+// 		Info      int `json:"info"`
+// 		Low       int `json:"low"`
+// 		Medium    int `json:"medium"`
+// 		High      int `json:"high"`
+// 		Critical  int `json:"critical"`
+// 		HostIndex int `json:"host_index"`
+// 		Severity  int `json:"severity"`
+// 	} `json:"comphosts"`
+// 	Compliance []struct {
+// 		Count         int         `json:"count"`
+// 		HostID        int         `json:"host_id"`
+// 		Hostname      interface{} `json:"hostname"`
+// 		PluginFamily  string      `json:"plugin_family"`
+// 		PluginID      string      `json:"plugin_id"`
+// 		PluginName    string      `json:"plugin_name"`
+// 		Severity      int         `json:"severity"`
+// 		SeverityIndex int         `json:"severity_index"`
+// 	} `json:"compliance"`
+// 	History []struct {
+// 		HistoryID            int    `json:"history_id"`
+// 		OwnerID              int    `json:"owner_id"`
+// 		CreationDate         int    `json:"creation_date"`
+// 		LastModificationDate int    `json:"last_modification_date"`
+// 		UUID                 string `json:"uuid"`
+// 		Type                 string `json:"type"`
+// 		Status               string `json:"status"`
+// 		Scheduler            int    `json:"scheduler"`
+// 		AltTargetsUsed       bool   `json:"alt_targets_used"`
+// 		IsArchived           bool   `json:"is_archived"`
+// 	} `json:"history"`
+// 	Notes        []interface{} `json:"notes"`
+// 	Remediations struct {
+// 		NumCves           int           `json:"num_cves"`
+// 		NumHosts          int           `json:"num_hosts"`
+// 		NumRemediatedCves int           `json:"num_remediated_cves"`
+// 		NumImpactedHosts  int           `json:"num_impacted_hosts"`
+// 		Remediations      []interface{} `json:"remediations"`
+// 	} `json:"remediations"`
+// }
+
 // ScanDetail struct https://cloud.tenable.com/api#/resources/scans/{scanId}
 type ScanDetail struct {
-	Info            ScanDetailInfo
-	Hosts           []ScanDetailHosts
-	Vulnerabilities []ScanDetailVulnerabilities
+	Info ScanDetailInfo
+	//TODO: Consider renaming to VulnHosts
+	Hosts           []ScanDetailHosts           `json:"hosts"`
+	Vulnerabilities []ScanDetailVulnerabilities `json:"vulnerabilities"`
+	Compliance      []ScanCompliance            `json:"compliance"`
 	History         []ScanDetailHistory
+	Notes           []interface{} `json:"notes"`
+}
+
+// ScanCompliance is the list of compliance checks done
+type ScanCompliance struct {
+	Count         int         `json:"count"`
+	HostID        int         `json:"host_id"` //This field is in source, but doesn't make sense...
+	Hostname      interface{} `json:"hostname"`
+	PluginFamily  string      `json:"plugin_family"`
+	PluginID      string      `json:"plugin_id"` //This can actually be a UUID as seen in compliance scans
+	PluginName    string      `json:"plugin_name"`
+	Severity      int         `json:"severity"`
+	SeverityIndex int         `json:"severity_index"`
+}
+
+// ScanDetailVulnerabilities struct
+type ScanDetailVulnerabilities struct {
+	ID       json.Number `json:"vuln_index"`
+	PluginID json.Number `json:"plugin_id"` //This is not a UUID and an integer value for most vulns
+	Name     string      `json:"plugin_name"`
+	HostName string      `json:"hostname"`
+	Family   string      `json:"plugin_family"`
+	Count    json.Number `json:"count"`
+	Severity json.Number `json:"severity"`
 }
 
 // ScanDetailInfo struct
@@ -173,17 +328,6 @@ type ScanDetailHosts struct {
 	ProgressTotal    json.Number `json:"scanprogresstotal"`
 	ChecksConsidered json.Number `json:"numchecksconsidered"`
 	ChecksTotal      json.Number `json:"totalchecksconsidered"`
-}
-
-// ScanDetailVulnerabilities struct
-type ScanDetailVulnerabilities struct {
-	ID       json.Number `json:"vuln_index"`
-	PluginID json.Number `json:"plugin_id"`
-	Name     string      `json:"plugin_name"`
-	HostName string      `json:"hostname"`
-	Family   string      `json:"plugin_family"`
-	Count    json.Number `json:"count"`
-	Severity json.Number `json:"severity"`
 }
 
 // ScanDetailHistory struct

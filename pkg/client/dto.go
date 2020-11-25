@@ -63,8 +63,9 @@ type ScanHistoryDetail struct {
 	HostCount           string
 	AgentCount          string
 	ScanType            string
+	CompliancePlugin    map[string]Plugin
+	VulnPlugin          map[string]Plugin
 	Host                map[string]HostScanSummary
-	HostPlugin          map[string]Plugin
 	HostAssetMap        map[string]string
 }
 

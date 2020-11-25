@@ -315,6 +315,27 @@ func (c *Converter) ToScanDetails(raw []byte, groups []AgentGroup) (converted Sc
 		converted.AgentGroup = append(converted.AgentGroup, mapGroups[at.Name])
 	}
 
+	// TODO: Complete the whole DTO for this
+	converted.CompliancePlugin = make(map[string]Plugin)
+	for _, v := range src.Compliance {
+		var plugin Plugin
+		plugin.PluginID = v.PluginID
+		plugin.Name = v.PluginName
+		plugin.FamilyName = v.PluginFamily
+		//NOTE: We use 'FamilyName'
+		converted.CompliancePlugin[plugin.FamilyName] = plugin
+	}
+
+	converted.VulnPlugin = make(map[string]Plugin)
+	for _, v := range src.Vulnerabilities {
+		var plugin Plugin
+		plugin.PluginID = v.PluginID.String()
+		plugin.Name = v.Name
+		plugin.FamilyName = v.Family
+		//NOTE: We use 'PluginName'
+		converted.VulnPlugin[plugin.Name] = plugin
+	}
+
 	return
 }
 

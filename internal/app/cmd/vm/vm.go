@@ -115,8 +115,13 @@ func (vm *VM) CleanupFiles(dirpath string, regex string, keep int) {
 	}
 }
 
-// TimestampCSVRows Reads a CSV and adds a "_time" to the header and a Splunk friendly DTS to each row.
-func (vm *VM) TimestampCSVRows(sourceName, targetName string) error {
+// FilterKeepAll returns true so they caller keeps all rows.
+func (vm *VM) FilterKeepAll(header, row []string) (shouldKeep bool) {
+	return true
+}
+
+// ProcessCSVRow Reads a CSV and adds a "_time" to the header and a Splunk friendly DTS to each row.
+func (vm *VM) ProcessCSVRow(sourceName, targetName string, keepFilter func(header, row []string) (shouldKeep bool)) (err error) {
 
 	src, _ := os.Open(sourceName)
 	defer src.Close()
@@ -127,6 +132,8 @@ func (vm *VM) TimestampCSVRows(sourceName, targetName string) error {
 	if err != nil || len(headers) == 0 {
 		return fmt.Errorf("Cannot read CSV: %s", sourceName)
 	}
+
+	//TODO: Build row HASH
 
 	// _time setup
 	headers = append([]string{"_time"}, headers...)
@@ -145,7 +152,7 @@ func (vm *VM) TimestampCSVRows(sourceName, targetName string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to write header row to CSV file: %+v", headers)
 	}
-
+ROW:
 	for cnt := 0; ; cnt++ {
 		row, err := sread.Read()
 		if err != nil || len(row) == 0 {
@@ -153,6 +160,11 @@ func (vm *VM) TimestampCSVRows(sourceName, targetName string) error {
 		}
 		// Add ttime to the first value
 		row = append(ttime, row...)
+
+		//ROW FILTER HOOK
+		if !keepFilter(headers, row) {
+			continue ROW
+		}
 		err = csvwriter.Write(row)
 		if err != nil {
 			return fmt.Errorf("Failed to write row to CSV file: %+v", row)
