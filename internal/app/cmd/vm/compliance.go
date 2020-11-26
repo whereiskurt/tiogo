@@ -3,7 +3,9 @@ package vm
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -50,7 +52,7 @@ func (vm *VM) ComplianceGet(cmd *cobra.Command, args []string) {
 	}
 
 	if len(scans) == 0 {
-		logger.Errorf("error: history id didn't match a scan: %+v", vm.Config)
+		logger.Errorf("error: history id didn't match a scan: %v+", vm.Config)
 		return
 	} else if len(scans) > 1 && histid != "" {
 		logger.Errorf("error: histid doesn't limit to one scan")
@@ -99,15 +101,15 @@ SCANS:
 
 		// This scan has no history ie. no previous scans
 		if len(det.History) <= offset {
-			logger.Errorf("error: scan %v has less run histories than offset '%d' requires", s.ScanID, offset)
+			logger.Errorf("error: scan '%s' (%v) has less run histories than offset '%d' requires", det.Scan.Name, s.ScanID, offset)
 			continue SCANS
 		}
 
 	DEPTHS:
 		for depth := 0; depth < maxdepth; depth++ {
 
-			if len(det.History) <= offset+depth {
-				logger.Infof("scan %s has only %d histories (%d doesn't exist)", s.ScanID, len(det.History), offset+depth)
+			if len(det.History)-1 < offset+depth {
+				logger.Infof("scan %s has only %d histories (wanted %d)", s.ScanID, len(det.History), offset+depth)
 				break DEPTHS
 			}
 			histid = det.History[offset+depth].HistoryID
@@ -121,7 +123,7 @@ SCANS:
 
 			_, err = a.ScansExportStart(&s, histid, format, chapters, true, true)
 			if err != nil {
-				logger.Errorf("error: cannot start export scans from Tenable.io, skipping scan: +v", err)
+				logger.Errorf("error: cannot start export scans from Tenable.io, skipping scan: %v+", err)
 				continue SCANS
 			}
 
@@ -129,7 +131,7 @@ SCANS:
 			var maxattempts, sleptsec int
 			export, err := a.ScansExportStatus(&s, histid, format, chapters, true, true) //Use cache=true,true don't clobe last READY with "ERROR"
 			if err != nil {
-				logger.Errorf("error: cannot get export status from Tenable.io, skipping scan: +v", err)
+				logger.Errorf("error: cannot get export status from Tenable.io, skipping scan: %v+", err)
 				continue SCANS
 			}
 		STATUSCHECK:
@@ -139,7 +141,7 @@ SCANS:
 				}
 				export, err = a.ScansExportStatus(&s, histid, format, chapters, false, true)
 				if err != nil {
-					logger.Errorf("error: cannot get export status from Tenable.io, skipping scan: +v", err)
+					logger.Errorf("error: cannot get export status from Tenable.io, skipping scan: %v+", err)
 					continue SCANS
 				}
 				logger.Infof("scan %s uuid: %s download not ready (%s) sleeping %dms...", s.ScanID, export.FileUUID, export.Status, sleepStatusCheckIntervals[maxattempts-1])
@@ -160,13 +162,37 @@ SCANS:
 
 			logger.Infof("processing download with _time for '%s' (%s) uuid: %s", s.Name, s.ScanID, export.FileUUID)
 
-			err = vm.ProcessCSVRow(filename, tgtFilename, func(header, row []string) (shouldKeep bool) {
-				c := det.CompliancePlugin
+			err = vm.ProcessCSVRow(filename, tgtFilename, func(header map[string]int, row []string) (shouldKeep bool) {
+
+				compPlugin := det.CompliancePlugin
 				//NOTE: MDM Mobile scans don't actually have compliance plugins, so the LEN is zero...
-				if len(c) == 0 {
+				if len(compPlugin) == 0 {
 					shouldKeep = true
-				} else if _, ok := c[row[8]]; ok {
+				} else if _, ok := compPlugin[row[header["Name"]]]; ok {
 					shouldKeep = true
+				}
+
+				// This block reduces the CIS benchmark output to the pass/fail line, plus the remote value and policy value.
+				// This filter reduces LARGE amounts of repeated texts
+				if row[header["Plugin Family"]] == "Policy Compliance" {
+					var testNameStatus = regexp.MustCompile(`(?msi)^(.+?\[(?:PASSED|FAILED|ERROR|WARNING)\])`)
+					var remoteValue = regexp.MustCompile(`(?msi)^\s*(?:Remote value:\s*)(.+?)\s*(?:(?:^Policy value\s*:)|(?:^Solution\s*:))`)
+					var policyValue = regexp.MustCompile(`(?msi)^\s*(?:Policy value:\s*)(.+?)\s*(?:(?:^Solution\s*:)|(?:^Reference\(s\)\s*:)|$)`)
+
+					name := testNameStatus.FindStringSubmatch(row[header["Description"]])
+					rv := remoteValue.FindStringSubmatch(row[header["Description"]])
+					pv := policyValue.FindStringSubmatch(row[header["Description"]])
+
+					if len(name) > 1 && len(rv) > 1 {
+						row[header["Description"]] = name[1] + "\n"
+						row[header["Description"]] = strings.ReplaceAll(row[header["Description"]], `"`, "")
+						if len(rv) > 1 {
+							row[header["Description"]] += "Remote value:" + rv[1] + "\n"
+						}
+						if len(pv) > 1 {
+							row[header["Description"]] += "Policy value:" + pv[1] + "\n"
+						}
+					}
 				}
 				return shouldKeep
 			})

@@ -56,7 +56,7 @@ const defaultServerCacheLookup = true
 const defaultChapters = "vuln_by_plugin" // vuln_by_host, vuln_hosts_summary
 
 const defaultMaxDepth = "1"
-const defaultMaxKeep = "7"
+const defaultMaxKeep = "10"
 
 // SetToDefaults will use local values to set reasonable defaults
 func (c *Config) SetToDefaults() {
@@ -137,7 +137,7 @@ func (c *VMConfig) SetLogFilename(filename string) {
 // LogFilename will set the ServerConfig logging filename
 func (c *ServerConfig) LogFilename() string {
 	dts := time.Now().Format("20060102")
-	name := fmt.Sprintf("server.%s.log", dts)
+	name := fmt.Sprintf("tio.server.%s.log", dts)
 	file := filepath.Join(".", c.Config.LogFolder, name)
 	return file
 }
@@ -145,7 +145,7 @@ func (c *ServerConfig) LogFilename() string {
 // LogFilename will set the VMConfig logging filename
 func (c *VMConfig) LogFilename() string {
 	dts := time.Now().Format("20060102")
-	name := fmt.Sprintf("client.%s.log", dts)
+	name := fmt.Sprintf("tio.client.%s.log", dts)
 	file := filepath.Join(c.Config.LogFolder, name)
 	return file
 }

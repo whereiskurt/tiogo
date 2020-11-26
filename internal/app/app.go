@@ -83,7 +83,7 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	flagS("Regex", &a.Config.VM.Regex, []string{"regex"}, vmCmd)
 	flagS("JQex", &a.Config.VM.JQex, []string{"jqex"}, vmCmd)
 
-	flagS("MaxDepth", &a.Config.VM.MaxDepth, []string{"depth", "max"}, vmCmd)
+	flagS("MaxDepth", &a.Config.VM.MaxDepth, []string{"depth"}, vmCmd)
 	flagS("MaxKeep", &a.Config.VM.MaxKeep, []string{"keep"}, vmCmd)
 
 	flagB("CSV", &a.Config.VM.OutputCSV, []string{"csv"}, vmCmd)
