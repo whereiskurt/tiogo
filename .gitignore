@@ -3,7 +3,9 @@ log/*
 .idea/*
 *.bat
 *.sh
-
+*.csv
+*.yaml
 ## These are specific build or testing artifacts that can end up in the root folder.
+tio.exe
 tio
 xtime
