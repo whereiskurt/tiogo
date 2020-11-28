@@ -169,6 +169,13 @@ func (u *Unmarshal) ScanDetails(uuid string, skipOnHit bool, writeOnReturn bool)
 	return raw, err
 }
 
+// AuditLogV1 grabs
+func (u *Unmarshal) AuditLogV1(skipOnHit bool, writeOnReturn bool) ([]byte, error) {
+	s := u.service(skipOnHit, writeOnReturn)
+	raw, err := s.AuditLogV1()
+	return raw, err
+}
+
 // ScansExportStart creates request with limit and lastAssessed based on Config
 func (u *Unmarshal) ScansExportStart(scanid string, histid string, format string, chapters string, skipOnHit bool, writeOnReturn bool) ([]byte, error) {
 	s := u.service(skipOnHit, writeOnReturn)

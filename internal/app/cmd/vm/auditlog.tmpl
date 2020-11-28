@@ -1,0 +1,36 @@
+{{define "auditLogV1Usage"}}
+Audit Log V1 Export
+https://developer.tenable.com/reference#audit-log-events
+
+Usage:
+    tio vm audit [ACTION ...] [OPTIONS]
+
+Action:
+    list
+
+Export Scans Options:
+    Selection modifiers:
+      None
+
+Examples:
+    ##Output a file name "auditlogv1.YYYYMMDDTHHmmss.json"
+    $ tio audit list --json
+    
+    ##Output a CSV file named "auditlogv1.YYYYMMDDTHHmmss.csv"
+    $ tio audit 
+
+{{end}}
+
+{{define "AuditLogV1HeaderCSV" -}}
+_time,Received,ID,Action,CRUD,IsFailure,Description,ActorID,ActorName,IsAnonymous,TargetID,TargetName,TargetType,Fields
+{{- end}}
+
+{{define "AuditLogV1CSV"}}
+{{- range $k, $v := .Events -}}
+  {{- $f:="" -}}
+  {{- range $k1, $v1 := $v.Fields -}}
+    {{- $f = (printf "%s=%s;%s" $v1.Key $v1.Value $f) -}}
+  {{- end -}}
+ "{{ NowDateTime "2006-01-02T15:04:05" }}","{{$v.Received}}",{{$v.ID}},{{$v.Action}},{{$v.Crud}},{{$v.IsFailure}},{{$v.Description}},{{$v.Actor.ID}},{{$v.Actor.Name}},{{$v.IsAnonymous}},{{$v.Target.ID}},{{$v.Target.Name}},{{$v.Target.Type}},"{{$f}}"
+{{end -}}
+{{- end -}}

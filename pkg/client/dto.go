@@ -539,3 +539,27 @@ type ReportItemType struct {
 	VulnPublicationDate        string
 	XRef                       []string
 }
+
+// AuditLogEvent is described here: https://developer.tenable.com/reference#audit-log-events
+type AuditLogEvent struct {
+	ID          string    `json:"id"`
+	Action      string    `json:"action"`
+	Crud        string    `json:"crud"`
+	IsFailure   bool      `json:"is_failure"`
+	Received    time.Time `json:"received"`
+	Description string    `json:"description"`
+	Actor       struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"actor"`
+	IsAnonymous bool `json:"is_anonymous"`
+	Target      struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+		Type string `json:"type"`
+	} `json:"target"`
+	Fields []struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	} `json:"fields"`
+}

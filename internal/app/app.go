@@ -130,6 +130,9 @@ func NewApp(config *config.Config, mmetrics *metrics.Metrics) (a App) {
 	cacheCmd := command("cache", app.CacheInfo, vmCmd)
 	subcommand("list", app.CacheInfo, cacheCmd)
 
+	auditLogCmd := command("audit", app.AuditLogV1List, vmCmd)
+	subcommand("list", app.AuditLogV1List, auditLogCmd)
+
 	//TODO: Make all safe by adding '--all' parameter to remove historical/export outputs too
 	cacheClearCmd := command("clear", app.CacheClear, cacheCmd)
 	subcommand("all", app.CacheClearAll, cacheClearCmd)

@@ -12,10 +12,6 @@ import (
 // ValidateOrFatal will validate the string values inside of the Config after copying from Unmarshal or self-setting.
 func (c *Config) ValidateOrFatal() {
 
-	if c.CryptoKey == "" {
-		log.Fatalf("invalid key: CryptoKey not provided - no default set.")
-	}
-
 	c.validateVerbosity()
 
 	c.validateChunks()

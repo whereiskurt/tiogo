@@ -64,7 +64,7 @@ func (s *Service) post(endPoint EndPointType, p map[string]string) (body []byte,
 func (s *Service) get(endPoint EndPointType, p map[string]string) (body []byte, status int, err error) {
 
 	body, status, err = s.checkSkipOnHit(endPoint, p)
-	if err != nil && status != 0 {
+	if err == nil && status == 200 {
 		return body, status, err
 	}
 
@@ -210,6 +210,7 @@ func (s *Service) checkSkipOnHit(endPoint EndPointType, p map[string]string) ([]
 
 			body, err := s.DiskCache.Fetch(filename)
 			if err == nil && len(body) > 0 {
+				s.Log.Debugf("Cache hit:%s", filename)
 				return body, 200, nil
 			}
 		}

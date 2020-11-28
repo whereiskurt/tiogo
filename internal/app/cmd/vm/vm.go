@@ -72,6 +72,8 @@ func (vm *VM) Help(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, cli.Render("exportScansUsage", versionMap))
 	case "cache":
 		fmt.Fprintf(os.Stderr, cli.Render("cacheUsage", versionMap))
+	case "audit":
+		fmt.Fprintf(os.Stderr, cli.Render("auditLogV1Usage", versionMap))
 	default:
 		fmt.Fprintf(os.Stderr, cli.Render("vmUsage", versionMap))
 	}

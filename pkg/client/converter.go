@@ -503,3 +503,40 @@ func (c *Converter) ToTagTagBulkJobID(raw *[]byte) (jobUUID string, err error) {
 
 	return src.JobUUID, err
 }
+
+// ToAuditLogV1Event gets raw Audit Log and converts to DTO
+func (c *Converter) ToAuditLogV1Event(raw []byte) (tgt []AuditLogEvent, err error) {
+	var src tenable.AuditLogV1
+	err = json.Unmarshal(raw, &src)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, event := range src.Events {
+		var ale AuditLogEvent
+		ale.Action = event.Action
+		ale.Actor = event.Actor
+		ale.Crud = event.Crud
+		ale.Description = event.Description
+
+		for _, h := range event.Fields {
+			ale.Fields = append(ale.Fields, struct {
+				Key   string "json:\"key\""
+				Value string "json:\"value\""
+			}{Key: h.Key, Value: h.Value})
+		}
+		ale.ID = event.ID
+		ale.IsAnonymous = event.IsAnonymous
+		ale.IsFailure = event.IsFailure
+		ale.Received = event.Received
+
+		ale.Target.ID = event.Target.ID
+		ale.Target.Name = event.Target.Name
+		ale.Target.Type = event.Target.Type
+
+		ale.Actor.ID = event.Actor.ID
+		ale.Actor.Name = event.Actor.Name
+		tgt = append(tgt, ale)
+	}
+	return tgt, nil
+}

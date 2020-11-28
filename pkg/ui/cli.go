@@ -168,13 +168,14 @@ func (cli *CLI) Render(name string, data interface{}) (usage string) {
 
 	templateFiles = append(templateFiles, "vm/scanners.tmpl")
 	templateFiles = append(templateFiles, "vm/scans.tmpl")
-	templateFiles = append(templateFiles, "vm/compliance.tmpl")
 	templateFiles = append(templateFiles, "vm/vm.tmpl")
 
 	templateFiles = append(templateFiles, "proxy/server.tmpl")
 	templateFiles = append(templateFiles, "proxy/start.tmpl")
 	templateFiles = append(templateFiles, "proxy/stop.tmpl")
 
+	templateFiles = append(templateFiles, "vm/compliance.tmpl")
+	templateFiles = append(templateFiles, "vm/auditlog.tmpl")
 	t := template.New("")
 	for _, f := range templateFiles {
 		file, err := cmd.CmdHelpEmbed.Open(fmt.Sprintf("%s", f))

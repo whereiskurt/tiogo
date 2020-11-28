@@ -34,6 +34,7 @@ var EndPoints = endPointTypes{
 	ScansExportStatus:  EndPointType("ScansExportStatus"),
 	TagValueCreate:     EndPointType("TagValueCreate"),
 	TagBulkApply:       EndPointType("TagBulkApply"),
+	AuditLogV1:         EndPointType("AuditLogV1"),
 }
 
 type endPointTypes struct {
@@ -57,6 +58,7 @@ type endPointTypes struct {
 	ScansExportGet     EndPointType
 	TagValueCreate     EndPointType
 	TagBulkApply       EndPointType
+	AuditLogV1         EndPointType
 }
 
 // ServiceMap defines all the endpoints provided by the ACME service
@@ -161,6 +163,14 @@ var ServiceMap = map[EndPointType]ServiceTransport{
 	EndPoints.ScansList: {
 		URL:           "/scans/",
 		CacheFilename: "/scans/list.json",
+		MethodTemplate: map[httpMethodType]MethodTemplate{
+			HTTP.Get: {},
+		},
+	},
+
+	EndPoints.AuditLogV1: {
+		URL:           "/audit-log/v1/events?limit=5000",
+		CacheFilename: "/auditlog/events.json",
 		MethodTemplate: map[httpMethodType]MethodTemplate{
 			HTTP.Get: {},
 		},
@@ -746,6 +756,31 @@ func (s *Service) TagBulkApply(assetUUID []string, tagUUID []string) ([]byte, er
 
 		if err != nil {
 			s.Log.Infof("failed to TagBulkApply : http status: %d: %s", status, err)
+			retry := s.sleepBeforeRetry(attempt)
+			return retry, err
+		}
+
+		if status != 200 {
+			msg := fmt.Sprintf("error not implemented! status: %d, %v", status, err)
+			s.Log.Error(msg)
+			return false, errors.New(msg)
+		}
+
+		raw = body
+		return false, nil
+	})
+
+	return raw, err
+}
+
+// AuditLogV1 get the AuditLogV1 from Tenable.io
+func (s *Service) AuditLogV1() ([]byte, error) {
+	var raw []byte
+
+	err := try.Do(func(attempt int) (bool, error) {
+		body, status, err := s.get(EndPoints.AuditLogV1, map[string]string{})
+		if err != nil {
+			s.Log.Infof("failed to audit log v1 list: http status: %d: %s", status, err)
 			retry := s.sleepBeforeRetry(attempt)
 			return retry, err
 		}

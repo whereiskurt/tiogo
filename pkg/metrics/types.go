@@ -25,6 +25,7 @@ var EndPoints = endPointTypes{
 	ScansExportGet:     EndPointType("ScansExportGet"),
 	TagValueCreate:     EndPointType("TagValueCreate"),
 	TagBulkApply:       EndPointType("TagBulkApply"),
+	AuditLogV1:         EndPointType("AuditLogV1"),
 }
 
 type endPointTypes struct {
@@ -48,6 +49,7 @@ type endPointTypes struct {
 	ScansExportGet     EndPointType
 	TagValueCreate     EndPointType
 	TagBulkApply       EndPointType
+	AuditLogV1         EndPointType
 }
 
 func (c EndPointType) String() string {

@@ -840,11 +840,32 @@ type TagBulkJob struct {
 	TagUUID   []string `json:"tags"`
 }
 
-// "errors":[
-// 0:{
-// "property":"value"
-// "rule":"duplicate"
-// "message":"Duplicate tag value 'WINTEL' cannot be be created."
-// }
-// ]
-// "error":"Duplicate tag value 'WINTEL' cannot be be created."
+// AuditLogV1 is described here: https://developer.tenable.com/reference#audit-log-events
+type AuditLogV1 struct {
+	Events []struct {
+		ID          string    `json:"id"`
+		Action      string    `json:"action"`
+		Crud        string    `json:"crud"`
+		IsFailure   bool      `json:"is_failure"`
+		Received    time.Time `json:"received"`
+		Description string    `json:"description"`
+		Actor       struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+		} `json:"actor"`
+		IsAnonymous bool `json:"is_anonymous"`
+		Target      struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+			Type string `json:"type"`
+		} `json:"target"`
+		Fields []struct {
+			Key   string `json:"key"`
+			Value string `json:"value"`
+		} `json:"fields"`
+	} `json:"events"`
+	Pagination struct {
+		Total int `json:"total"`
+		Limit int `json:"limit"`
+	} `json:"pagination"`
+}

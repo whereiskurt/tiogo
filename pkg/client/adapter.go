@@ -632,6 +632,24 @@ func (a *Adapter) Scans(skipOnHit bool, writeOnReturn bool) ([]Scan, error) {
 	return scans, err
 }
 
+// AuditLogV1 calls Tenable.io to get Audit Log
+func (a *Adapter) AuditLogV1(skipOnHit bool, writeOnReturn bool) ([]AuditLogEvent, error) {
+	a.Metrics.ClientInc(metrics.EndPoints.AuditLogV1, metrics.Methods.Service.Get)
+
+	u := NewUnmarshal(a.Config, a.Metrics)
+	var logs []AuditLogEvent
+	raw, err := u.AuditLogV1(skipOnHit, writeOnReturn)
+	if err != nil {
+		a.Config.VM.Log.Errorf("error: failed to get the scan list: %v", err)
+		return logs, err
+	}
+
+	convert := NewConvert()
+	logs, err = convert.ToAuditLogV1Event(raw)
+
+	return logs, err
+}
+
 // ScanDetails will list all the scans matching --name or --regex
 func (a *Adapter) ScanDetails(s *Scan, skipOnHit bool, writeOnReturn bool) (details ScanHistoryDetail, err error) {
 	a.Metrics.ClientInc(metrics.EndPoints.ScansList, metrics.Methods.Service.Get)
@@ -734,7 +752,7 @@ func (a *Adapter) ScansExportGet(s *Scan, histid string, format string, chapters
 	return export, err
 }
 
-// ScansExportGet downloads the prepared
+// ScansExportLargeGet downloads the prepared
 func (a *Adapter) ScansExportLargeGet(s *Scan, histid string, format string, chapters string) (string, error) {
 	a.Metrics.ClientInc(metrics.EndPoints.ScansExportGet, metrics.Methods.Service.Get)
 	u := NewUnmarshal(a.Config, a.Metrics)
