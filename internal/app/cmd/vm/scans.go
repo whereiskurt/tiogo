@@ -134,8 +134,8 @@ SCANS:
 		}
 	DEPTHS:
 		for depth := 0; depth < maxdepth; depth++ {
-			if len(det.History) <= offset+depth {
-				logger.Infof("scan %s has only %d histories (%d doesn't exist)", s.ScanID, len(det.History), offset+depth)
+			if len(det.History)-1 < offset+depth {
+				logger.Infof("scan %s has only %d histories (%d doesn't exist)", s.ScanID, len(det.History), offset+depth+1)
 				break DEPTHS
 			}
 			histid = det.History[offset+depth].HistoryID
